@@ -1,8 +1,8 @@
 VALAC=valac
-VALAFLAGS= -d . --thread -b ../src -o singularity --pkg libnotify --pkg granite --pkg webkitgtk-3.0 --pkg libxml-2.0 --pkg sqlite3 --pkg glib-2.0 --pkg pantheon --pkg unity
+VALAFLAGS= -d . --thread -b ../src -o singularity --pkg webkitgtk-3.0 --pkg libxml-2.0 --pkg sqlheavy-0.1 --pkg glib-2.0 --pkg gee-0.8
 
-vfiles := $(wildcard .src/*.vala) $(wildcard src/*/*.vala)
+vfiles := $(wildcard src/*.vala) $(wildcard src/*/*.vala)
 
-all: $(cobjects)
+all:
 	$(VALAC) $(vfiles) $(VALAFLAGS)
 

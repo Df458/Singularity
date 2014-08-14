@@ -1,32 +1,46 @@
-using Sqlite;
+using SQLHeavy;
 
 public class DatabaseManager {
-	Database db;
-	bool open = false;
+	private Database db;
+	private bool _open = false;
 	
-	public DatabaseManager.from_string(string location) {
-		int err = Database.open(location, out db);
-		if(err != Sqlite.OK) {
-			stderr.printf("IO Error: Cannot open database: %s\n", db.errmsg());
-			return;
+	public bool open { get { return _open; } }
+	
+	public DatabaseManager.from_path(string location) {
+		try {
+			db = new Database(location, FileMode.READ | FileMode.WRITE | FileMode.CREATE);
+		} catch(SQLHeavy.Error e) {
+			stderr.printf("Error creating database: %s\n", e.message);
+		}
+		_open = true;
+	}
+	
+	public Gee.ArrayList<Feed> loadFeeds() {
+		Gee.ArrayList<Feed> feed_list = new Gee.ArrayList<Feed>();
+		
+		try {
+			Query load_query = new Query(db, "SELECT * FROM feeds");
+			for ( QueryResult result = load_query.execute(); !result.finished; result.next() ) {
+				feed_list.add(new Feed.from_db(result));
+			}
+		} catch(SQLHeavy.Error e) {
+			stderr.printf("Error loading feed data: %s\n", e.message);
 		}
 		
-		open = true;
+		return feed_list;
 	}
 	
 	public void loadFeedItems(Feed feed, int item_count = -1, int starting_id = -1) {
-		// TODO: All of this
-		int err = db.exec("", (column_count, values, column_names) => {
-            for (int i = 0; i < n_columns; i++) {
-                stdout.printf ("%s = %s\n", column_names[i], values[i]);
-            }
-            stdout.printf ("\n");
-            return 0;
-        }, null);
-        
-        if(err != Sqlite.OK) {
-			stderr.printf("Database Error: %s\n", db.errmsg());
-			return;
+		try {
+			Query load_query = new Query(db, "SELECT * FROM entries WHERE `feed_id` = :id LIMIT :count");
+			load_query[":id"] = feed.id;
+			load_query[":count"] = item_count;
+			
+			for ( QueryResult result = load_query.execute(); !result.finished; result.next() ) {
+				feed.add_item(new Item.from_db(result));
+			}
+		} catch(SQLHeavy.Error e) {
+			stderr.printf("Error loading item data: %s\n", e.message);
 		}
 	}
 }
