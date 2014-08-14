@@ -15,12 +15,12 @@ public class DatabaseManager {
 		_open = true;
 	}
 	
-	public Gee.ArrayList<Feed> loadFeeds() {
+	public async Gee.ArrayList<Feed> loadFeeds() {
 		Gee.ArrayList<Feed> feed_list = new Gee.ArrayList<Feed>();
 		
 		try {
 			Query load_query = new Query(db, "SELECT * FROM feeds");
-			for ( QueryResult result = load_query.execute(); !result.finished; result.next() ) {
+			for(QueryResult result = yield load_query.execute_async(); !result.finished; result.next() ) {
 				feed_list.add(new Feed.from_db(result));
 			}
 		} catch(SQLHeavy.Error e) {
@@ -32,7 +32,7 @@ public class DatabaseManager {
 	
 	public void loadFeedItems(Feed feed, int item_count = -1, int starting_id = -1) {
 		try {
-			Query load_query = new Query(db, "SELECT * FROM entries WHERE `feed_id` = :id LIMIT :count");
+			Query load_query = new Query(db, "SELECT * FROM entries WHERE `feed_id` = :id ORDER BY rowid DESC LIMIT :count");
 			load_query[":id"] = feed.id;
 			load_query[":count"] = item_count;
 			

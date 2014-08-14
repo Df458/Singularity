@@ -19,6 +19,38 @@ public class Feed {
 			return;
 		}
 	}
+
+	public Feed.from_xml(Xml.Node* node) {
+	    while(node != null && node->name != "rss")
+		node = node->next;
+	    if(node == null)
+		return;
+	    for(node = node->children; node != null; node = node->next) {
+		if(node->type == Xml.ElementType.ELEMENT_NODE) {
+		    for(Xml.Node* dat = node->children; dat != null; dat = dat->next) {
+			if(dat->type == Xml.ElementType.ELEMENT_NODE) {
+			    switch(dat->name) {
+				case "title":
+				    title = getNodeContents(dat);
+				break;
+
+				case "link":
+				    link = getNodeContents(dat);
+				break;
+
+				case "description":
+				    description = getNodeContents(dat);
+				break;
+				
+				default:
+				    stderr.printf("Element <%s> is not currently supported.\n", dat->name);
+				break;
+			    }
+			}
+		    }
+		}
+	    }
+	}
 	
 	public void add_item(Item new_item) {
 		stdout.printf("Adding Item...\n");
