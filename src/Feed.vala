@@ -6,6 +6,7 @@ public class Feed {
 	public string title       { get; set; } //Feed title
 	public string link        { get; set; } //Feed link
 	public string description { get; set; } //Feed description
+	public int item_count {get { return _items.size;  } } //
 	
 	public Feed.from_db(SQLHeavy.QueryResult result) {
 		_items = new Gee.ArrayList<Item>();
@@ -21,6 +22,7 @@ public class Feed {
 	}
 
 	public Feed.from_xml(Xml.Node* node) {
+	    _items = new Gee.ArrayList<Item>();
 	    while(node != null && node->name != "rss")
 		node = node->next;
 	    if(node == null)
@@ -41,6 +43,10 @@ public class Feed {
 				case "description":
 				    description = getNodeContents(dat);
 				break;
+
+				case "item":
+				    add_item(new Item.from_xml(dat));
+				break;
 				
 				default:
 				    stderr.printf("Element <%s> is not currently supported.\n", dat->name);
@@ -50,6 +56,10 @@ public class Feed {
 		    }
 		}
 	    }
+	}
+
+	public Item get(int id) {
+	    return _items[id];
 	}
 	
 	public void add_item(Item new_item) {

@@ -22,7 +22,31 @@ public class Item {
 		}
 	}
 
-	public Item.from_xml(Xml.Node node) {
-	    
+    public Item.from_xml(Xml.Node* node) {
+	for(Xml.Node* dat = node->children; dat != null; dat = dat->next) {
+	    if(dat->type == Xml.ElementType.ELEMENT_NODE) {
+		switch(dat->name) {
+		    case "title":
+			title = getNodeContents(dat);
+		    break;
+
+		    case "link":
+			link = getNodeContents(dat);
+		    break;
+
+		    case "description":
+			description = getNodeContents(dat);
+		    break;
+
+		    case "guid":
+			_guid = getNodeContents(dat);
+		    break;
+		    
+		    default:
+			stderr.printf("Element <%s> is not currently supported.\n", dat->name);
+		    break;
+		}
+	    }
 	}
+    }
 }

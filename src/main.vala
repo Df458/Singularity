@@ -18,7 +18,9 @@ public static int main (string[] args){
 	    stderr.printf("Error: doc is null\n");
 	Feed testfeed = new Feed.from_xml(doc->get_root_element());
 	stdout.printf("%d: %s <%s>\n\"%s\"\n", testfeed.id, testfeed.title, testfeed.link, testfeed.description);
-	manager.saveFeed.begin(testfeed, (obj, res) => {
+	Item item = testfeed.get_item();
+	stdout.printf("%s: %s <%s>\n\"%s\"\n", item.guid, item.title, item.link, item.description);
+	manager.saveFeed.begin(testfeed, true, (obj, res) => {
 	    manager.saveFeed.end(res);
 	    stdout.printf("Save Completed.\n");
 	});
