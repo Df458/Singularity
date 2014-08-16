@@ -64,6 +64,15 @@ public class DatabaseManager {
 
     public async void saveItem(Item item, int feed_id) {
 	try {
+	    Query test_query = new Query(db, "SELECT * FROM entries WHERE `feed_id` = :id AND `guid` = :guid");
+	    test_query[":id"] = feed_id;
+	    test_query[":guid"] = item.guid;
+	    QueryResult test_result = yield test_query.execute_async();
+	    if(!test_result.finished) {
+		stderr.printf("Item <%s> already exists!\n", item.guid);
+		return;
+	    }
+
 	    Query save_query = new Query(db, "INSERT INTO entries (feed_id, title, link, description, guid) VALUES (:id, :title, :link, :description, :guid)");
 	    save_query[":id"] = feed_id;
 	    save_query[":title"] = item.title;
