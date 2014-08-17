@@ -21,7 +21,9 @@ public class DatabaseManager {
 	try {
 	    Query load_query = new Query(db, "SELECT * FROM feeds");
 	    for(QueryResult result = yield load_query.execute_async(); !result.finished; result.next() ) {
-		    feed_list.add(new Feed.from_db(result));
+		Feed f = new Feed.from_db(result);
+		//yield loadFeedItems(f, -1, -1, true);
+		feed_list.add(f);
 	    }
 	} catch(SQLHeavy.Error e) {
 	    stderr.printf("Error loading feed data: %s\n", e.message);
@@ -56,9 +58,13 @@ public class DatabaseManager {
 	    stderr.printf("Error saving feed data: %s\n", e.message);
 	}
 	if(save_items) {
-	    for(int i = 0; i < feed.item_count; ++i) {
-		yield saveItem(feed[i], feed.id);
-	    }
+	    yield saveFeedItems(feed);
+	}
+    }
+
+    public async void saveFeedItems(Feed feed) {
+	for(int i = 0; i < feed.item_count; ++i) {
+	    yield saveItem(feed[i], feed.id);
 	}
     }
 
@@ -69,16 +75,17 @@ public class DatabaseManager {
 	    test_query[":guid"] = item.guid;
 	    QueryResult test_result = yield test_query.execute_async();
 	    if(!test_result.finished) {
-		stderr.printf("Item <%s> already exists!\n", item.guid);
+		//stderr.printf("Item <%s> already exists!\n", item.guid);
 		return;
 	    }
 
-	    Query save_query = new Query(db, "INSERT INTO entries (feed_id, title, link, description, guid) VALUES (:id, :title, :link, :description, :guid)");
+	    Query save_query = new Query(db, "INSERT INTO entries (feed_id, title, link, description, guid, unread) VALUES (:id, :title, :link, :description, :guid, :unread)");
 	    save_query[":id"] = feed_id;
 	    save_query[":title"] = item.title;
 	    save_query[":link"] = item.link;
 	    save_query[":description"] = item.description;
 	    save_query[":guid"] = item.guid;
+	    save_query[":unread"] = item.unread ? 1 : 0;
 	    yield save_query.execute_async();
 	} catch(SQLHeavy.Error e) {
 	    stderr.printf("Error saving feed data: %s\n", e.message);

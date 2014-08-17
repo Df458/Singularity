@@ -7,19 +7,24 @@ public class Item {
 	public string link        { get; set; } //Item link
 	public string description { get; set; } //Item description
 	public string guid { get { return _guid; } } //Unique identifier
+	public bool unread = false;
 	public DateTime time_posted { get { return _time_posted; } }
 	public DateTime time_added  { get { return _time_added;  } }
 	
 	public Item.from_db(SQLHeavy.QueryResult result) {
-		try {
-			title = result.fetch_string(1);
-			link = result.fetch_string(2);
-			description = result.fetch_string(3);
-			_guid = result.fetch_string(8);
-		} catch(SQLHeavy.Error e) {
-			stderr.printf("Error loading feed data: %s\n", e.message);
-			return;
+	    try {
+		title = result.fetch_string(1);
+		link = result.fetch_string(2);
+		description = result.fetch_string(3);
+		_guid = result.fetch_string(8);
+		stdout.printf("%d\n", result.fetch_int(11));
+		if(result.fetch_int(11) == 1) {
+		    unread = true;
 		}
+	    } catch(SQLHeavy.Error e) {
+		stderr.printf("Error loading feed data: %s\n", e.message);
+		return;
+	    }
 	}
 
     public Item.from_xml(Xml.Node* node) {
@@ -43,10 +48,16 @@ public class Item {
 		    break;
 		    
 		    default:
-			stderr.printf("Element <%s> is not currently supported.\n", dat->name);
+			//stderr.printf("Element <%s> is not currently supported.\n", dat->name);
 		    break;
 		}
 	    }
 	}
+	unread = true;
+    }
+
+    public string constructHtml() {
+	string html_string = "<a href=" + link + "><h3>" + title + "</h3></a>\n" + description + "<br/>";
+	return html_string;
     }
 }

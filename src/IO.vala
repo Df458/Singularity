@@ -3,7 +3,7 @@ async Xml.Doc* getXmlData(string url) {
     Soup.Session session = new Soup.Session();
     session.use_thread_context = true;
     Soup.Message message = new Soup.Message("GET", url);
-    stdout.printf("Loading data from %s...\n", url);
+    //stdout.printf("Loading data from %s...\n", url);
     string data = "";
     session.queue_message(message, (session_out, message_out) => {
 	data = (string)message_out.response_body.data;
