@@ -79,13 +79,16 @@ public class DatabaseManager {
 		return;
 	    }
 
-	    Query save_query = new Query(db, "INSERT INTO entries (feed_id, title, link, description, guid, unread) VALUES (:id, :title, :link, :description, :guid, :unread)");
+	    Query save_query = new Query(db, "INSERT INTO entries (feed_id, title, link, description, author, guid, pubdate, unread, savedate) VALUES (:id, :title, :link, :description, :author, :guid, :pubdate, :unread, :savedate)");
 	    save_query[":id"] = feed_id;
 	    save_query[":title"] = item.title;
 	    save_query[":link"] = item.link;
 	    save_query[":description"] = item.description;
+	    save_query[":author"] = item.author;
 	    save_query[":guid"] = item.guid;
+	    save_query[":pubdate"] = item.time_posted.to_unix();
 	    save_query[":unread"] = item.unread ? 1 : 0;
+	    save_query[":savedate"] = item.time_added.to_unix();
 	    yield save_query.execute_async();
 	} catch(SQLHeavy.Error e) {
 	    stderr.printf("Error saving feed data: %s\n", e.message);

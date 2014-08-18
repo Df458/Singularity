@@ -1,3 +1,5 @@
+// TODO: Implement Feed Image stuff
+
 public class Feed {
     private int _id;
     private Gee.ArrayList<Item> _items;
@@ -7,6 +9,10 @@ public class Feed {
     public string link        { get; set; } //Feed link
     public string origin_link        { get; set; } //Feed origin
     public string description { get; set; } //Feed description
+    public Gdk.Pixbuf image { get; set; } //Feed Image
+    public string image_title { get; set; }
+    public string image_link { get; set; }
+
     public int item_count { get { return _items.size;  } } //
     public int unread_count { get { int res = 0; foreach(Item i in _items) if(i.unread) res++; return res; } }
     
