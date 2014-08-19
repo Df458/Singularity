@@ -1,6 +1,6 @@
 public class Item {
 	private string _guid;
-	private DateTime _time_posted;
+	private DateTime _time_posted = new DateTime.from_unix_utc(0);
 	private DateTime _time_added;
 
 	public string title       { get; set; } //Item title
@@ -72,7 +72,13 @@ public class Item {
     }
 
     public string constructHtml() {
-	string html_string = "<a href=" + link + "><h3>" + title + "</h3></a>\n" + description + "<br/>";
+	string html_string = "<a href=" + link + "><h3>" + title + "</h3></a>\n";
+	html_string += "<p>Posted";
+	if(author != "")
+	    html_string += " by " + author;
+	if(_time_posted != new DateTime.from_unix_utc(0))
+	    html_string += " on " + _time_posted.to_string();
+	html_string += "<br/>" + description + "<br/>";
 	return html_string;
     }
 }

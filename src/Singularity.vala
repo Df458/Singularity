@@ -38,6 +38,12 @@ class Singularity {
 	return "<html><body><p>Starred view not implemented yet.</p></body></html>";
     }
 
+    public void removeFeed(int feed_index) {
+	Feed f = feeds[feed_index];
+	db_man.removeFeed.begin(f);
+	feeds.remove(f);
+    }
+
     public int run() {
 	Gtk.main();
 	return 0;

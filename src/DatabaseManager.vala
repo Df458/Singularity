@@ -94,4 +94,18 @@ public class DatabaseManager {
 	    stderr.printf("Error saving feed data: %s\n", e.message);
 	}
     }
+
+    public async void removeFeed(Feed f) {
+	try {
+	    Query feed_rm_query = new Query(db, "DELETE FROM feeds WHERE `id` = :id");
+	    feed_rm_query[":id"] = f.id;
+	    yield feed_rm_query.execute_async();
+	    
+	    Query item_rm_query = new Query(db, "DELETE FROM entries WHERE `feed_id` = :id");
+	    item_rm_query[":id"] = f.id;
+	    yield item_rm_query.execute_async();
+	} catch(SQLHeavy.Error e) {
+	    stderr.printf("Error saving feed data: %s\n", e.message);
+	}
+    }
 }

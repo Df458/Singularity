@@ -11,6 +11,8 @@ class MainWindow : Window {
     private SourceList.Item unread_item;
     private SourceList.Item all_item;
     private SourceList.Item starred_item;
+    private StatusBar status_bar;
+    private Box content_fill;
     private Gee.ArrayList<SourceList.Item> feed_items;
 
     public MainWindow() {
@@ -23,8 +25,28 @@ class MainWindow : Window {
 	top_bar.set_show_close_button(true);
 	set_titlebar(top_bar);
 
+	content_fill = new Box(Orientation.VERTICAL, 0);
+	this.add(content_fill);
+
 	content_pane = new ThinPaned();
-	this.add(content_pane);
+	content_fill.add(content_pane);
+
+
+	Button add_button = new Button.from_icon_name("add", IconSize.MENU);
+	Button rm_button = new Button.from_icon_name("remove", IconSize.MENU);
+	rm_button.set_sensitive(false);
+	rm_button.clicked.connect((ev) => {
+	    app.removeFeed(feed_items.index_of(feed_list.selected));
+	    feed_items.remove(feed_list.selected);
+	    category_all.remove(feed_list.selected);
+	});
+	add_button.clicked.connect((ev) => {
+	});
+	status_bar = new StatusBar();
+	status_bar.set_text("Test Text");
+	status_bar.insert_widget(add_button, true);
+	status_bar.insert_widget(rm_button, true);
+	content_fill.add(status_bar);
 
 	feed_list = new SourceList();
 	category_collection = new SourceList.ExpandableItem("Collections");
@@ -41,6 +63,7 @@ class MainWindow : Window {
 	content_pane.pack1(feed_list, true, false);
 	starred_item.badge = "0";
 	feed_list.item_selected.connect((item) => {
+	    rm_button.set_sensitive(false);
 	    if(item == unread_item)
 		web_view.load_html_string(app.constructUnreadHtml(), "");
 	    else if(item == all_item)
@@ -49,6 +72,7 @@ class MainWindow : Window {
 		web_view.load_html_string(app.constructStarredHtml(), "");
 	    else {
 		web_view.load_html_string(app.constructFeedHtml(feed_items.index_of(item)), "");
+		rm_button.set_sensitive(true);
 	    }
 	});
 
