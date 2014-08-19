@@ -97,6 +97,15 @@ public class DatabaseManager {
 
     public async void removeFeed(Feed f) {
 	try {
+	    // TODO: Save items to expunged table, delete expunged on application end
+	    Query feed_mv_query = new Query(db, "INSERT INTO expungedf SELECT * FROM feeds WHERE `id` = :id");
+	    feed_mv_query[":id"] = f.id;
+	    yield feed_mv_query.execute_async();
+
+	    Query entry_mv_query = new Query(db, "INSERT INTO expungede SELECT * FROM entries WHERE `feed_id` = :id");
+	    entry_mv_query[":id"] = f.id;
+	    yield entry_mv_query.execute_async();
+	    
 	    Query feed_rm_query = new Query(db, "DELETE FROM feeds WHERE `id` = :id");
 	    feed_rm_query[":id"] = f.id;
 	    yield feed_rm_query.execute_async();
@@ -105,7 +114,18 @@ public class DatabaseManager {
 	    item_rm_query[":id"] = f.id;
 	    yield item_rm_query.execute_async();
 	} catch(SQLHeavy.Error e) {
-	    stderr.printf("Error saving feed data: %s\n", e.message);
+	    stderr.printf("Error deleting feed: %s\n", e.message);
+	}
+    }
+
+    public void clearExpunged() {
+	try {
+	    Query ex_rmf = new Query(db, "DELETE FROM expungedf");
+	    Query ex_rme = new Query(db, "DELETE FROM expungede");
+	    ex_rmf.execute();
+	    ex_rme.execute();
+	} catch(SQLHeavy.Error e) {
+	    stderr.printf("Error clearing expunged feeds: %s\n", e.message);
 	}
     }
 }

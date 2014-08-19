@@ -46,6 +46,11 @@ class Singularity {
 
     public int run() {
 	Gtk.main();
+	exit();
 	return 0;
+    }
+
+    public void exit() {
+	db_man.clearExpunged();
     }
 }
