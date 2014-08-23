@@ -92,7 +92,7 @@ public class Feed {
 	for(Xml.Node* dat = node->children; dat != null; dat = dat->next) {
 	    if(dat->type == Xml.ElementType.ELEMENT_NODE) {
 		if(dat->name == "item") {
-		    if(!add_item(new Item.from_xml(dat), true))
+		    if(!this.add_item(new Item.from_xml(dat), true))
 			return;
 		}
 	    }
@@ -115,9 +115,12 @@ public class Feed {
 	foreach(Item i in _items)
 	    if(i.guid == new_item.guid)
 		return false;
-	if(hold)
+	stdout.printf("Item check passed.\n");
+	if(hold == true) {
+	    stdout.printf("Holding...\n");
 	    _items_holding.add(new_item);
-	if(new_item.unread)
+	}
+	if(new_item.unread == true)
 	    _items_unread.add(new_item);
 	_items.add(new_item);
 	return true;
@@ -134,8 +137,10 @@ public class Feed {
 	    i.unread = false;
 	}
 	html_string += "</div>";
-	man.updateUnread.begin(this, _items_unread);
-	_items_unread.clear();
+	man.updateUnread.begin(this, _items_unread, () => {
+	    _items_unread.clear();
+	    app.updateFeedItems(this);
+	});
 	return html_string;
     }
 
@@ -146,8 +151,11 @@ public class Feed {
 		html_string += i.constructHtml();
 	    i.unread = false;
 	}
-	man.updateUnread.begin(this, _items_unread);
-	_items_unread.clear();
+	man.updateUnread.begin(this, _items_unread, () => {
+	    _items_unread.clear();
+	    app.updateFeedItems(this);
+	});
+
 	return html_string;
     }
 }

@@ -132,6 +132,7 @@ public class DatabaseManager {
     }
 
     public async void updateUnread(Feed feed, Gee.ArrayList<Item> items) {
+	stderr.printf("Updating unread... ");
 	foreach(Item item in items) {
 	    try {
 		Query save_query = new Query(db, "UPDATE entries SET unread = :unread WHERE guid = :guid");
@@ -142,5 +143,6 @@ public class DatabaseManager {
 		stderr.printf("Error saving feed data: %s\n", e.message);
 	    }
 	}
+	stderr.printf("done.\n");
     }
 }
