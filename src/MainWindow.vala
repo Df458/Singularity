@@ -15,9 +15,12 @@ class MainWindow : Window {
     private Box content_fill;
     private Gee.ArrayList<SourceList.Item> feed_items;
 
+    private AddPopupWindow add_win;
+
     public MainWindow() {
 	feed_items = new Gee.ArrayList<SourceList.Item>();
 	window_position = WindowPosition.CENTER;
+	set_default_size(800, 600);
 
 	top_bar = new HeaderBar();
 	top_bar.set_title("Singularity");
@@ -31,6 +34,7 @@ class MainWindow : Window {
 	content_pane = new ThinPaned();
 	content_fill.add(content_pane);
 
+	add_win = new AddPopupWindow(this);
 
 	Button add_button = new Button.from_icon_name("add", IconSize.MENU);
 	Button rm_button = new Button.from_icon_name("remove", IconSize.MENU);
@@ -41,6 +45,7 @@ class MainWindow : Window {
 	    category_all.remove(feed_list.selected);
 	});
 	add_button.clicked.connect((ev) => {
+	    add_win.show_all();
 	});
 	status_bar = new StatusBar();
 	status_bar.set_text("Test Text");
@@ -93,16 +98,20 @@ class MainWindow : Window {
 
     public void add_feeds(Gee.ArrayList<Feed> feeds) {
 	foreach(Feed f in feeds) {
-	    SourceList.Item feed_item = new SourceList.Item(f.title);
-	    feed_item.badge = f.unread_count.to_string();
-	    category_all.add(feed_item);
-	    unread_item.badge = (int.parse(unread_item.badge) + f.unread_count).to_string();
-	    feed_items.add(feed_item);
+	    add_feed(f);
 	}
     }
 
+    public void add_feed(Feed f) {
+	SourceList.Item feed_item = new SourceList.Item(f.title);
+	feed_item.badge = f.unread_count.to_string();
+	category_all.add(feed_item);
+	unread_item.badge = (int.parse(unread_item.badge) + f.unread_count).to_string();
+	feed_items.add(feed_item);
+    }
+
     public void updateFeedItem(Feed f, int index) {
-	int unread_diff = f.unread_count + int.parse(feed_items[index].badge);
+	int unread_diff = f.unread_count - int.parse(feed_items[index].badge);
 	unread_item.badge = (int.parse(unread_item.badge) + unread_diff).to_string();
 	feed_items[index].badge = f.unread_count.to_string();
     }

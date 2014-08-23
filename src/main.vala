@@ -28,6 +28,6 @@ public static int main (string[] args){
 	//delete doc;
     //});
     Gtk.init(ref args);
-    app = new Singularity("test.db");
+    app = new Singularity(args);
     return app.run();
 }

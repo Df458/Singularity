@@ -1,35 +1,35 @@
 public class Item {
-	private string _guid;
-	private DateTime _time_posted = new DateTime.from_unix_utc(0);
-	private DateTime _time_added;
+    private string _guid;
+    private DateTime _time_posted = new DateTime.from_unix_utc(0);
+    private DateTime _time_added;
 
-	public string title       { get; set; } //Item title
-	public string link        { get; set; } //Item link
-	public string description { get; set; } //Item description
-	public string author      { get; set; } //Item author
-	public string guid { get { return _guid; } } //Unique identifier
-	public bool unread = false;
-	public DateTime time_posted { get { return _time_posted; } }
-	public DateTime time_added  { get { return _time_added;  } }
-	
-	public Item.from_db(SQLHeavy.QueryResult result) {
-	    try {
-		title = result.fetch_string(1);
-		link = result.fetch_string(2);
-		description = result.fetch_string(3);
-		author = result.fetch_string(4);
-		_guid = result.fetch_string(8);
-		_time_posted = new DateTime.from_unix_utc(result.fetch_int(9));
-		stdout.printf("%d\n", result.fetch_int(11));
-		if(result.fetch_int(11) == 1) {
-		    unread = true;
-		}
-		_time_added = new DateTime.from_unix_utc(result.fetch_int(12));
-	    } catch(SQLHeavy.Error e) {
-		stderr.printf("Error loading feed data: %s\n", e.message);
-		return;
+    public string title       { get; set; } //Item title
+    public string link        { get; set; } //Item link
+    public string description { get; set; } //Item description
+    public string author      { get; set; } //Item author
+    public string guid { get { return _guid; } } //Unique identifier
+    public bool unread = false;
+    public DateTime time_posted { get { return _time_posted; } }
+    public DateTime time_added  { get { return _time_added;  } }	
+    
+    public Item.from_db(SQLHeavy.QueryResult result) {
+	try {
+	    title = result.fetch_string(1);
+	    link = result.fetch_string(2);
+	    description = result.fetch_string(3);
+	    author = result.fetch_string(4);
+	    _guid = result.fetch_string(8);
+	    _time_posted = new DateTime.from_unix_utc(result.fetch_int(9));
+	    stdout.printf("%d\n", result.fetch_int(11));
+	    if(result.fetch_int(11) == 1) {
+		unread = true;
 	    }
+	    _time_added = new DateTime.from_unix_utc(result.fetch_int(12));
+	} catch(SQLHeavy.Error e) {
+	    stderr.printf("Error loading feed data: %s\n", e.message);
+	    return;
 	}
+    }
 
     public Item.from_xml(Xml.Node* node) {
 	_time_added = new DateTime.now_utc();

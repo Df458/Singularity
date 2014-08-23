@@ -3,7 +3,11 @@
 public class Feed {
     private int _id;
     private Gee.ArrayList<Item> _items;
+    private Gee.ArrayList<Item> _items_unread;
+    private Gee.ArrayList<Item> _items_holding;
     
+    public Gee.ArrayList<Item> items { get { return _items; } }
+
     public int id   { get { return _id; } } //Databse entry id
     public string title       { get; set; } //Feed title
     public string link        { get; set; } //Feed link
@@ -14,10 +18,12 @@ public class Feed {
     public string image_link { get; set; }
 
     public int item_count { get { return _items.size;  } } //
-    public int unread_count { get { int res = 0; foreach(Item i in _items) if(i.unread) res++; return res; } }
+    public int unread_count { get { return _items_unread.size; } }
     
     public Feed.from_db(SQLHeavy.QueryResult result) {
 	_items = new Gee.ArrayList<Item>();
+	_items_unread = new Gee.ArrayList<Item>();
+	_items_holding = new Gee.ArrayList<Item>();
 	try {
 	    _id = result.fetch_int(0);
 	    title = result.fetch_string(1);
@@ -30,9 +36,12 @@ public class Feed {
 	}
     }
 
-    public Feed.from_xml(Xml.Node* node, string url) {
+    public Feed.from_xml(Xml.Node* node, string url, int new_id = -1) {
+	_id = new_id;
 	origin_link = url;
 	_items = new Gee.ArrayList<Item>();
+	_items_unread = new Gee.ArrayList<Item>();
+	_items_holding = new Gee.ArrayList<Item>();
 	while(node != null && node->name != "rss")
 	    node = node->next;
 	if(node == null)
@@ -83,24 +92,33 @@ public class Feed {
 	for(Xml.Node* dat = node->children; dat != null; dat = dat->next) {
 	    if(dat->type == Xml.ElementType.ELEMENT_NODE) {
 		if(dat->name == "item") {
-		    if(!add_item(new Item.from_xml(dat)))
+		    if(!add_item(new Item.from_xml(dat), true))
 			return;
 		}
 	    }
 	}
 
-	yield man.saveFeedItems(this);
+	app.updateFeedItems(this);
+
+	stderr.printf("Saving %d items to the database...", _items_holding.size);
+	yield man.saveFeedItems(this, _items_holding);
+	stderr.printf("done.\n");
+	_items_holding.clear();
     }
 
     public Item get(int id) {
 	return _items[id];
     }
     
-    public bool add_item(Item new_item) {
+    public bool add_item(Item new_item, bool hold = false) {
 	stdout.printf("Adding Item...\n");
 	foreach(Item i in _items)
 	    if(i.guid == new_item.guid)
 		return false;
+	if(hold)
+	    _items_holding.add(new_item);
+	if(new_item.unread)
+	    _items_unread.add(new_item);
 	_items.add(new_item);
 	return true;
     }
@@ -109,12 +127,27 @@ public class Feed {
 	return _items[id];
     }
 
-    public string constructHtml() {
-	string html_string = "<html><body>";
+    public string constructHtml(DatabaseManager man) {
+	string html_string = "<div>";
 	foreach(Item i in _items) {
 	    html_string += i.constructHtml();
+	    i.unread = false;
 	}
-	html_string += "</body></html>";
+	html_string += "</div>";
+	man.updateUnread.begin(this, _items_unread);
+	_items_unread.clear();
+	return html_string;
+    }
+
+    public string constructUnreadHtml(DatabaseManager man) {
+	string html_string = "";
+	foreach(Item i in _items) {
+	    if(i.unread == true)
+		html_string += i.constructHtml();
+	    i.unread = false;
+	}
+	man.updateUnread.begin(this, _items_unread);
+	_items_unread.clear();
 	return html_string;
     }
 }

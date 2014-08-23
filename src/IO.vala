@@ -17,7 +17,11 @@ async Xml.Doc* getXmlData(string url) {
 
 string getNodeContents(Xml.Node* node) {
     string output = "";
-    if(node->children->type != Xml.ElementType.TEXT_NODE) {
+    if(node == null || node->children == null){
+	stderr.printf("Unexpected null pointer. Ignoring...\n");
+	return output;
+    }
+    if(node->children->type != Xml.ElementType.TEXT_NODE && node->children->type != Xml.ElementType.CDATA_SECTION_NODE) {
 	stderr.printf("Unexpected element <%s> detected.", node->children->name);
     } else {
 	output = node->children->get_content();

@@ -34,7 +34,7 @@ public class DatabaseManager {
 	
     public async void loadFeedItems(Feed feed, int item_count = -1, int starting_id = -1) {
 	try {
-	    Query load_query = new Query(db, "SELECT * FROM entries WHERE `feed_id` = :id ORDER BY rowid DESC LIMIT :count");
+	    Query load_query = new Query(db, "SELECT * FROM entries WHERE `feed_id` = :id ORDER BY savedate DESC LIMIT :count");
 	    load_query[":id"] = feed.id;
 	    load_query[":count"] = item_count;
 	    
@@ -48,23 +48,24 @@ public class DatabaseManager {
 
     public async void saveFeed(Feed feed, bool save_items = true) {
 	try {
-	    Query save_query = new Query(db, "INSERT INTO feeds (id, title, link, description) VALUES (:id, :title, :link, :description)");
+	    Query save_query = new Query(db, "INSERT INTO feeds (id, title, link, description, origin) VALUES (:id, :title, :link, :description, :origin)");
 	    save_query[":id"] = feed.id;
 	    save_query[":title"] = feed.title;
 	    save_query[":link"] = feed.link;
 	    save_query[":description"] = feed.description;
+	    save_query[":origin"] = feed.origin_link;
 	    yield save_query.execute_async();
 	} catch(SQLHeavy.Error e) {
 	    stderr.printf("Error saving feed data: %s\n", e.message);
 	}
 	if(save_items) {
-	    yield saveFeedItems(feed);
+	    yield saveFeedItems(feed, feed.items);
 	}
     }
 
-    public async void saveFeedItems(Feed feed) {
-	for(int i = 0; i < feed.item_count; ++i) {
-	    yield saveItem(feed[i], feed.id);
+    public async void saveFeedItems(Feed feed, Gee.ArrayList<Item> items) {
+	foreach(Item i in items) {
+	    yield saveItem(i, feed.id);
 	}
     }
 
@@ -75,10 +76,11 @@ public class DatabaseManager {
 	    test_query[":guid"] = item.guid;
 	    QueryResult test_result = yield test_query.execute_async();
 	    if(!test_result.finished) {
-		//stderr.printf("Item <%s> already exists!\n", item.guid);
+		stderr.printf("Item <%s> already exists!\n", item.guid);
 		return;
 	    }
 
+	    stderr.printf("Test succeeded. saving...\n");
 	    Query save_query = new Query(db, "INSERT INTO entries (feed_id, title, link, description, author, guid, pubdate, unread, savedate) VALUES (:id, :title, :link, :description, :author, :guid, :pubdate, :unread, :savedate)");
 	    save_query[":id"] = feed_id;
 	    save_query[":title"] = item.title;
@@ -93,11 +95,11 @@ public class DatabaseManager {
 	} catch(SQLHeavy.Error e) {
 	    stderr.printf("Error saving feed data: %s\n", e.message);
 	}
+	stderr.printf("done.\n");
     }
 
     public async void removeFeed(Feed f) {
 	try {
-	    // TODO: Save items to expunged table, delete expunged on application end
 	    Query feed_mv_query = new Query(db, "INSERT INTO expungedf SELECT * FROM feeds WHERE `id` = :id");
 	    feed_mv_query[":id"] = f.id;
 	    yield feed_mv_query.execute_async();
@@ -126,6 +128,19 @@ public class DatabaseManager {
 	    ex_rme.execute();
 	} catch(SQLHeavy.Error e) {
 	    stderr.printf("Error clearing expunged feeds: %s\n", e.message);
+	}
+    }
+
+    public async void updateUnread(Feed feed, Gee.ArrayList<Item> items) {
+	foreach(Item item in items) {
+	    try {
+		Query save_query = new Query(db, "UPDATE entries SET unread = :unread WHERE guid = :guid");
+		save_query[":guid"] = item.guid;
+		save_query[":unread"] = item.unread ? 1 : 0;
+		yield save_query.execute_async();
+	    } catch(SQLHeavy.Error e) {
+		stderr.printf("Error saving feed data: %s\n", e.message);
+	    }
 	}
     }
 }
