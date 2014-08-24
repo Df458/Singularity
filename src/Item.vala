@@ -20,7 +20,6 @@ public class Item {
 	    author = result.fetch_string(4);
 	    _guid = result.fetch_string(8);
 	    _time_posted = new DateTime.from_unix_utc(result.fetch_int(9));
-	    stdout.printf("%d\n", result.fetch_int(11));
 	    if(result.fetch_int(11) == 1) {
 		unread = true;
 	    }
@@ -31,7 +30,7 @@ public class Item {
 	}
     }
 
-    public Item.from_xml(Xml.Node* node) {
+    public Item.from_rss(Xml.Node* node) {
 	_time_added = new DateTime.now_utc();
 	for(Xml.Node* dat = node->children; dat != null; dat = dat->next) {
 	    if(dat->type == Xml.ElementType.ELEMENT_NODE) {
@@ -60,6 +59,47 @@ public class Item {
 
 		    case "author":
 			author = getNodeContents(dat);
+		    break;
+		    
+		    default:
+			//stderr.printf("Element <%s> is not currently supported.\n", dat->name);
+		    break;
+		}
+	    }
+	}
+	unread = true;
+    }
+
+    public Item.from_atom(Xml.Node* node) {
+	//TODO: Rewrite this to actually use atom
+	_time_added = new DateTime.now_utc();
+	for(Xml.Node* dat = node->children; dat != null; dat = dat->next) {
+	    if(dat->type == Xml.ElementType.ELEMENT_NODE) {
+		switch(dat->name) {
+		    case "title":
+			title = getNodeContents(dat);
+		    break;
+
+		    //case "link":
+			//link = getNodeContents(dat);
+		    //break;
+
+		    //case "description":
+			//description = getNodeContents(dat);
+		    //break;
+
+		    case "id":
+			_guid = getNodeContents(dat);
+		    break;
+
+		    case "updated":
+			//string[] date_strs = getNodeContents(dat).split(" ");
+			//string[] time_strs = date_strs[4].split(":");
+			//_time_posted = new DateTime.utc(int.parse(date_strs[3]), getMonth(date_strs[2]), int.parse(date_strs[1]), int.parse(time_strs[0]), int.parse(time_strs[1]), int.parse(time_strs[2]));
+		    break;
+
+		    case "author":
+			//author = getNodeContents(dat);
 		    break;
 		    
 		    default:

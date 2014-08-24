@@ -42,38 +42,69 @@ public class Feed {
 	_items = new Gee.ArrayList<Item>();
 	_items_unread = new Gee.ArrayList<Item>();
 	_items_holding = new Gee.ArrayList<Item>();
-	while(node != null && node->name != "rss")
+	while(node != null && node->name != "rss" && node->name != "feed")
 	    node = node->next;
 	if(node == null)
 	    return;
-	for(node = node->children; node != null; node = node->next) {
-	    if(node->type == Xml.ElementType.ELEMENT_NODE) {
-		for(Xml.Node* dat = node->children; dat != null; dat = dat->next) {
-		    if(dat->type == Xml.ElementType.ELEMENT_NODE) {
-			switch(dat->name) {
-			    case "title":
-				title = getNodeContents(dat);
-			    break;
+	if(node->name == "rss") {
+	    for(node = node->children; node != null; node = node->next) {
+		if(node->type == Xml.ElementType.ELEMENT_NODE) {
+		    for(Xml.Node* dat = node->children; dat != null; dat = dat->next) {
+			if(dat->type == Xml.ElementType.ELEMENT_NODE) {
+			    switch(dat->name) {
+				case "title":
+				    title = getNodeContents(dat);
+				break;
 
-			    case "link":
-				link = getNodeContents(dat);
-			    break;
+				case "link":
+				    link = getNodeContents(dat);
+				break;
 
-			    case "description":
-				description = getNodeContents(dat);
-			    break;
+				case "description":
+				    description = getNodeContents(dat);
+				break;
 
-			    case "item":
-				if(!add_item(new Item.from_xml(dat))) {
-				    stdout.printf("Duplicate Item. Exiting...\n");
-				    return;
-				}
-			    break;
-			    
-			    default:
-				//stderr.printf("Element <%s> is not currently supported.\n", dat->name);
-			    break;
+				case "item":
+				    if(!add_item(new Item.from_rss(dat))) {
+					stdout.printf("Duplicate Item. Exiting...\n");
+					return;
+				    }
+				break;
+				
+				default:
+				    //stderr.printf("Element <%s> is not currently supported.\n", dat->name);
+				break;
+			    }
 			}
+		    }
+		}
+	    }
+	} else if(node->name == "feed") {
+	    for(node = node->children; node != null; node = node->next) {
+		if(node->type == Xml.ElementType.ELEMENT_NODE) {
+		    switch(node->name) {
+			//case "title":
+			    //title = getNodeContents(dat);
+			//break;
+
+			//case "link":
+			    //link = getNodeContents(dat);
+			//break;
+
+			case "description":
+			    description = getNodeContents(node);
+			break;
+
+			case "entry":
+			    if(!add_item(new Item.from_atom(node))) {
+				stdout.printf("Duplicate Item. Exiting...\n");
+				return;
+			    }
+			break;
+			
+			default:
+			    //stderr.printf("Element <%s> is not currently supported.\n", node->name);
+			break;
 		    }
 		}
 	    }
@@ -92,15 +123,15 @@ public class Feed {
 	for(Xml.Node* dat = node->children; dat != null; dat = dat->next) {
 	    if(dat->type == Xml.ElementType.ELEMENT_NODE) {
 		if(dat->name == "item") {
-		    if(!this.add_item(new Item.from_xml(dat), true))
-			return;
+		    if(!this.add_item(new Item.from_rss(dat), true))
+			break;
 		}
 	    }
 	}
 
 	app.updateFeedItems(this);
 
-	stderr.printf("Saving %d items to the database...", _items_holding.size);
+	stderr.printf("Saving %d items to the database(%d)...", _items_holding.size, _id);
 	yield man.saveFeedItems(this, _items_holding);
 	stderr.printf("done.\n");
 	_items_holding.clear();
@@ -111,11 +142,11 @@ public class Feed {
     }
     
     public bool add_item(Item new_item, bool hold = false) {
-	stdout.printf("Adding Item...\n");
+	//stdout.printf("Adding Item...\n");
 	foreach(Item i in _items)
 	    if(i.guid == new_item.guid)
 		return false;
-	stdout.printf("Item check passed.\n");
+	//stdout.printf("Item check passed.\n");
 	if(hold == true) {
 	    stdout.printf("Holding...\n");
 	    _items_holding.add(new_item);
@@ -146,12 +177,12 @@ public class Feed {
 
     public string constructUnreadHtml(DatabaseManager man) {
 	string html_string = "";
-	foreach(Item i in _items) {
-	    if(i.unread == true)
-		html_string += i.constructHtml();
+	foreach(Item i in _items_unread) {
+	    html_string += i.constructHtml();
 	    i.unread = false;
 	}
 	man.updateUnread.begin(this, _items_unread, () => {
+	    stderr.printf("%d Clear...\n", _id);
 	    _items_unread.clear();
 	    app.updateFeedItems(this);
 	});

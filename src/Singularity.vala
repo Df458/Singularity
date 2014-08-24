@@ -16,9 +16,8 @@ class Singularity {
 	    main_window.add_feeds(feeds);
 	    foreach(Feed f in feeds) {
 		db_man.loadFeedItems.begin(f, -1, -1, (obj, res) => {
-		    db_man.loadFeedItems.end(res);
+		    //db_man.loadFeedItems.end(res);
 		    f.updateFromWeb.begin(db_man);
-		    main_window.updateFeedItem(f, feeds.index_of(f));
 		});
 	    }
 	});
@@ -35,7 +34,7 @@ class Singularity {
 	string html_str = "<html><body>";
 	foreach(Feed f in feeds) {
 	    html_str += f.constructUnreadHtml(db_man);
-	    main_window.updateFeedItem(f, feeds.index_of(f));
+	    //main_window.updateFeedItem(f, feeds.index_of(f));
 	}
 	html_str += "</body></html>";
 	return html_str;

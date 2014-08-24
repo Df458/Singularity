@@ -80,7 +80,7 @@ public class DatabaseManager {
 		return;
 	    }
 
-	    stderr.printf("Test succeeded. saving...\n");
+	    //stderr.printf("Test succeeded. saving...\n");
 	    Query save_query = new Query(db, "INSERT INTO entries (feed_id, title, link, description, author, guid, pubdate, unread, savedate) VALUES (:id, :title, :link, :description, :author, :guid, :pubdate, :unread, :savedate)");
 	    save_query[":id"] = feed_id;
 	    save_query[":title"] = item.title;
@@ -95,7 +95,7 @@ public class DatabaseManager {
 	} catch(SQLHeavy.Error e) {
 	    stderr.printf("Error saving feed data: %s\n", e.message);
 	}
-	stderr.printf("done.\n");
+	//stderr.printf("done.\n");
     }
 
     public async void removeFeed(Feed f) {
@@ -143,6 +143,6 @@ public class DatabaseManager {
 		stderr.printf("Error saving feed data: %s\n", e.message);
 	    }
 	}
-	stderr.printf("done.\n");
+	stderr.printf("done. %d\n", feed.id);
     }
 }
