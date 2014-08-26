@@ -40,9 +40,10 @@ class MainWindow : Window {
 	Button rm_button = new Button.from_icon_name("remove", IconSize.MENU);
 	rm_button.set_sensitive(false);
 	rm_button.clicked.connect((ev) => {
-	    app.removeFeed(feed_items.index_of(feed_list.selected));
-	    feed_items.remove(feed_list.selected);
-	    category_all.remove(feed_list.selected);
+	    var f = feed_list.selected;
+	    app.removeFeed(feed_items.index_of(f));
+	    category_all.remove(f);
+	    feed_items.remove(f);
 	});
 	add_button.clicked.connect((ev) => {
 	    add_win.show_all();
@@ -76,6 +77,8 @@ class MainWindow : Window {
 	    else if(item == starred_item)
 		web_view.load_html_string(app.constructStarredHtml(), "");
 	    else {
+		if(feed_items.index_of(item) < 0)
+		    return;
 		web_view.load_html_string(app.constructFeedHtml(feed_items.index_of(item)), "");
 		rm_button.set_sensitive(true);
 	    }
