@@ -88,7 +88,7 @@ class Singularity {
 
     public void exit() {
 	stderr.printf("Clearing expunged feeds...");
-	//db_man.clearExpunged();
+	db_man.clearExpunged();
 	stderr.printf("done.\n");
     }
 }

@@ -1,6 +1,5 @@
 using SQLHeavy;
 
-// TODO: Create database/tables if missing
 public class DatabaseManager {
     private Database db;
     private bool _open = false;
@@ -10,6 +9,14 @@ public class DatabaseManager {
     public DatabaseManager.from_path(string location) {
 	try {
 	    db = new Database(location, FileMode.READ | FileMode.WRITE | FileMode.CREATE);
+	    Query build_feeds_query = new Query(db, "CREATE TABLE IF NOT EXISTS feeds (id INTEGER, title TEXT, link TEXT, description TEXT, origin TEXT)");
+	    build_feeds_query.execute();
+	    Query build_feeds_expunged_query = new Query(db, "CREATE TABLE IF NOT EXISTS feedsExpunged (id INTEGER, title TEXT, link TEXT, description TEXT, origin TEXT)");
+	    build_feeds_expunged_query.execute();
+	    Query build_entries_query = new Query(db, "CREATE TABLE IF NOT EXISTS entries (feed_id INTEGER, title TEXT, link TEXT, description TEXT, author TEXT, categories TEXT, comments_url TEXT, enclosures TEXT, guid TEXT, pubdate INTEGER, source TEXT, unread INTEGER, savedate INTEGER)");
+	    build_entries_query.execute();
+	    Query build_entries_expunged_query = new Query(db, "CREATE TABLE IF NOT EXISTS entriesExpunged (feed_id INTEGER, title TEXT, link TEXT, description TEXT, author TEXT, categories TEXT, comments_url TEXT, enclosures TEXT, guid TEXT, pubdate INTEGER, source TEXT, unread INTEGER, savedate INTEGER)");
+	    build_entries_expunged_query.execute();
 	} catch(SQLHeavy.Error e) {
 	    stderr.printf("Error creating database: %s\n", e.message);
 	}
@@ -101,11 +108,11 @@ public class DatabaseManager {
 
     public async void removeFeed(Feed f) {
 	try {
-	    Query feed_mv_query = new Query(db, "INSERT INTO expungedf SELECT * FROM feeds WHERE `id` = :id");
+	    Query feed_mv_query = new Query(db, "INSERT INTO feedsExpunged SELECT * FROM feeds WHERE `id` = :id");
 	    feed_mv_query[":id"] = f.id;
 	    yield feed_mv_query.execute_async();
 
-	    Query entry_mv_query = new Query(db, "INSERT INTO expungede SELECT * FROM entries WHERE `feed_id` = :id");
+	    Query entry_mv_query = new Query(db, "INSERT INTO entriesExpunged SELECT * FROM entries WHERE `feed_id` = :id");
 	    entry_mv_query[":id"] = f.id;
 	    yield entry_mv_query.execute_async();
 	    
@@ -123,8 +130,8 @@ public class DatabaseManager {
 
     public void clearExpunged() {
 	try {
-	    Query ex_rmf = new Query(db, "DELETE FROM expungedf");
-	    Query ex_rme = new Query(db, "DELETE FROM expungede");
+	    Query ex_rmf = new Query(db, "DELETE FROM feedsExpunged");
+	    Query ex_rme = new Query(db, "DELETE FROM entriesExpunged");
 	    ex_rmf.execute();
 	    ex_rme.execute();
 	} catch(SQLHeavy.Error e) {

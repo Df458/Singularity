@@ -102,7 +102,9 @@ public class Item {
 		    break;
 
 		    case "author":
-			//author = getNodeContents(dat);
+			for(Xml.Node* a = dat->children; a != null; a = a->next)
+			    if(a->name == "name")
+				author = getNodeContents(a, true);
 		    break;
 		    
 		    default:
