@@ -165,7 +165,7 @@ public class Feed {
     }
 
     public string constructHtml(DatabaseManager man) {
-	string html_string = "<div>";
+	string html_string = "<div class=\"feed\">";
 	foreach(Item i in _items) {
 	    html_string += i.constructHtml();
 	    i.unread = false;
@@ -179,7 +179,7 @@ public class Feed {
     }
 
     public string constructUnreadHtml(DatabaseManager man) {
-	string html_string = "";
+	string html_string = "<div class=\"feed\">";
 	foreach(Item i in _items_unread) {
 	    html_string += i.constructHtml();
 	    i.unread = false;
@@ -189,7 +189,7 @@ public class Feed {
 	    _items_unread.clear();
 	    app.updateFeedItems(this);
 	});
-
+	html_string += "</div>";
 	return html_string;
     }
 }

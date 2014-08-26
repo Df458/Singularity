@@ -118,13 +118,13 @@ public class Item {
     }
 
     public string constructHtml() {
-	string html_string = "<a href=" + link + "><h3>" + title + "</h3></a>\n";
+	string html_string = "<div class=\"item\"><div class=\"item-head\"><a href=" + link + "><h3>" + title + "</h3></a>\n";
 	html_string += "<p>Posted";
 	if(author != "")
 	    html_string += " by " + author;
 	if(_time_posted != new DateTime.from_unix_utc(0))
 	    html_string += " on " + _time_posted.to_string();
-	html_string += "<br/>" + description + "<br/>";
+	html_string += "</div><br/><div class=\"item-content\">" + description + "<br/></div></div>";
 	return html_string;
     }
 }

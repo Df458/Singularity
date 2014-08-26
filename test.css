@@ -1,0 +1,28 @@
+body {
+    background-color: #EEEEEE;
+}
+
+div.feed {
+    margin: 3%;
+}
+
+div.item {
+    background-color: white;
+    border: 1px solid #CCCCCC;
+    border-radius: 3px;
+    box-shadow: 0px 2px 5px #888888;
+    margin: 12px;
+}
+
+div.item-head {
+    padding: 12px;
+}
+
+div.item-content {
+    padding: 12px;
+}
+
+img, object {
+    max-width: 100%;
+    height: auto;
+}
