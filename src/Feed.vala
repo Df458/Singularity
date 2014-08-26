@@ -82,17 +82,19 @@ public class Feed {
 	} else if(node->name == "feed") {
 	    for(node = node->children; node != null; node = node->next) {
 		if(node->type == Xml.ElementType.ELEMENT_NODE) {
+		    stderr.printf("Opening <%s>...", node->name);
 		    switch(node->name) {
-			//case "title":
-			    //title = getNodeContents(dat);
-			//break;
+			case "title":
+			    title = getNodeContents(node, true);
+			break;
 
-			//case "link":
-			    //link = getNodeContents(dat);
-			//break;
+			case "link":
+			    if(node->has_prop("rel")->children->content == "alternate")
+				link = node->has_prop("href")->children->content;
+			break;
 
 			case "description":
-			    description = getNodeContents(node);
+			    description = getNodeContents(node, true);
 			break;
 
 			case "entry":
@@ -106,6 +108,7 @@ public class Feed {
 			    //stderr.printf("Element <%s> is not currently supported.\n", node->name);
 			break;
 		    }
+		    stderr.printf("done\n");
 		}
 	    }
 	}

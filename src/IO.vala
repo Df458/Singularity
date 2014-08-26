@@ -15,13 +15,15 @@ async Xml.Doc* getXmlData(string url) {
     return xml_doc;
 }
 
-string getNodeContents(Xml.Node* node) {
+string getNodeContents(Xml.Node* node, bool atom = false) {
     string output = "";
     if(node == null || node->children == null){
 	stderr.printf("Unexpected null pointer. Ignoring...\n");
 	return output;
     }
-    if(node->children->type != Xml.ElementType.TEXT_NODE && node->children->type != Xml.ElementType.CDATA_SECTION_NODE) {
+    if(atom && node->has_prop("type") != null && node->has_prop("type")->children->content != "text") {
+
+    } else if(node->children->type != Xml.ElementType.TEXT_NODE && node->children->type != Xml.ElementType.CDATA_SECTION_NODE) {
 	stderr.printf("Unexpected element <%s> detected.", node->children->name);
     } else {
 	output = node->children->get_content();

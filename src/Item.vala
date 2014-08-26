@@ -71,31 +71,34 @@ public class Item {
     }
 
     public Item.from_atom(Xml.Node* node) {
-	//TODO: Rewrite this to actually use atom
+	//TODO: Test atom parser
 	_time_added = new DateTime.now_utc();
 	for(Xml.Node* dat = node->children; dat != null; dat = dat->next) {
 	    if(dat->type == Xml.ElementType.ELEMENT_NODE) {
+		stderr.printf("Opening <%s>...", dat->name);
 		switch(dat->name) {
 		    case "title":
-			title = getNodeContents(dat);
+			title = getNodeContents(dat, true);
 		    break;
 
-		    //case "link":
-			//link = getNodeContents(dat);
-		    //break;
+		    case "link": // TODO: Here be segfaults
+			//if(node->has_prop("rel")->children->content == "alternate")
+			    //link = node->has_prop("href")->children->content;
+		    break;
 
-		    //case "description":
-			//description = getNodeContents(dat);
-		    //break;
+		    case "description":
+			description = getNodeContents(dat, true);
+		    break;
 
 		    case "id":
 			_guid = getNodeContents(dat);
 		    break;
 
-		    case "updated":
-			//string[] date_strs = getNodeContents(dat).split(" ");
-			//string[] time_strs = date_strs[4].split(":");
-			//_time_posted = new DateTime.utc(int.parse(date_strs[3]), getMonth(date_strs[2]), int.parse(date_strs[1]), int.parse(time_strs[0]), int.parse(time_strs[1]), int.parse(time_strs[2]));
+		    case "updated": 
+			string[] big_strs = getNodeContents(dat).split("T");
+			string[] date_strs = big_strs[0].split("-");
+			string[] time_strs = big_strs[1].split(":");
+			_time_posted = new DateTime.utc(int.parse(date_strs[0]), int.parse(date_strs[1]), int.parse(date_strs[2]), int.parse(time_strs[0]), int.parse(time_strs[1]), int.parse(time_strs[2]));
 		    break;
 
 		    case "author":
@@ -106,6 +109,7 @@ public class Item {
 			//stderr.printf("Element <%s> is not currently supported.\n", dat->name);
 		    break;
 		}
+		    stderr.printf("done\n");
 	    }
 	}
 	unread = true;

@@ -1,5 +1,6 @@
 using SQLHeavy;
 
+// TODO: Create database/tables if missing
 public class DatabaseManager {
     private Database db;
     private bool _open = false;
