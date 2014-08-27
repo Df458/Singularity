@@ -24,7 +24,7 @@ class MainWindow : Window {
 
 	top_bar = new HeaderBar();
 	top_bar.set_title("Singularity");
-	top_bar.set_subtitle("Awwwwwwww Yeeeeeaaaaaaah!");
+	top_bar.set_subtitle("You have no subscriptions");
 	top_bar.set_show_close_button(true);
 	set_titlebar(top_bar);
 
@@ -44,12 +44,19 @@ class MainWindow : Window {
 	    app.removeFeed(feed_items.index_of(f));
 	    category_all.remove(f);
 	    feed_items.remove(f);
+	    if(feed_items.size > 1) {
+		top_bar.set_subtitle("You have " + feed_items.size.to_string() + " subscriptions");
+	    } else if(feed_items.size == 1) {
+		top_bar.set_subtitle("You have 1 subscription");
+	    } else {
+		top_bar.set_subtitle("You have no subscriptions");
+	    }
 	});
 	add_button.clicked.connect((ev) => {
 	    add_win.show_all();
 	});
 	status_bar = new StatusBar();
-	status_bar.set_text("Test Text");
+	//status_bar.set_text("Test Text");
 	status_bar.insert_widget(add_button, true);
 	status_bar.insert_widget(rm_button, true);
 	content_fill.add(status_bar);
@@ -111,6 +118,11 @@ class MainWindow : Window {
 	category_all.add(feed_item);
 	unread_item.badge = (int.parse(unread_item.badge) + f.unread_count).to_string();
 	feed_items.add(feed_item);
+	if(feed_items.size > 1) {
+	    top_bar.set_subtitle("You have " + feed_items.size.to_string() + " subscriptions");
+	} else {
+	    top_bar.set_subtitle("You have 1 subscription");
+	}
     }
 
     public void updateFeedItem(Feed f, int index) {

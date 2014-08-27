@@ -1,28 +1,38 @@
 using Gee;
-
+//:TODO: 27.08.14 11:26:14, Hugues Ross
+// Update feeds periodically
 class Singularity {
     private ArrayList<Feed> feeds;
     private DatabaseManager db_man;
     private MainWindow main_window;
-    string css_path = "test.css";
+    string css_path;
     string css_dat = "";
 
-    // TODO: Load stylesheet, and apply to views
     public Singularity(string[] args) {
-	string db_path = "test.db";
+	stdout.printf(Environment.get_user_data_dir());
+	//DirUtils.create_with_parents(Environment.get_user_data_dir() + "/singularity_test", 0666);
+	Granite.Services.Paths.initialize("singularity-test", Environment.get_user_data_dir());
+	Granite.Services.Paths.ensure_directory_exists(Granite.Services.Paths.user_data_folder);
+
+	string db_path = Environment.get_user_data_dir() + "/singularity-test/test.db";
+	css_path = Environment.get_user_data_dir() + "/singularity-test/test.css";
 	if(args.length > 1)
 	    db_path = args[1];
 	if(args.length > 2)
 	    css_path = args[2];
 	db_man = new DatabaseManager.from_path(db_path);
 	File file = File.new_for_path(css_path);
-	try {
-	    DataInputStream stream = new DataInputStream(file.read());
-	    string indat;
-	    while((indat = stream.read_line()) != null)
-		css_dat += indat;
-	} catch (Error e) {
-	    error("%s", e.message);
+	if(!file.query_exists()) {
+	    css_dat = "body {background-color: #EEEEEE;} div.feed {margin: 3%;} div.item {background-color: white; border: 1px solid #CCCCCC; border-radius: 3px; box-shadow: 0px 2px 5px #888888; margin: 12px;} div.item-head {padding: 12px;} div.item-content {padding: 12px;} img, object {max-width: 100%; height: auto;}";
+	} else {
+	    try {
+		DataInputStream stream = new DataInputStream(file.read());
+		string indat;
+		while((indat = stream.read_line()) != null)
+		    css_dat += indat;
+	    } catch (Error e) {
+		error("%s", e.message);
+	    }
 	}
 	
 	db_man.loadFeeds.begin((obj, res) =>{
@@ -84,6 +94,7 @@ class Singularity {
 	});
     }
 
+    // TODO: This crashes when it conflicts with certain database operations, such as unread updating.
     public void removeFeed(int feed_index) {
 	Feed f = feeds[feed_index];
 	db_man.removeFeed.begin(f);

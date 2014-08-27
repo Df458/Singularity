@@ -71,7 +71,6 @@ public class Item {
     }
 
     public Item.from_atom(Xml.Node* node) {
-	//TODO: Test atom parser
 	_time_added = new DateTime.now_utc();
 	for(Xml.Node* dat = node->children; dat != null; dat = dat->next) {
 	    if(dat->type == Xml.ElementType.ELEMENT_NODE) {
@@ -81,7 +80,7 @@ public class Item {
 			title = getNodeContents(dat, true);
 		    break;
 
-		    case "link": // TODO: Here be segfaults
+		    case "link":
 			if(dat->has_prop("rel") != null && dat->has_prop("rel")->children->content == "alternate") {
 			    link = dat->has_prop("href")->children->content;
 			    stderr.printf(dat->has_prop("href")->children->content);
