@@ -89,7 +89,7 @@ public class Feed {
 			break;
 
 			case "link":
-			    if(node->has_prop("rel")->children->content == "alternate")
+			    if(node->has_prop("rel") != null && node->has_prop("rel")->children->content == "alternate")
 				link = node->has_prop("href")->children->content;
 			break;
 

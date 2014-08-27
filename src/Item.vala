@@ -82,11 +82,13 @@ public class Item {
 		    break;
 
 		    case "link": // TODO: Here be segfaults
-			//if(node->has_prop("rel")->children->content == "alternate")
-			    //link = node->has_prop("href")->children->content;
+			if(dat->has_prop("rel") != null && dat->has_prop("rel")->children->content == "alternate") {
+			    link = dat->has_prop("href")->children->content;
+			    stderr.printf(dat->has_prop("href")->children->content);
+			}
 		    break;
 
-		    case "description":
+		    case "content":
 			description = getNodeContents(dat, true);
 		    break;
 

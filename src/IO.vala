@@ -22,7 +22,17 @@ string getNodeContents(Xml.Node* node, bool atom = false) {
 	return output;
     }
     if(atom && node->has_prop("type") != null && node->has_prop("type")->children->content != "text") {
+	switch(node->has_prop("type")->children->content) {
+	    // TODO: Add escape support
+	    case "html":
+		output = node->children->get_content();
+	    break;
 
+	    case "xhtml":
+		output = dumpXml(node);
+		stderr.printf(output);
+	    break;
+	}
     } else if(node->children->type != Xml.ElementType.TEXT_NODE && node->children->type != Xml.ElementType.CDATA_SECTION_NODE) {
 	stderr.printf("Unexpected element <%s> detected.", node->children->name);
     } else {
@@ -59,4 +69,23 @@ int getMonth(string month_abbr) {
 	    return 12;
     }
     return -1;
+}
+
+string dumpXml(Xml.Node* node) {
+    string xml_str = "";
+
+    if(node->type == Xml.ElementType.TEXT_NODE || node->type == Xml.ElementType.CDATA_SECTION_NODE)
+	return node->children->get_content();
+    xml_str += "<" + node->name;
+    for(Xml.Attr* a = node->properties; a != null; a = a->next)
+	xml_str += " " + a->name + " =  \"" + a->children->get_content() + "\"";
+    if(node->children == null)
+	xml_str += "/>";
+    else {
+	xml_str += ">";
+	for(Xml.Node* n = node->children; n != null; n = n->next)
+	    xml_str += dumpXml(n);
+	xml_str += "</" + node->name + ">";
+    }
+    return xml_str;
 }
