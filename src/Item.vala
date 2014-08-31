@@ -1,7 +1,7 @@
 public class Item {
-    private string _guid;
+    private string _guid = "";
     private DateTime _time_posted = new DateTime.from_unix_utc(0);
-    private DateTime _time_added;
+    private DateTime _time_added = new DateTime.now_utc();
 
     public string title       { get; set; } //Item title
     public string link        { get; set; } //Item link
@@ -68,6 +68,9 @@ public class Item {
 	    }
 	}
 	unread = true;
+	if(_guid == "") {
+	    _guid = link;
+	}
     }
 
     public Item.from_atom(Xml.Node* node) {
@@ -92,7 +95,7 @@ public class Item {
 		    break;
 
 		    case "id":
-			_guid = getNodeContents(dat);
+			_guid = getNodeContents(dat, true);
 		    break;
 
 		    case "updated": 
@@ -116,6 +119,8 @@ public class Item {
 	    }
 	}
 	unread = true;
+	if(_guid == "")
+	    _guid = link;
     }
 
     public string constructHtml() {

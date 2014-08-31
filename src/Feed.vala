@@ -1,10 +1,16 @@
 // TODO: Implement Feed Image stuff
 
+//:TODO: 27.08.14 15:34:34, Hugues Ross
+// Finish auto-delete feature
 public class Feed {
     private int _id;
     private Gee.ArrayList<Item> _items;
     private Gee.ArrayList<Item> _items_unread;
     private Gee.ArrayList<Item> _items_holding;
+    private string _last_guid;
+    private string _last_guid_post;
+    private DateTime _last_time = new DateTime.from_unix_utc(0);
+    private DateTime _last_time_post = new DateTime.from_unix_utc(0);
     
     public Gee.ArrayList<Item> items { get { return _items; } }
 
@@ -16,6 +22,8 @@ public class Feed {
     public Gdk.Pixbuf image { get; set; } //Feed Image
     public string image_title { get; set; }
     public string image_link { get; set; }
+    public string last_guid { get { return _last_guid; } }
+    public DateTime last_time { get{ return _last_time; } }
 
     public int item_count { get { return _items.size;  } } //
     public int unread_count { get { return _items_unread.size; } }
@@ -30,6 +38,8 @@ public class Feed {
 	    link = result.fetch_string(2);
 	    description = result.fetch_string(3);
 	    origin_link = result.fetch_string(4);
+	    _last_guid = result.fetch_string(5);
+	    _last_time = new DateTime.from_unix_utc(result.fetch_int(6));
 	} catch(SQLHeavy.Error e) {
 	    stderr.printf("Error loading feed data: %s\n", e.message);
 	    return;
@@ -115,6 +125,8 @@ public class Feed {
     }
 
     public async void updateFromWeb(DatabaseManager man) {
+	_last_guid_post = _last_guid;
+	_last_time_post = _last_time;
 	Xml.Doc* doc = yield getXmlData(origin_link);
 	Xml.Node* node = doc->get_root_element();
 
@@ -133,7 +145,9 @@ public class Feed {
 	}
 
 	app.updateFeedItems(this);
-
+	
+	_last_guid = _last_guid_post;
+	_last_time = _last_time_post;
 	stderr.printf("Saving %d items to the database(%d)...", _items_holding.size, _id);
 	yield man.saveFeedItems(this, _items_holding);
 	stderr.printf("done.\n");
@@ -145,17 +159,25 @@ public class Feed {
     }
     
     public bool add_item(Item new_item, bool hold = false) {
-	//stdout.printf("Adding Item...\n");
-	foreach(Item i in _items)
-	    if(i.guid == new_item.guid)
+	if(hold && (new_item.guid == _last_guid || (new_item.time_added.add_months(1).compare(new DateTime.now_utc()) <= 0 && new_item.unread == false))) {
+	    stderr.printf("%s existed, dropping...\n", new_item.title);
+	    return false;
+	}
+	foreach(Item i in _items) {
+	    if(i.guid == new_item.guid) {
 		return false;
-	//stdout.printf("Item check passed.\n");
+	    }
+	}
 	if(hold == true) {
 	    stdout.printf("Holding...\n");
 	    _items_holding.add(new_item);
 	}
 	if(new_item.unread == true)
 	    _items_unread.add(new_item);
+	if(new_item.time_posted.compare(_last_time) > 0) {
+	    _last_time = new_item.time_posted;
+	    _last_guid_post = new_item.guid;
+	}
 	_items.add(new_item);
 	return true;
     }

@@ -68,12 +68,14 @@ class MainWindow : Window {
 	starred_item = new SourceList.Item("Starred");
 	category_collection.add(all_item);
 	category_collection.add(unread_item);
-	category_collection.add(starred_item);
+//:TODO: 30.08.14 13:58:34, Hugues Ross
+// Add starred collections
+	//category_collection.add(starred_item);
 	category_all = new SourceList.ExpandableItem("Subscriptions");
 	feed_list.root.add(category_collection);
 	feed_list.root.add(category_all);
 	feed_list.root.expand_all();
-	content_pane.pack1(feed_list, true, false);
+	content_pane.pack1(feed_list, false, false);
 	starred_item.badge = "0";
 	feed_list.item_selected.connect((item) => {
 	    rm_button.set_sensitive(false);

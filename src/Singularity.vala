@@ -2,6 +2,8 @@ using Gee;
 //:TODO: 27.08.14 11:26:14, Hugues Ross
 // Update feeds periodically
 class Singularity {
+//:TODO: 27.08.14 15:35:13, Hugues Ross
+// Add a variable for auto-delete time
     private ArrayList<Feed> feeds;
     private DatabaseManager db_man;
     private MainWindow main_window;
@@ -34,7 +36,8 @@ class Singularity {
 		error("%s", e.message);
 	    }
 	}
-	
+
+	db_man.removeOld.begin();
 	db_man.loadFeeds.begin((obj, res) =>{
 	    feeds = db_man.loadFeeds.end(res);
 	    stdout.printf("Finished loading feeds.\n");

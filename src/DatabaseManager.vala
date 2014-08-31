@@ -1,6 +1,8 @@
 using SQLHeavy;
 
 public class DatabaseManager {
+//:TODO: 27.08.14 17:23:02, Hugues Ross
+// Test auto-remove feature
     private Database db;
     private bool _open = false;
     
@@ -9,9 +11,9 @@ public class DatabaseManager {
     public DatabaseManager.from_path(string location) {
 	try {
 	    db = new Database(location, FileMode.READ | FileMode.WRITE | FileMode.CREATE);
-	    Query build_feeds_query = new Query(db, "CREATE TABLE IF NOT EXISTS feeds (id INTEGER, title TEXT, link TEXT, description TEXT, origin TEXT)");
+	    Query build_feeds_query = new Query(db, "CREATE TABLE IF NOT EXISTS feeds (id INTEGER, title TEXT, link TEXT, description TEXT, origin TEXT, last_guid TEXT, last_time INTEGER)");
 	    build_feeds_query.execute();
-	    Query build_feeds_expunged_query = new Query(db, "CREATE TABLE IF NOT EXISTS feedsExpunged (id INTEGER, title TEXT, link TEXT, description TEXT, origin TEXT)");
+	    Query build_feeds_expunged_query = new Query(db, "CREATE TABLE IF NOT EXISTS feedsExpunged (id INTEGER, title TEXT, link TEXT, description TEXT, origin TEXT, last_guid TEXT, last_time INTEGER)");
 	    build_feeds_expunged_query.execute();
 	    Query build_entries_query = new Query(db, "CREATE TABLE IF NOT EXISTS entries (feed_id INTEGER, title TEXT, link TEXT, description TEXT, author TEXT, categories TEXT, comments_url TEXT, enclosures TEXT, guid TEXT, pubdate INTEGER, source TEXT, unread INTEGER, savedate INTEGER)");
 	    build_entries_query.execute();
@@ -56,12 +58,14 @@ public class DatabaseManager {
 
     public async void saveFeed(Feed feed, bool save_items = true) {
 	try {
-	    Query save_query = new Query(db, "INSERT INTO feeds (id, title, link, description, origin) VALUES (:id, :title, :link, :description, :origin)");
+	    Query save_query = new Query(db, "INSERT INTO feeds (id, title, link, description, origin, last_guid, last_time) VALUES (:id, :title, :link, :description, :origin, :last_guid, :last_time)");
 	    save_query[":id"] = feed.id;
 	    save_query[":title"] = feed.title;
 	    save_query[":link"] = feed.link;
 	    save_query[":description"] = feed.description;
 	    save_query[":origin"] = feed.origin_link;
+	    save_query[":last_guid"] = feed.last_guid;
+	    save_query[":last_time"] = feed.last_time.to_unix();
 	    yield save_query.execute_async();
 	} catch(SQLHeavy.Error e) {
 	    stderr.printf("Error saving feed data: %s\n", e.message);
@@ -72,6 +76,15 @@ public class DatabaseManager {
     }
 
     public async void saveFeedItems(Feed feed, Gee.ArrayList<Item> items) {
+	try {
+	    Query update_query = new Query(db, "UPDATE feeds SET last_guid = :last_guid, last_time = :last_time WHERE id = :id");
+	    update_query[":last_guid"] = feed.last_guid;
+	    update_query[":last_time"] = feed.last_time.to_unix();
+	    update_query[":id"] = feed.id;
+	    yield update_query.execute_async();
+	} catch(SQLHeavy.Error e) {
+	    stderr.printf("Error updating feed: %s", e.message);
+	}
 	foreach(Item i in items) {
 	    yield saveItem(i, feed.id);
 	}
@@ -152,5 +165,16 @@ public class DatabaseManager {
 	    }
 	}
 	stderr.printf("done. %d\n", feed.id);
+    }
+
+    public async void removeOld() {
+	try {
+	    DateTime cutoff = new DateTime.now_utc().add_months(-1);
+	    Query rm_query = new Query(db, "DELETE FROM entries WHERE savedate < :cutoff");
+	    rm_query[":cutoff"] = cutoff.to_unix();
+	    yield rm_query.execute_async();
+	} catch(SQLHeavy.Error e) {
+	    stderr.printf("Error clearing old items: %s", e.message);
+	}
     }
 }
