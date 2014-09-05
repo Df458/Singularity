@@ -12,6 +12,10 @@ async Xml.Doc* getXmlData(string url) {
     yield;
     //stdout.printf("Data: %s\n", data);
     Xml.Doc* xml_doc = Xml.Parser.parse_doc(data);
+    if(xml_doc == null) {
+	data = data.split("<!DOCTYPE html")[0];
+	xml_doc = Xml.Parser.parse_doc(data);
+    }
     return xml_doc;
 }
 
