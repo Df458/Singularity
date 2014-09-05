@@ -12,7 +12,6 @@ class Singularity {
 
     public Singularity(string[] args) {
 	stdout.printf(Environment.get_user_data_dir());
-	//DirUtils.create_with_parents(Environment.get_user_data_dir() + "/singularity_test", 0666);
 	Granite.Services.Paths.initialize("singularity-test", Environment.get_user_data_dir());
 	Granite.Services.Paths.ensure_directory_exists(Granite.Services.Paths.user_data_folder);
 
@@ -84,9 +83,13 @@ class Singularity {
     public void createFeed(string url) {
 	getXmlData.begin(url, (obj, res) => {
 	    Xml.Doc* doc = getXmlData.end(res);
-	    if(doc == null)
+	    if(doc == null || doc->get_root_element() == null) {
 		stderr.printf("Error: doc is null\n");
+		return;
+	    }
 	    Feed f = new Feed.from_xml(doc->get_root_element(), url, feeds.size);
+	    if(f.failed)
+		return;
 	    db_man.saveFeed.begin(f, true, (obj, res) => {
 		stdout.printf("Save Completed.\n");
 	    });
@@ -97,7 +100,6 @@ class Singularity {
 	});
     }
 
-    // TODO: This crashes when it conflicts with certain database operations, such as unread updating.
     public void removeFeed(int feed_index) {
 	Feed f = feeds[feed_index];
 	db_man.removeFeed.begin(f);

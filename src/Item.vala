@@ -2,15 +2,18 @@ public class Item {
     private string _guid = "";
     private DateTime _time_posted = new DateTime.from_unix_utc(0);
     private DateTime _time_added = new DateTime.now_utc();
+    private bool _empty = true;
 
     public string title       { get; set; } //Item title
     public string link        { get; set; } //Item link
     public string description { get; set; } //Item description
     public string author      { get; set; } //Item author
     public string guid { get { return _guid; } } //Unique identifier
-    public bool unread = false;
+    public bool unread  = false;
+    public bool starred = false;
     public DateTime time_posted { get { return _time_posted; } }
     public DateTime time_added  { get { return _time_added;  } }	
+    public bool empty { get { return _empty; } }
     
     public Item.from_db(SQLHeavy.QueryResult result) {
 	try {
@@ -24,6 +27,7 @@ public class Item {
 		unread = true;
 	    }
 	    _time_added = new DateTime.from_unix_utc(result.fetch_int(12));
+	    _empty = false;
 	} catch(SQLHeavy.Error e) {
 	    stderr.printf("Error loading feed data: %s\n", e.message);
 	    return;
@@ -57,12 +61,20 @@ public class Item {
 			_time_posted = new DateTime.utc(int.parse(date_strs[3]), getMonth(date_strs[2]), int.parse(date_strs[1]), int.parse(time_strs[0]), int.parse(time_strs[1]), int.parse(time_strs[2]));
 		    break;
 
+		    case "date":
+			string[] big_strs = getNodeContents(dat).split("T");
+			string[] date_strs = big_strs[0].split("-");
+			string[] time_strs = big_strs[1].split(":");
+			_time_posted = new DateTime.utc(int.parse(date_strs[0]), int.parse(date_strs[1]), int.parse(date_strs[2]), int.parse(time_strs[0]), int.parse(time_strs[1]), int.parse(time_strs[2]));
+		    break;
+
 		    case "author":
+		    case "creator":
 			author = getNodeContents(dat);
 		    break;
 		    
 		    default:
-			//stderr.printf("Element <%s> is not currently supported.\n", dat->name);
+			stderr.printf("Item element <%s> is not currently supported.\n", dat->name);
 		    break;
 		}
 	    }
@@ -70,7 +82,11 @@ public class Item {
 	unread = true;
 	if(_guid == "") {
 	    _guid = link;
+	    if(link == "" && title != "")
+		_guid = title;
 	}
+	if(_guid != "" || _time_posted != new DateTime.from_unix_utc(0))
+	    _empty = false;
     }
 
     public Item.from_atom(Xml.Node* node) {
@@ -119,8 +135,13 @@ public class Item {
 	    }
 	}
 	unread = true;
-	if(_guid == "")
+	if(_guid == "") {
 	    _guid = link;
+	    if(link == "" && title != "")
+		_guid = title;
+	}
+	if(_guid != "" || time_posted != new DateTime.from_unix_utc(0))
+	    _empty = false;
     }
 
     public string constructHtml() {

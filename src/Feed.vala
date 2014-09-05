@@ -1,7 +1,5 @@
-// TODO: Implement Feed Image stuff
-
-//:TODO: 27.08.14 15:34:34, Hugues Ross
-// Finish auto-delete feature
+//:TODO: 05.09.14 08:11:23, Hugues Ross
+// Add a full implementation of the various feed standards
 public class Feed {
     private int _id;
     private Gee.ArrayList<Item> _items;
@@ -27,6 +25,8 @@ public class Feed {
 
     public int item_count { get { return _items.size;  } } //
     public int unread_count { get { return _items_unread.size; } }
+
+    public bool failed = false;
     
     public Feed.from_db(SQLHeavy.QueryResult result) {
 	_items = new Gee.ArrayList<Item>();
@@ -52,10 +52,15 @@ public class Feed {
 	_items = new Gee.ArrayList<Item>();
 	_items_unread = new Gee.ArrayList<Item>();
 	_items_holding = new Gee.ArrayList<Item>();
-	while(node != null && node->name != "rss" && node->name != "feed")
+
+	while(node != null && node->name != "rss" && node->name != "RDF" && node->name != "feed") {
 	    node = node->next;
-	if(node == null)
+	}
+	if(node == null) {
+	    stderr.printf("Error: No defining node was found\n");
+	    failed = true;
 	    return;
+	}
 	if(node->name == "rss") {
 	    for(node = node->children; node != null; node = node->next) {
 		if(node->type == Xml.ElementType.ELEMENT_NODE) {
@@ -75,14 +80,15 @@ public class Feed {
 				break;
 
 				case "item":
+				stderr.printf("Adding item...\n");
 				    if(!add_item(new Item.from_rss(dat))) {
-					stdout.printf("Duplicate Item. Exiting...\n");
+					stderr.printf("Duplicate Item. Exiting...\n");
 					return;
 				    }
 				break;
 				
 				default:
-				    //stderr.printf("Element <%s> is not currently supported.\n", dat->name);
+				    stderr.printf("Feed element <%s> is not currently supported.\n", dat->name);
 				break;
 			    }
 			}
@@ -121,7 +127,50 @@ public class Feed {
 		    stderr.printf("done\n");
 		}
 	    }
+	} else if(node->name == "RDF") {
+	    for(; node != null; node = node->next) {
+		if(node->type == Xml.ElementType.ELEMENT_NODE) {
+		    for(Xml.Node* dat = node->children; dat != null; dat = dat->next) {
+			if(dat->type == Xml.ElementType.ELEMENT_NODE) {
+			    switch(dat->name) {
+				case "channel":
+				    for(Xml.Node* cdat = dat->children; cdat != null; cdat = cdat->next)
+					if(cdat->type == Xml.ElementType.ELEMENT_NODE) {
+					    switch(cdat->name) {
+						case "title":
+						    title = getNodeContents(cdat);
+						break;
+
+						case "link":
+						    link = getNodeContents(cdat);
+						break;
+
+						case "description":
+						    description = getNodeContents(cdat);
+						break;
+					    }
+					}
+				break;
+
+				case "item":
+				stderr.printf("Adding item...\n");
+				    if(!add_item(new Item.from_rss(dat))) {
+					stderr.printf("Duplicate Item. Exiting...\n");
+					return;
+				    }
+				break;
+				
+				default:
+				    stderr.printf("Feed element <%s> is not currently supported.\n", dat->name);
+				break;
+			    }
+			}
+		    }
+		}
+	    }
 	}
+	if(title == null)
+	    title = "Untitled Feed";
     }
 
     public async void updateFromWeb(DatabaseManager man) {
@@ -148,10 +197,12 @@ public class Feed {
 	
 	_last_guid = _last_guid_post;
 	_last_time = _last_time_post;
-	stderr.printf("Saving %d items to the database(%d)...", _items_holding.size, _id);
-	yield man.saveFeedItems(this, _items_holding);
-	stderr.printf("done.\n");
-	_items_holding.clear();
+	if(_items_holding.size != 0) {
+	    //stderr.printf("Saving %d items to the database(%d)...", _items_holding.size, _id);
+	    yield man.saveFeedItems(this, _items_holding);
+	    //stderr.printf("done.\n");
+	    _items_holding.clear();
+	}
     }
 
     public Item get(int id) {
@@ -159,8 +210,10 @@ public class Feed {
     }
     
     public bool add_item(Item new_item, bool hold = false) {
-	if(hold && (new_item.guid == _last_guid || (new_item.time_added.add_months(1).compare(new DateTime.now_utc()) <= 0 && new_item.unread == false))) {
-	    stderr.printf("%s existed, dropping...\n", new_item.title);
+	if(hold && (new_item.guid == _last_guid || 
+	(new_item.time_added.add_months(1).compare(new DateTime.now_utc()) <= 0 && new_item.unread == false && new_item.starred == false)
+	|| new_item.empty == true)) {
+	    stderr.printf("dropping %s ...\n", new_item.title);
 	    return false;
 	}
 	foreach(Item i in _items) {
@@ -207,7 +260,7 @@ public class Feed {
 	    i.unread = false;
 	}
 	man.updateUnread.begin(this, _items_unread, () => {
-	    stderr.printf("%d Clear...\n", _id);
+	    //stderr.printf("%d Clear...\n", _id);
 	    _items_unread.clear();
 	    app.updateFeedItems(this);
 	});
