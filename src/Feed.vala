@@ -26,7 +26,7 @@ public class Feed {
     public int item_count { get { return _items.size;  } } //
     public int unread_count { get { return _items_unread.size; } }
 
-    public bool failed = false;
+    public int status = 0; //0:standby 1:download 2:success 3:failure
     
     public Feed.from_db(SQLHeavy.QueryResult result) {
 	_items = new Gee.ArrayList<Item>();
@@ -58,7 +58,7 @@ public class Feed {
 	}
 	if(node == null) {
 	    stderr.printf("Error: No defining node was found\n");
-	    failed = true;
+	    status = 3;
 	    return;
 	}
 	if(node->name == "rss") {
@@ -176,23 +176,47 @@ public class Feed {
     public async void updateFromWeb(DatabaseManager man) {
 	_last_guid_post = _last_guid;
 	_last_time_post = _last_time;
+	status = 1;
+	app.updateFeedIcons(this);
 	Xml.Doc* doc = yield getXmlData(origin_link);
 	Xml.Node* node = doc->get_root_element();
 
-	while(node != null && node->name != "rss")
+	while(node != null && node->name != "rss" && node->name != "RDF" && node->name != "feed")
 	    node = node->next;
-	if(node == null)
+	if(node == null) {
+	    status = 3;
+	    app.updateFeedIcons(this);
 	    return;
-	node = node->children;
-	for(Xml.Node* dat = node->children; dat != null; dat = dat->next) {
-	    if(dat->type == Xml.ElementType.ELEMENT_NODE) {
-		if(dat->name == "item") {
-		    if(!this.add_item(new Item.from_rss(dat), true))
-			break;
+	}
+	if(node->name == "rss" || node->name == "RDF") {
+	    node = node->name == "rss" ? node->children : node;
+	    for(Xml.Node* dat = node->children; dat != null; dat = dat->next) {
+		if(dat->type == Xml.ElementType.ELEMENT_NODE) {
+		    if(dat->name == "item") {
+			if(!this.add_item(new Item.from_rss(dat), true)) {
+			    status = 0;
+			    app.updateFeedIcons(this);
+			    break;
+			}
+		    }
+		}
+	    }
+	} else if(node->name == "feed") {
+	    for(Xml.Node* dat = node->children; dat != null; dat = dat->next) {
+		if(dat->type == Xml.ElementType.ELEMENT_NODE) {
+		    if(dat->name == "entry") {
+			if(!this.add_item(new Item.from_atom(dat), true)) {
+			    status = 0;
+			    app.updateFeedIcons(this);
+			    break;
+			}
+		    }
 		}
 	    }
 	}
-
+	if(status != 3)
+	    status = 2;
+	app.updateFeedIcons(this);
 	app.updateFeedItems(this);
 	
 	_last_guid = _last_guid_post;

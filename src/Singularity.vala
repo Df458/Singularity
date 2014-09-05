@@ -88,7 +88,7 @@ class Singularity {
 		return;
 	    }
 	    Feed f = new Feed.from_xml(doc->get_root_element(), url, feeds.size);
-	    if(f.failed)
+	    if(f.status == 3)
 		return;
 	    db_man.saveFeed.begin(f, true, (obj, res) => {
 		stdout.printf("Save Completed.\n");
@@ -114,6 +114,10 @@ class Singularity {
 
     public void updateFeedItems(Feed f) {
 	main_window.updateFeedItem(f, feeds.index_of(f));
+    }
+
+    public void updateFeedIcons(Feed f) {
+	main_window.updateFeedIcon(feeds.index_of(f), f.status);
     }
 
     public void exit() {

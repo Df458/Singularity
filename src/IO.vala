@@ -27,7 +27,8 @@ string getNodeContents(Xml.Node* node, bool atom = false) {
     }
     if(atom && node->has_prop("type") != null && node->has_prop("type")->children->content != "text") {
 	switch(node->has_prop("type")->children->content) {
-	    // TODO: Add escape support
+//:TODO: 05.09.14 11:25:16, Hugues Ross
+// Add support for HTML escapes
 	    case "html":
 		output = node->children->get_content();
 	    break;

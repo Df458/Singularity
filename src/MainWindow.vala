@@ -1,7 +1,8 @@
 using Gtk;
+using Gdk;
 using Granite.Widgets;
 
-class MainWindow : Window {
+class MainWindow : Gtk.Window {
     private HeaderBar top_bar;
     private ThinPaned content_pane;
     private WebKit.WebView web_view;
@@ -14,6 +15,9 @@ class MainWindow : Window {
     private StatusBar status_bar;
     private Box content_fill;
     private Gee.ArrayList<SourceList.Item> feed_items;
+    private Gdk.Pixbuf icon_download;
+    private Gdk.Pixbuf icon_success;
+    private Gdk.Pixbuf icon_failure;
 
     private AddPopupWindow add_win;
 
@@ -104,7 +108,13 @@ class MainWindow : Window {
 	this.destroy.connect(() => {
 	    Gtk.main_quit();
 	});
-
+	try {
+	    icon_download = new Pixbuf.from_file(Environment.get_user_data_dir() + "/singularity-test/emblem_download.png");
+	    icon_failure = new Pixbuf.from_file(Environment.get_user_data_dir() + "/singularity-test/emblem_failure.png");
+	    icon_success = new Pixbuf.from_file(Environment.get_user_data_dir() + "/singularity-test/emblem_success.png");
+	} catch(Error e) {
+	    stderr.printf(e.message);
+	}
 	this.show_all();
     }
 
@@ -131,5 +141,22 @@ class MainWindow : Window {
 	int unread_diff = f.unread_count - int.parse(feed_items[index].badge);
 	unread_item.badge = (int.parse(unread_item.badge) + unread_diff).to_string();
 	feed_items[index].badge = f.unread_count.to_string();
+    }
+
+    public void updateFeedIcon(int index, int icon) {
+	switch(icon) {
+	    case 0:
+		feed_items[index].icon = null;
+	    break;
+	    case 1:
+		feed_items[index].icon = icon_download;
+	    break;
+	    case 2:
+		feed_items[index].icon = icon_success;
+	    break;
+	    case 3:
+		feed_items[index].icon = icon_failure;
+	    break;
+	}
     }
 }
