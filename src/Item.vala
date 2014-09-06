@@ -57,14 +57,24 @@ public class Item {
 
 		    case "pubDate":
 			string[] date_strs = getNodeContents(dat).split(" ");
+			if(date_strs.length < 5)
+			    break;
 			string[] time_strs = date_strs[4].split(":");
+			if(time_strs.length < 3)
+			    break;
 			_time_posted = new DateTime.utc(int.parse(date_strs[3]), getMonth(date_strs[2]), int.parse(date_strs[1]), int.parse(time_strs[0]), int.parse(time_strs[1]), int.parse(time_strs[2]));
 		    break;
 
 		    case "date":
 			string[] big_strs = getNodeContents(dat).split("T");
+			if(big_strs.length < 2)
+			    break;
 			string[] date_strs = big_strs[0].split("-");
+			if(date_strs.length < 3)
+			    break;
 			string[] time_strs = big_strs[1].split(":");
+			if(time_strs.length < 3)
+			    break;
 			_time_posted = new DateTime.utc(int.parse(date_strs[0]), int.parse(date_strs[1]), int.parse(date_strs[2]), int.parse(time_strs[0]), int.parse(time_strs[1]), int.parse(time_strs[2]));
 		    break;
 
@@ -74,7 +84,7 @@ public class Item {
 		    break;
 		    
 		    default:
-			stderr.printf("Item element <%s> is not currently supported.\n", dat->name);
+			//stderr.printf("Item element <%s> is not currently supported.\n", dat->name);
 		    break;
 		}
 	    }
@@ -93,7 +103,6 @@ public class Item {
 	_time_added = new DateTime.now_utc();
 	for(Xml.Node* dat = node->children; dat != null; dat = dat->next) {
 	    if(dat->type == Xml.ElementType.ELEMENT_NODE) {
-		stderr.printf("Opening <%s>...", dat->name);
 		switch(dat->name) {
 		    case "title":
 			title = getNodeContents(dat, true);
@@ -131,7 +140,6 @@ public class Item {
 			//stderr.printf("Element <%s> is not currently supported.\n", dat->name);
 		    break;
 		}
-		    stderr.printf("done\n");
 	    }
 	}
 	unread = true;

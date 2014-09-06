@@ -11,7 +11,6 @@ class Singularity {
     string css_dat = "";
 
     public Singularity(string[] args) {
-	stdout.printf(Environment.get_user_data_dir());
 	Granite.Services.Paths.initialize("singularity-test", Environment.get_user_data_dir());
 	Granite.Services.Paths.ensure_directory_exists(Granite.Services.Paths.user_data_folder);
 
@@ -90,9 +89,7 @@ class Singularity {
 	    Feed f = new Feed.from_xml(doc->get_root_element(), url, feeds.size);
 	    if(f.status == 3)
 		return;
-	    db_man.saveFeed.begin(f, true, (obj, res) => {
-		stdout.printf("Save Completed.\n");
-	    });
+	    db_man.saveFeed.begin(f, true);
 	    feeds.add(f);
 	    main_window.add_feed(f);
 	    main_window.updateFeedItem(f, feeds.index_of(f));

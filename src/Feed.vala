@@ -169,11 +169,13 @@ public class Feed {
 		}
 	    }
 	}
+	_last_guid = _last_guid_post;
 	if(title == null)
 	    title = "Untitled Feed";
     }
 
     public async void updateFromWeb(DatabaseManager man) {
+	stdout.printf("Updating %s\n", title);
 	_last_guid_post = _last_guid;
 	_last_time_post = _last_time;
 	status = 1;
@@ -190,6 +192,15 @@ public class Feed {
 	}
 	if(node->name == "rss" || node->name == "RDF") {
 	    node = node->name == "rss" ? node->children : node;
+	    while(node != null && node->type != Xml.ElementType.ELEMENT_NODE)
+		node = node->next;
+	    if(node == null) {
+		stderr.printf("ERROR");
+		status = 3;
+		app.updateFeedIcons(this);
+		return;
+	    }
+
 	    for(Xml.Node* dat = node->children; dat != null; dat = dat->next) {
 		if(dat->type == Xml.ElementType.ELEMENT_NODE) {
 		    if(dat->name == "item") {
@@ -222,9 +233,7 @@ public class Feed {
 	_last_guid = _last_guid_post;
 	_last_time = _last_time_post;
 	if(_items_holding.size != 0) {
-	    //stderr.printf("Saving %d items to the database(%d)...", _items_holding.size, _id);
 	    yield man.saveFeedItems(this, _items_holding);
-	    //stderr.printf("done.\n");
 	    _items_holding.clear();
 	}
     }
@@ -237,7 +246,7 @@ public class Feed {
 	if(hold && (new_item.guid == _last_guid || 
 	(new_item.time_added.add_months(1).compare(new DateTime.now_utc()) <= 0 && new_item.unread == false && new_item.starred == false)
 	|| new_item.empty == true)) {
-	    stderr.printf("dropping %s ...\n", new_item.title);
+	    //stderr.printf("dropping %s ...\n", new_item.title);
 	    return false;
 	}
 	foreach(Item i in _items) {
@@ -246,7 +255,6 @@ public class Feed {
 	    }
 	}
 	if(hold == true) {
-	    stdout.printf("Holding...\n");
 	    _items_holding.add(new_item);
 	}
 	if(new_item.unread == true)

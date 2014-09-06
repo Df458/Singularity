@@ -3,14 +3,12 @@ async Xml.Doc* getXmlData(string url) {
     Soup.Session session = new Soup.Session();
     session.use_thread_context = true;
     Soup.Message message = new Soup.Message("GET", url);
-    //stdout.printf("Loading data from %s...\n", url);
     string data = "";
     session.queue_message(message, (session_out, message_out) => {
 	data = (string)message_out.response_body.data;
 	Idle.add((owned) callback);
     });
     yield;
-    //stdout.printf("Data: %s\n", data);
     Xml.Doc* xml_doc = Xml.Parser.parse_doc(data);
     if(xml_doc == null) {
 	data = data.split("<!DOCTYPE html")[0];
@@ -35,7 +33,6 @@ string getNodeContents(Xml.Node* node, bool atom = false) {
 
 	    case "xhtml":
 		output = dumpXml(node);
-		stderr.printf(output);
 	    break;
 	}
     } else if(node->children->type != Xml.ElementType.TEXT_NODE && node->children->type != Xml.ElementType.CDATA_SECTION_NODE) {
