@@ -105,20 +105,21 @@ class MainWindow : Gtk.Window {
 	    return true;
 	});
 
-//:TODO: 06.09.14 08:28:12, Hugues Ross
-// Open link in browser if the user clicked it
-	//web_view.decide_policy.connect((decision, type) => {
-	    //if(type == WebKit.PolicyDecisionType.NAVIGATION_ACTION) {
-		//WebKit.NavigationPolicyDecision nav_dec = (WebKit.NavigationPolicyDecision) decision;
-		//try {
-		    //GLib.Process.spawn_command_line_async("xdg-open " + nav_dec.get_navigation_action().get_request().uri);
-		//} catch(Error e) {
-		    //stderr.printf(e.message);
-		//}
-		//return true;
-	    //}
-	    //return false;
-	//});
+	web_view.decide_policy.connect((decision, type) => {
+	    if(type == WebKit.PolicyDecisionType.NAVIGATION_ACTION) {
+		WebKit.NavigationPolicyDecision nav_dec = (WebKit.NavigationPolicyDecision) decision;
+		if(nav_dec.get_navigation_action().get_navigation_type() != WebKit.NavigationType.LINK_CLICKED)
+		    return false;
+		try {
+		    GLib.Process.spawn_command_line_async("xdg-open " + nav_dec.get_navigation_action().get_request().uri);
+		    nav_dec.ignore();
+		} catch(Error e) {
+		    stderr.printf(e.message);
+		}
+		return true;
+	    }
+	    return false;
+	});
 	ScrolledWindow scroll = new ScrolledWindow(null, null);
 	scroll.add(web_view);
 	content_pane.add2(scroll);
