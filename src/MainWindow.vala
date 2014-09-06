@@ -84,23 +84,41 @@ class MainWindow : Gtk.Window {
 	feed_list.item_selected.connect((item) => {
 	    rm_button.set_sensitive(false);
 	    if(item == unread_item)
-		web_view.load_html_string(app.constructUnreadHtml(), "");
+		web_view.load_html(app.constructUnreadHtml(), "");
 	    else if(item == all_item)
-		web_view.load_html_string(app.constructAllHtml(), "");
+		web_view.load_html(app.constructAllHtml(), "");
 	    else if(item == starred_item)
-		web_view.load_html_string(app.constructStarredHtml(), "");
+		web_view.load_html(app.constructStarredHtml(), "");
 	    else {
 		if(feed_items.index_of(item) < 0)
 		    return;
-		web_view.load_html_string(app.constructFeedHtml(feed_items.index_of(item)), "");
+		web_view.load_html(app.constructFeedHtml(feed_items.index_of(item)), "");
 		rm_button.set_sensitive(true);
 	    }
 	});
 
 	web_view = new WebKit.WebView();
-	WebKit.WebSettings view_settings = new WebKit.WebSettings();
-	view_settings.enable_default_context_menu = false;
+	WebKit.Settings view_settings = new WebKit.Settings();
 	web_view.set_settings(view_settings);
+//Prevent context menu from being displayed
+	web_view.context_menu.connect(()=>{
+	    return true;
+	});
+
+//:TODO: 06.09.14 08:28:12, Hugues Ross
+// Open link in browser if the user clicked it
+	//web_view.decide_policy.connect((decision, type) => {
+	    //if(type == WebKit.PolicyDecisionType.NAVIGATION_ACTION) {
+		//WebKit.NavigationPolicyDecision nav_dec = (WebKit.NavigationPolicyDecision) decision;
+		//try {
+		    //GLib.Process.spawn_command_line_async("xdg-open " + nav_dec.get_navigation_action().get_request().uri);
+		//} catch(Error e) {
+		    //stderr.printf(e.message);
+		//}
+		//return true;
+	    //}
+	    //return false;
+	//});
 	ScrolledWindow scroll = new ScrolledWindow(null, null);
 	scroll.add(web_view);
 	content_pane.add2(scroll);

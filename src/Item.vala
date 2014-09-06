@@ -85,7 +85,7 @@ public class Item {
 	    if(link == "" && title != "")
 		_guid = title;
 	}
-	if(_guid != "" || _time_posted != new DateTime.from_unix_utc(0))
+	if(_guid != "")
 	    _empty = false;
     }
 
