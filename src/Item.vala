@@ -9,6 +9,7 @@ public class Item {
     public string description { get; set; } //Item description
     public string author      { get; set; } //Item author
     public string guid { get { return _guid; } } //Unique identifier
+    public Feed feed { get; set; }
     public bool unread  = false;
     public bool starred = false;
     public DateTime time_posted { get { return _time_posted; } }
@@ -56,6 +57,7 @@ public class Item {
 		    break;
 
 		    case "pubDate":
+			//stderr.printf(getNodeContents(dat));
 			string[] date_strs = getNodeContents(dat).split(" ");
 			if(date_strs.length < 5)
 			    break;
@@ -90,10 +92,14 @@ public class Item {
 	    }
 	}
 	unread = true;
-	if(_guid == "") {
+	if(_guid == "" || _guid == null) {
 	    _guid = link;
-	    if(link == "" && title != "")
+	    if(link == "" || link == null) {
 		_guid = title;
+		if(title == "" || title == null) {
+		    _guid = "";
+		}
+	    }
 	}
 	if(_guid != "")
 	    _empty = false;
@@ -109,7 +115,7 @@ public class Item {
 		    break;
 
 		    case "link":
-			if(dat->has_prop("rel") != null && dat->has_prop("rel")->children->content == "alternate") {
+			if(dat->has_prop("rel") == null || dat->has_prop("rel")->children->content == "alternate") {
 			    link = dat->has_prop("href")->children->content;
 			    stderr.printf(dat->has_prop("href")->children->content);
 			}
@@ -124,6 +130,9 @@ public class Item {
 		    break;
 
 		    case "updated": 
+			stderr.printf(getNodeContents(dat));
+			if(getNodeContents(dat) == null)
+			    break;
 			string[] big_strs = getNodeContents(dat).split("T");
 			string[] date_strs = big_strs[0].split("-");
 			string[] time_strs = big_strs[1].split(":");
@@ -153,13 +162,14 @@ public class Item {
     }
 
     public string constructHtml() {
-	string html_string = "<div class=\"item\"><div class=\"item-head\"><a href=" + link + "><h3>" + title + "</h3></a>\n";
+	string html_string = "<div class=\"singularity-item\"><div class=\"item-head\" viewed=\"" + (unread ? "false" : "true") +"\"><a href=" + link + "><h3>" + title + "</h3></a>\n";
 	html_string += "<p>Posted";
 	if(author != "")
 	    html_string += " by " + author;
 	if(_time_posted != new DateTime.from_unix_utc(0))
 	    html_string += " on " + _time_posted.to_string();
 	html_string += "</div><br/><div class=\"item-content\">" + description + "<br/></div></div>";
+	app.addToView(this);
 	return html_string;
     }
 }

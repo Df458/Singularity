@@ -17,7 +17,10 @@ public class Feed {
     public string link        { get; set; } //Feed link
     public string origin_link        { get; set; } //Feed origin
     public string description { get; set; } //Feed description
-    public Gdk.Pixbuf image { get; set; } //Feed Image
+//:TODO: 08.09.14 07:28:34, Hugues Ross
+// Move the Pixbuf to MainWindow
+    //public Gdk.Pixbuf image { get; set; } //Feed Image
+    public string image_uri { get; set; }
     public string image_title { get; set; }
     public string image_link { get; set; }
     public string last_guid { get { return _last_guid; } }
@@ -263,6 +266,7 @@ public class Feed {
 	    _last_time = new_item.time_posted;
 	    _last_guid_post = new_item.guid;
 	}
+	new_item.feed = this;
 	_items.add(new_item);
 	return true;
     }
@@ -275,13 +279,13 @@ public class Feed {
 	string html_string = "<div class=\"feed\">";
 	foreach(Item i in _items) {
 	    html_string += i.constructHtml();
-	    i.unread = false;
+	    //i.unread = false;
 	}
 	html_string += "</div>";
-	man.updateUnread.begin(this, _items_unread, () => {
-	    _items_unread.clear();
-	    app.updateFeedItems(this);
-	});
+	//man.updateUnread.begin(this, _items_unread, () => {
+	    //_items_unread.clear();
+	    //app.updateFeedItems(this);
+	//});
 	return html_string;
     }
 
@@ -289,14 +293,20 @@ public class Feed {
 	string html_string = "<div class=\"feed\">";
 	foreach(Item i in _items_unread) {
 	    html_string += i.constructHtml();
-	    i.unread = false;
+	    //i.unread = false;
 	}
-	man.updateUnread.begin(this, _items_unread, () => {
-	    //stderr.printf("%d Clear...\n", _id);
-	    _items_unread.clear();
-	    app.updateFeedItems(this);
-	});
+	//man.updateUnread.begin(this, _items_unread, () => {
+	    ////stderr.printf("%d Clear...\n", _id);
+	    //_items_unread.clear();
+	    //app.updateFeedItems(this);
+	//});
+	if(html_string == "<div class=\"feed\">")
+	    return "";
 	html_string += "</div>";
 	return html_string;
+    }
+
+    public void removeUnreadItem(Item i) {
+	_items_unread.remove(i);
     }
 }

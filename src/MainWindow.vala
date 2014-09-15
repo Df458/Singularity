@@ -60,7 +60,6 @@ class MainWindow : Gtk.Window {
 	    add_win.show_all();
 	});
 	status_bar = new StatusBar();
-	//status_bar.set_text("Test Text");
 	status_bar.insert_widget(add_button, true);
 	status_bar.insert_widget(rm_button, true);
 	content_fill.add(status_bar);
@@ -99,15 +98,19 @@ class MainWindow : Gtk.Window {
 
 	web_view = new WebKit.WebView();
 	WebKit.Settings view_settings = new WebKit.Settings();
+	view_settings.enable_javascript = true;
 	web_view.set_settings(view_settings);
-//Prevent context menu from being displayed
-	web_view.context_menu.connect(()=>{
-	    return true;
-	});
-
+	//web_view.context_menu.connect(()=>{
+	    //return true;
+	//});
 	web_view.decide_policy.connect((decision, type) => {
 	    if(type == WebKit.PolicyDecisionType.NAVIGATION_ACTION) {
 		WebKit.NavigationPolicyDecision nav_dec = (WebKit.NavigationPolicyDecision) decision;
+		if(nav_dec.get_navigation_action().get_request().uri.has_prefix("command://")) {
+		    app.interpretUriEncodedAction(nav_dec.get_navigation_action().get_request().uri.substring(10));
+		    nav_dec.ignore();
+		    return true;
+		}
 		if(nav_dec.get_navigation_action().get_navigation_type() != WebKit.NavigationType.LINK_CLICKED)
 		    return false;
 		try {
@@ -120,9 +123,7 @@ class MainWindow : Gtk.Window {
 	    }
 	    return false;
 	});
-	ScrolledWindow scroll = new ScrolledWindow(null, null);
-	scroll.add(web_view);
-	content_pane.add2(scroll);
+	content_pane.add2(web_view);
 
 	this.destroy.connect(() => {
 	    Gtk.main_quit();

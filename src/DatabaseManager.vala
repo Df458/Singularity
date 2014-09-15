@@ -166,6 +166,19 @@ public class DatabaseManager {
 	}
 	//stderr.printf("done. %d\n", feed.id);
     }
+    
+    public async void updateSingleUnread(Item item) {
+	//stderr.printf("Updating unread... ");
+	    try {
+		Query save_query = new Query(db, "UPDATE entries SET unread = :unread WHERE guid = :guid");
+		save_query[":guid"] = item.guid;
+		save_query[":unread"] = item.unread ? 1 : 0;
+		yield save_query.execute_async();
+	    } catch(SQLHeavy.Error e) {
+		stderr.printf("Error saving feed data: %s\n", e.message);
+	}
+	//stderr.printf("done. %d\n", feed.id);
+    }
 
     public async void removeOld() {
 	try {
