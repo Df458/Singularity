@@ -1,8 +1,24 @@
+/*
+	Singularity - A web newsfeed aggregator
+	Copyright (C) 2014  Hugues Ross <hugues.ross@gmail.com>
+
+	This program is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation, either version 3 of the License, or
+	(at your option) any later version.
+
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+
+	You should have received a copy of the GNU General Public License
+	along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 using SQLHeavy;
 
 public class DatabaseManager {
-//:TODO: 27.08.14 17:23:02, Hugues Ross
-// Test auto-remove feature
     private Database db;
     private bool _open = false;
     
@@ -32,7 +48,6 @@ public class DatabaseManager {
 	    Query load_query = new Query(db, "SELECT * FROM feeds");
 	    for(QueryResult result = yield load_query.execute_async(); !result.finished; result.next() ) {
 		Feed f = new Feed.from_db(result);
-		//yield loadFeedItems(f, -1, -1, true);
 		feed_list.add(f);
 	    }
 	} catch(SQLHeavy.Error e) {
@@ -101,7 +116,6 @@ public class DatabaseManager {
 		return;
 	    }
 
-	    //stderr.printf("Test succeeded. saving...\n");
 	    Query save_query = new Query(db, "INSERT INTO entries (feed_id, title, link, description, author, guid, pubdate, unread, savedate) VALUES (:id, :title, :link, :description, :author, :guid, :pubdate, :unread, :savedate)");
 	    save_query[":id"] = feed_id;
 	    save_query[":title"] = item.title;
@@ -116,7 +130,6 @@ public class DatabaseManager {
 	} catch(SQLHeavy.Error e) {
 	    stderr.printf("Error saving feed data: %s\n", e.message);
 	}
-	//stderr.printf("done.\n");
     }
 
     public async void removeFeed(Feed f) {
@@ -153,7 +166,6 @@ public class DatabaseManager {
     }
 
     public async void updateUnread(Feed feed, Gee.ArrayList<Item> items) {
-	//stderr.printf("Updating unread... ");
 	foreach(Item item in items) {
 	    try {
 		Query save_query = new Query(db, "UPDATE entries SET unread = :unread WHERE guid = :guid");
@@ -164,11 +176,9 @@ public class DatabaseManager {
 		stderr.printf("Error saving feed data: %s\n", e.message);
 	    }
 	}
-	//stderr.printf("done. %d\n", feed.id);
     }
     
     public async void updateSingleUnread(Item item) {
-	//stderr.printf("Updating unread... ");
 	    try {
 		Query save_query = new Query(db, "UPDATE entries SET unread = :unread WHERE guid = :guid");
 		save_query[":guid"] = item.guid;
@@ -177,7 +187,6 @@ public class DatabaseManager {
 	    } catch(SQLHeavy.Error e) {
 		stderr.printf("Error saving feed data: %s\n", e.message);
 	}
-	//stderr.printf("done. %d\n", feed.id);
     }
 
     public async void removeOld() {

@@ -1,3 +1,21 @@
+/*
+	Singularity - A web newsfeed aggregator
+	Copyright (C) 2014  Hugues Ross <hugues.ross@gmail.com>
+
+	This program is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation, either version 3 of the License, or
+	(at your option) any later version.
+
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+
+	You should have received a copy of the GNU General Public License
+	along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 //:TODO: 05.09.14 08:11:23, Hugues Ross
 // Add a full implementation of the various feed standards
 public class Feed {
@@ -17,9 +35,6 @@ public class Feed {
     public string link        { get; set; } //Feed link
     public string origin_link        { get; set; } //Feed origin
     public string description { get; set; } //Feed description
-//:TODO: 08.09.14 07:28:34, Hugues Ross
-// Move the Pixbuf to MainWindow
-    //public Gdk.Pixbuf image { get; set; } //Feed Image
     public string image_uri { get; set; }
     public string image_title { get; set; }
     public string image_link { get; set; }
@@ -83,15 +98,13 @@ public class Feed {
 				break;
 
 				case "item":
-				stderr.printf("Adding item...\n");
 				    if(!add_item(new Item.from_rss(dat))) {
-					stderr.printf("Duplicate Item. Exiting...\n");
 					return;
 				    }
 				break;
 				
 				default:
-				    stderr.printf("Feed element <%s> is not currently supported.\n", dat->name);
+				    //stderr.printf("Feed element <%s> is not currently supported.\n", dat->name);
 				break;
 			    }
 			}
@@ -101,7 +114,6 @@ public class Feed {
 	} else if(node->name == "feed") {
 	    for(node = node->children; node != null; node = node->next) {
 		if(node->type == Xml.ElementType.ELEMENT_NODE) {
-		    stderr.printf("Opening <%s>...", node->name);
 		    switch(node->name) {
 			case "title":
 			    title = getNodeContents(node, true);
@@ -118,7 +130,6 @@ public class Feed {
 
 			case "entry":
 			    if(!add_item(new Item.from_atom(node))) {
-				stdout.printf("Duplicate Item. Exiting...\n");
 				return;
 			    }
 			break;
@@ -127,7 +138,6 @@ public class Feed {
 			    //stderr.printf("Element <%s> is not currently supported.\n", node->name);
 			break;
 		    }
-		    stderr.printf("done\n");
 		}
 	    }
 	} else if(node->name == "RDF") {
@@ -156,15 +166,13 @@ public class Feed {
 				break;
 
 				case "item":
-				stderr.printf("Adding item...\n");
 				    if(!add_item(new Item.from_rss(dat))) {
-					stderr.printf("Duplicate Item. Exiting...\n");
 					return;
 				    }
 				break;
 				
 				default:
-				    stderr.printf("Feed element <%s> is not currently supported.\n", dat->name);
+				    //stderr.printf("Feed element <%s> is not currently supported.\n", dat->name);
 				break;
 			    }
 			}
@@ -178,7 +186,6 @@ public class Feed {
     }
 
     public async void updateFromWeb(DatabaseManager man) {
-	stdout.printf("Updating %s\n", title);
 	_last_guid_post = _last_guid;
 	_last_time_post = _last_time;
 	status = 1;
@@ -198,7 +205,6 @@ public class Feed {
 	    while(node != null && node->type != Xml.ElementType.ELEMENT_NODE)
 		node = node->next;
 	    if(node == null) {
-		stderr.printf("ERROR");
 		status = 3;
 		app.updateFeedIcons(this);
 		return;
@@ -249,7 +255,6 @@ public class Feed {
 	if(hold && (new_item.guid == _last_guid || 
 	(new_item.time_added.add_months(1).compare(new DateTime.now_utc()) <= 0 && new_item.unread == false && new_item.starred == false)
 	|| new_item.empty == true)) {
-	    //stderr.printf("dropping %s ...\n", new_item.title);
 	    return false;
 	}
 	foreach(Item i in _items) {
@@ -279,13 +284,8 @@ public class Feed {
 	string html_string = "<div class=\"feed\">";
 	foreach(Item i in _items) {
 	    html_string += i.constructHtml();
-	    //i.unread = false;
 	}
 	html_string += "</div>";
-	//man.updateUnread.begin(this, _items_unread, () => {
-	    //_items_unread.clear();
-	    //app.updateFeedItems(this);
-	//});
 	return html_string;
     }
 
@@ -293,13 +293,7 @@ public class Feed {
 	string html_string = "<div class=\"feed\">";
 	foreach(Item i in _items_unread) {
 	    html_string += i.constructHtml();
-	    //i.unread = false;
 	}
-	//man.updateUnread.begin(this, _items_unread, () => {
-	    ////stderr.printf("%d Clear...\n", _id);
-	    //_items_unread.clear();
-	    //app.updateFeedItems(this);
-	//});
 	if(html_string == "<div class=\"feed\">")
 	    return "";
 	html_string += "</div>";

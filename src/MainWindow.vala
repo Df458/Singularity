@@ -1,3 +1,21 @@
+/*
+	Singularity - A web newsfeed aggregator
+	Copyright (C) 2014  Hugues Ross <hugues.ross@gmail.com>
+
+	This program is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation, either version 3 of the License, or
+	(at your option) any later version.
+
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+
+	You should have received a copy of the GNU General Public License
+	along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 using Gtk;
 using Gdk;
 using Granite.Widgets;
@@ -100,6 +118,8 @@ class MainWindow : Gtk.Window {
 	WebKit.Settings view_settings = new WebKit.Settings();
 	view_settings.enable_javascript = true;
 	web_view.set_settings(view_settings);
+//:TODO: 16.09.14 18:52:26, Hugues Ross
+// Add a custom right-click menu
 	//web_view.context_menu.connect(()=>{
 	    //return true;
 	//});
@@ -129,9 +149,9 @@ class MainWindow : Gtk.Window {
 	    Gtk.main_quit();
 	});
 	try {
-	    icon_download = new Pixbuf.from_file(Environment.get_user_data_dir() + "/singularity-test/emblem_download.png");
-	    icon_failure = new Pixbuf.from_file(Environment.get_user_data_dir() + "/singularity-test/emblem_failure.png");
-	    icon_success = new Pixbuf.from_file(Environment.get_user_data_dir() + "/singularity-test/emblem_success.png");
+	    icon_download = new Pixbuf.from_file(Environment.get_user_data_dir() + "/singularity/emblem_download.png");
+	    icon_failure = new Pixbuf.from_file(Environment.get_user_data_dir() + "/singularity/emblem_failure.png");
+	    icon_success = new Pixbuf.from_file(Environment.get_user_data_dir() + "/singularity/emblem_success.png");
 	} catch(Error e) {
 	    stderr.printf(e.message);
 	}

@@ -1,3 +1,21 @@
+/*
+	Singularity - A web newsfeed aggregator
+	Copyright (C) 2014  Hugues Ross <hugues.ross@gmail.com>
+
+	This program is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation, either version 3 of the License, or
+	(at your option) any later version.
+
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+
+	You should have received a copy of the GNU General Public License
+	along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 public class Item {
     private string _guid = "";
     private DateTime _time_posted = new DateTime.from_unix_utc(0);
@@ -57,8 +75,8 @@ public class Item {
 		    break;
 
 		    case "pubDate":
-			//stderr.printf(getNodeContents(dat));
-			string[] date_strs = getNodeContents(dat).split(" ");
+			string input = getNodeContents(dat);
+			string[] date_strs = input.split(" ");
 			if(date_strs.length < 5)
 			    break;
 			string[] time_strs = date_strs[4].split(":");
@@ -117,7 +135,6 @@ public class Item {
 		    case "link":
 			if(dat->has_prop("rel") == null || dat->has_prop("rel")->children->content == "alternate") {
 			    link = dat->has_prop("href")->children->content;
-			    stderr.printf(dat->has_prop("href")->children->content);
 			}
 		    break;
 
@@ -130,10 +147,12 @@ public class Item {
 		    break;
 
 		    case "updated": 
-			stderr.printf(getNodeContents(dat));
 			if(getNodeContents(dat) == null)
 			    break;
-			string[] big_strs = getNodeContents(dat).split("T");
+			string input = getNodeContents(dat);
+			string[] big_strs = input.split("T");
+			if(big_strs.length < 2)
+			    break;
 			string[] date_strs = big_strs[0].split("-");
 			string[] time_strs = big_strs[1].split(":");
 			_time_posted = new DateTime.utc(int.parse(date_strs[0]), int.parse(date_strs[1]), int.parse(date_strs[2]), int.parse(time_strs[0]), int.parse(time_strs[1]), int.parse(time_strs[2]));

@@ -1,7 +1,26 @@
+/*
+	Singularity - A web newsfeed aggregator
+	Copyright (C) 2014  Hugues Ross <hugues.ross@gmail.com>
+
+	This program is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation, either version 3 of the License, or
+	(at your option) any later version.
+
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+
+	You should have received a copy of the GNU General Public License
+	along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 using Gee;
+
+class Singularity {
 //:TODO: 27.08.14 11:26:14, Hugues Ross
 // Update feeds periodically
-class Singularity {
 //:TODO: 27.08.14 15:35:13, Hugues Ross
 // Add a variable for auto-delete time
     private ArrayList<Feed> feeds;
@@ -50,7 +69,7 @@ class Singularity {
     for(i = 1; i < items.length; ++i){
     var handler = fireIfElementVisible (items[i], i, callback);
     items[i].setAttribute('marked', 'false');
-    addEventListener('DOMContentLoaded', handler, false);
+    //addEventListener('DOMContentLoaded', handler, false);
     addEventListener('load', handler, false);
     addEventListener('scroll', handler, false);
     addEventListener('resize', handler, false);
@@ -60,8 +79,8 @@ class Singularity {
 	Granite.Services.Paths.initialize("singularity-test", Environment.get_user_data_dir());
 	Granite.Services.Paths.ensure_directory_exists(Granite.Services.Paths.user_data_folder);
 
-	string db_path = Environment.get_user_data_dir() + "/singularity-test/test.db";
-	css_path = Environment.get_user_data_dir() + "/singularity-test/test.css";
+	string db_path = Environment.get_user_data_dir() + "/singularity/feeds.db";
+	css_path = Environment.get_user_data_dir() + "/singularity/default.css";
 	if(args.length > 1)
 	    db_path = args[1];
 	if(args.length > 2)
@@ -84,7 +103,6 @@ class Singularity {
 	db_man.removeOld.begin();
 	db_man.loadFeeds.begin((obj, res) =>{
 	    feeds = db_man.loadFeeds.end(res);
-	    stdout.printf("Finished loading feeds.\n");
 	    main_window.add_feeds(feeds);
 	    foreach(Feed f in feeds) {
 		db_man.loadFeedItems.begin(f, -1, -1, (obj, res) => {
@@ -110,7 +128,6 @@ class Singularity {
 	    html_str += f.constructUnreadHtml(db_man);
 	}
 	html_str += js_str + "</body></html>";
-	stdout.printf(html_str);
 	return html_str;
     }
 
@@ -170,7 +187,6 @@ class Singularity {
 
     public void interpretUriEncodedAction(string action) {
 	string[] args = action.split("/");
-	//stderr.printf("%s: %s", args[0], view_list[int.parse(args[1])].title);
 	view_list[int.parse(args[1])].unread = false;
 	db_man.updateSingleUnread.begin(view_list[int.parse(args[1])], () => {
 	    view_list[int.parse(args[1])].feed.removeUnreadItem(view_list[int.parse(args[1])]);
@@ -179,9 +195,7 @@ class Singularity {
     }
 
     public void exit() {
-	stderr.printf("Clearing expunged feeds...");
 	db_man.clearExpunged();
-	stderr.printf("done.\n");
     }
 
     public void addToView(Item i) {
