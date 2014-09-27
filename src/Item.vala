@@ -33,6 +33,9 @@ public class Item {
     public DateTime time_posted { get { return _time_posted; } }
     public DateTime time_added  { get { return _time_added;  } }	
     public bool empty { get { return _empty; } }
+    public string enclosure_url = "";
+    public uint enclosure_length = 0;
+    public string enclosure_type = "";
     
     public Item.from_db(SQLHeavy.QueryResult result) {
 	try {
@@ -101,6 +104,15 @@ public class Item {
 		    case "author":
 		    case "creator":
 			author = getNodeContents(dat);
+		    break;
+
+		    case "enclosure":
+			if(dat->has_prop("url") != null)
+			    enclosure_url = dat->has_prop("url")->children->content;
+			if(dat->has_prop("length") != null)
+			    enclosure_length = int.parse(dat->has_prop("length")->children->content);
+			if(dat->has_prop("type") != null)
+			    enclosure_type = dat->has_prop("type")->children->content;
 		    break;
 		    
 		    default:
@@ -187,7 +199,11 @@ public class Item {
 	    html_string += " by " + author;
 	if(_time_posted != new DateTime.from_unix_utc(0))
 	    html_string += " on " + _time_posted.to_string();
-	html_string += "</div><br/><div class=\"item-content\">" + description + "<br/></div></div>";
+	html_string += "</div><br/><div class=\"item-content\">" + description + "<br/></div>";
+	if(enclosure_url != "") {
+	    html_string += "<a href=" + enclosure_url + ">Attachment</a>";
+	}
+	html_string += "</div>";
 	app.addToView(this);
 	return html_string;
     }
