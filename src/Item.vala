@@ -193,17 +193,17 @@ public class Item {
     }
 
     public string constructHtml() {
-	string html_string = "<div class=\"singularity-item\"><div class=\"item-head\" viewed=\"" + (unread ? "false" : "true") +"\"><a href=" + link + "><h3>" + title + "</h3></a>\n";
+	string html_string = "<article class=\"singularity-item\"><header class=\"item-head\" viewed=\"" + (unread ? "false" : "true") +"\"><a href=" + link + "><h3>" + title + "</h3></a>\n";
 	html_string += "<p>Posted";
 	if(author != "")
 	    html_string += " by " + author;
 	if(_time_posted != new DateTime.from_unix_utc(0))
 	    html_string += " on " + _time_posted.to_string();
-	html_string += "</div><br/><div class=\"item-content\">" + description + "<br/></div>";
+	html_string += "</header><br/><div class='item-content'>" + description + "</div><br/>";
 	if(enclosure_url != "") {
 	    html_string += "<a href=" + enclosure_url + ">Attachment</a>";
 	}
-	html_string += "</div>";
+	html_string += "</article>";
 	app.addToView(this);
 	return html_string;
     }
