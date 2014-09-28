@@ -76,7 +76,7 @@ class Singularity {
     }</script>";
 
     public Singularity(string[] args) {
-	Granite.Services.Paths.initialize("singularity-test", Environment.get_user_data_dir());
+	Granite.Services.Paths.initialize("singularity", Environment.get_user_data_dir());
 	Granite.Services.Paths.ensure_directory_exists(Granite.Services.Paths.user_data_folder);
 
 	string db_path = Environment.get_user_data_dir() + "/singularity/feeds.db";
@@ -88,16 +88,15 @@ class Singularity {
 	db_man = new DatabaseManager.from_path(db_path);
 	File file = File.new_for_path(css_path);
 	if(!file.query_exists()) {
-	    css_dat = "body {background-color: #EEEEEE;} div.feed {margin: 3%;} div.singularity-item {background-color: white; border: 1px solid #CCCCCC; border-radius: 3px; box-shadow: 0px 2px 5px #888888; margin: 12px;} div.item-head {padding: 12px;} div.item-content {padding: 12px;} img, object {max-width: 100%; height: auto;}";
-	} else {
-	    try {
-		DataInputStream stream = new DataInputStream(file.read());
-		string indat;
-		while((indat = stream.read_line()) != null)
-		    css_dat += indat;
-	    } catch (Error e) {
-		error("%s", e.message);
-	    }
+	    file = File.new_for_path("/usr/local/share/singularity/default.css");
+	}
+	try {
+	    DataInputStream stream = new DataInputStream(file.read());
+	    string indat;
+	    while((indat = stream.read_line()) != null)
+		css_dat += indat;
+	} catch (Error e) {
+	    error("%s", e.message);
 	}
 
 	db_man.removeOld.begin();

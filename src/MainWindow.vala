@@ -149,9 +149,9 @@ class MainWindow : Gtk.Window {
 	    Gtk.main_quit();
 	});
 	try {
-	    icon_download = new Pixbuf.from_file(Environment.get_user_data_dir() + "/singularity/emblem_download.png");
-	    icon_failure = new Pixbuf.from_file(Environment.get_user_data_dir() + "/singularity/emblem_failure.png");
-	    icon_success = new Pixbuf.from_file(Environment.get_user_data_dir() + "/singularity/emblem_success.png");
+	    icon_download = new Pixbuf.from_file("/usr/local/share/singularity/emblem_download.png");
+	    icon_failure = new Pixbuf.from_file("/usr/local/share/singularity/emblem_failure.png");
+	    icon_success = new Pixbuf.from_file("/usr/local/share/singularity/emblem_success.png");
 	} catch(Error e) {
 	    stderr.printf(e.message);
 	}

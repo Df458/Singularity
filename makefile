@@ -12,4 +12,6 @@ clean:
 
 install:
 	cp -f singularity /usr/local/bin
-	@echo "Warning: Before running this application, please create a folder called singularity in your local data directory, and copy the contents of /data to it."
+	-mkdir /usr/local/share/singularity
+	cp -f data/default.css /usr/local/share/singularity
+	cp -f data/*.png /usr/local/share/singularity
