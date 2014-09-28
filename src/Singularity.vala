@@ -76,7 +76,7 @@ class Singularity {
     }</script>";
 
     public Singularity(string[] args) {
-	Granite.Services.Paths.initialize("singularity-test", Environment.get_user_data_dir());
+	Granite.Services.Paths.initialize("singularity", Environment.get_user_data_dir());
 	Granite.Services.Paths.ensure_directory_exists(Granite.Services.Paths.user_data_folder);
 
 	string db_path = Environment.get_user_data_dir() + "/singularity/feeds.db";
