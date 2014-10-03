@@ -37,8 +37,8 @@ class AddPopupWindow : Dialog {
 		url_input.set_text("");
 		this.hide();
 	    } else if(sig == 2) {
+		app.createFeed(url_input.get_text());
 		url_input.set_text("");
-		app.createFeed(url_input.buffer.text);
 		this.hide();
 	    }
 	});

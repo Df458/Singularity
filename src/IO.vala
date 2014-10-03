@@ -20,6 +20,7 @@ async Xml.Doc* getXmlData(string url) {
     SourceFunc callback = getXmlData.callback;
     Soup.Session session = new Soup.Session();
     session.use_thread_context = true;
+    stdout.printf("Adding %s...", url);
     Soup.Message message = new Soup.Message("GET", url);
     string data = "";
     session.queue_message(message, (session_out, message_out) => {
