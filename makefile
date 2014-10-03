@@ -12,6 +12,6 @@ clean:
 
 install:
 	cp -f singularity /usr/local/bin
-	-mkdir /usr/local/share/singularity
+	mkdir -p /usr/local/share/singularity
 	cp -f data/default.css /usr/local/share/singularity
 	cp -f data/*.png /usr/local/share/singularity
