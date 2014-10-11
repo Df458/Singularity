@@ -185,12 +185,21 @@ class Singularity {
     }
 
     public void interpretUriEncodedAction(string action) {
-	string[] args = action.split("/");
-	view_list[int.parse(args[1])].unread = false;
-	db_man.updateSingleUnread.begin(view_list[int.parse(args[1])], () => {
-	    view_list[int.parse(args[1])].feed.removeUnreadItem(view_list[int.parse(args[1])]);
-	    updateFeedItems(view_list[int.parse(args[1])].feed);
-	});
+        string[] args = action.split("/");
+        int pos = int.parse(args[1]);
+        Gee.ArrayList<Item> to_mark = new Gee.ArrayList<Item>();
+        for(int i = 0; i < pos; ++i) {
+            if(view_list[i].unread == true) {
+                view_list[i].unread = false;
+                to_mark.add(view_list[i]);
+            }
+        }
+        db_man.updateUnread.begin(new Feed(), to_mark, () => {
+            foreach(var item in to_mark) {
+                item.feed.removeUnreadItem(item);
+                updateFeedItems(item.feed);
+            }
+        });
     }
 
     public void exit() {
@@ -198,6 +207,6 @@ class Singularity {
     }
 
     public void addToView(Item i) {
-	view_list.add(i);
+        view_list.add(i);
     }
 }
