@@ -188,7 +188,7 @@ class Singularity {
         string[] args = action.split("/");
         int pos = int.parse(args[1]);
         Gee.ArrayList<Item> to_mark = new Gee.ArrayList<Item>();
-        for(int i = 0; i < pos; ++i) {
+        for(int i = 0; i <= pos; ++i) {
             if(view_list[i].unread == true) {
                 view_list[i].unread = false;
                 to_mark.add(view_list[i]);
