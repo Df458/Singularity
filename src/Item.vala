@@ -16,6 +16,8 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+// modules: webkit2gtk-4.0 libsoup-2.4 granite libxml-2.0 sqlheavy-0.1 glib-2.0 gee-0.8
+
 public class Item {
     private string _guid = "";
     private DateTime _time_posted = new DateTime.from_unix_utc(0);

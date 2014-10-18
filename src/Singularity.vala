@@ -16,6 +16,8 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+// modules: webkit2gtk-4.0 libsoup-2.4 granite libxml-2.0 sqlheavy-0.1 glib-2.0 gee-0.8
+
 using Gee;
 
 class Singularity {
@@ -76,41 +78,41 @@ class Singularity {
     }</script>";
 
     public Singularity(string[] args) {
-	Granite.Services.Paths.initialize("singularity", Environment.get_user_data_dir());
-	Granite.Services.Paths.ensure_directory_exists(Granite.Services.Paths.user_data_folder);
+        Granite.Services.Paths.initialize("singularity", Environment.get_user_data_dir());
+        Granite.Services.Paths.ensure_directory_exists(Granite.Services.Paths.user_data_folder);
 
-	string db_path = Environment.get_user_data_dir() + "/singularity/feeds.db";
-	css_path = Environment.get_user_data_dir() + "/singularity/default.css";
-	if(args.length > 1)
-	    db_path = args[1];
-	if(args.length > 2)
-	    css_path = args[2];
-	db_man = new DatabaseManager.from_path(db_path);
-	File file = File.new_for_path(css_path);
-	if(!file.query_exists()) {
-	    file = File.new_for_path("/usr/local/share/singularity/default.css");
-	}
-	try {
-	    DataInputStream stream = new DataInputStream(file.read());
-	    string indat;
-	    while((indat = stream.read_line()) != null)
-		css_dat += indat;
-	} catch (Error e) {
-	    error("%s", e.message);
-	}
+        string db_path = Environment.get_user_data_dir() + "/singularity/feeds.db";
+        css_path = Environment.get_user_data_dir() + "/singularity/default.css";
+        if(args.length > 1)
+            db_path = args[1];
+        if(args.length > 2)
+            css_path = args[2];
+        db_man = new DatabaseManager.from_path(db_path);
+        File file = File.new_for_path(css_path);
+        if(!file.query_exists()) {
+            file = File.new_for_path("/usr/local/share/singularity/default.css");
+        }
+        try {
+            DataInputStream stream = new DataInputStream(file.read());
+            string indat;
+            while((indat = stream.read_line()) != null)
+            css_dat += indat;
+        } catch (Error e) {
+            error("%s", e.message);
+        }
 
-	db_man.removeOld.begin();
-	db_man.loadFeeds.begin((obj, res) =>{
-	    feeds = db_man.loadFeeds.end(res);
-	    main_window.add_feeds(feeds);
-	    foreach(Feed f in feeds) {
-		db_man.loadFeedItems.begin(f, -1, -1, (obj, res) => {
-		    f.updateFromWeb.begin(db_man);
-		});
-	    }
-	});
-	main_window = new MainWindow();
-	view_list = new ArrayList<Item>();
+        db_man.removeOld.begin();
+        db_man.loadFeeds.begin((obj, res) =>{
+            feeds = db_man.loadFeeds.end(res);
+            main_window.add_feeds(feeds);
+            foreach(Feed f in feeds) {
+            db_man.loadFeedItems.begin(f, -1, -1, (obj, res) => {
+                f.updateFromWeb.begin(db_man);
+            });
+            }
+        });
+        main_window = new MainWindow();
+        view_list = new ArrayList<Item>();
     }
 
     public string constructFeedHtml(int feed_id) {

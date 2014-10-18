@@ -16,6 +16,8 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+// modules: webkit2gtk-4.0 libsoup-2.4 granite libxml-2.0 sqlheavy-0.1 glib-2.0 gee-0.8
+
 //:TODO: 05.09.14 08:11:23, Hugues Ross
 // Add a full implementation of the various feed standards
 public class Feed {
