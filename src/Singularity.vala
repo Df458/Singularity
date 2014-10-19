@@ -105,14 +105,11 @@ class Singularity {
         db_man.loadFeeds.begin((obj, res) =>{
             feeds = db_man.loadFeeds.end(res);
             main_window.add_feeds(feeds);
-            foreach(Feed f in feeds) {
-            db_man.loadFeedItems.begin(f, -1, -1, (obj, res) => {
-                f.updateFromWeb.begin(db_man);
-            });
-            }
+            update();
         });
         main_window = new MainWindow();
         view_list = new ArrayList<Item>();
+        Timeout.add_seconds(600, update);
     }
 
     public string constructFeedHtml(int feed_id) {
@@ -179,7 +176,7 @@ class Singularity {
     }
 
     public void updateFeedItems(Feed f) {
-	main_window.updateFeedItem(f, feeds.index_of(f));
+        main_window.updateFeedItem(f, feeds.index_of(f));
     }
 
     public void updateFeedIcons(Feed f) {
@@ -210,5 +207,14 @@ class Singularity {
 
     public void addToView(Item i) {
         view_list.add(i);
+    }
+
+    public bool update() {
+        foreach(Feed f in feeds) {
+            db_man.loadFeedItems.begin(f, -1, -1, (obj, res) => {
+                f.updateFromWeb.begin(db_man);
+            });
+        }
+        return true;
     }
 }

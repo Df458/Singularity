@@ -40,6 +40,7 @@ class MainWindow : Gtk.Window {
     private Gdk.Pixbuf icon_failure;
     private Welcome welcome_view;
     private bool firststart = true;
+    private ToolButton refresh_button;
 
     private AddPopupWindow add_win;
 
@@ -48,10 +49,16 @@ class MainWindow : Gtk.Window {
         window_position = WindowPosition.CENTER;
         set_default_size(800, 600);
 
+        refresh_button = new ToolButton(new Image.from_icon_name("view-refresh", IconSize.LARGE_TOOLBAR), "Refresh");
+        refresh_button.clicked.connect(() => {
+            app.update();
+        });
+
         top_bar = new HeaderBar();
         top_bar.set_title("Singularity");
         top_bar.set_subtitle("You have no subscriptions");
         top_bar.set_show_close_button(true);
+        top_bar.pack_end(refresh_button);
         set_titlebar(top_bar);
 
         content_fill = new Box(Orientation.VERTICAL, 0);
