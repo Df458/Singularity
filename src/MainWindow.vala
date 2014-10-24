@@ -22,7 +22,7 @@ using Gtk;
 using Gdk;
 using Granite.Widgets;
 
-class MainWindow : Gtk.Window {
+class MainWindow : Gtk.ApplicationWindow {
     private HeaderBar top_bar;
     private ThinPaned content_pane;
     private WebKit.WebView web_view;
@@ -38,27 +38,56 @@ class MainWindow : Gtk.Window {
     private Gdk.Pixbuf icon_download;
     private Gdk.Pixbuf icon_success;
     private Gdk.Pixbuf icon_failure;
-    private Welcome welcome_view;
     private bool firststart = true;
-    private ToolButton refresh_button;
+    private MenuButton app_menu;
+    private Gtk.Widget current_view;
 
+    private SimpleAction refresh_action;
+    private SimpleAction preferences_action;
+
+    private Welcome welcome_view;
+    private SettingsPane settings;
     private AddPopupWindow add_win;
 
-    public MainWindow() {
+    public MainWindow(Gtk.Application owner_app) {
         feed_items = new Gee.ArrayList<SourceList.Item>();
         window_position = WindowPosition.CENTER;
         set_default_size(800, 600);
 
-        refresh_button = new ToolButton(new Image.from_icon_name("view-refresh", IconSize.LARGE_TOOLBAR), "Refresh");
-        refresh_button.clicked.connect(() => {
+        GLib.Menu menu = new GLib.Menu();
+        GLib.MenuItem refresh_item = new GLib.MenuItem("Refresh", "win.refresh-feeds");
+        GLib.MenuItem preferences_item = new GLib.MenuItem("Preferences", "win.app-preferences");
+        refresh_action = new GLib.SimpleAction("refresh-feeds", null);
+        refresh_action.set_enabled(false);
+        refresh_action.activate.connect(() => {
             app.update();
         });
+        this.add_action(refresh_action);
+        preferences_action = new GLib.SimpleAction("app-preferences", null);
+        preferences_action.activate.connect(() => {
+            settings.sync();
+            set_content(settings);
+        });
+        this.add_action(preferences_action);
+        menu.append_item(refresh_item);
+        menu.append_item(preferences_item);
+        //menu.append("Refresh", "refresh");
+        //menu.append("Preferences", "preferences");
+
+        app_menu = new MenuButton();
+        app_menu.set_menu_model(menu);
+
+        //refresh_button = new ToolButton(new Image.from_icon_name("view-refresh", IconSize.SMALL_TOOLBAR), "Refresh");
+        //refresh_button.clicked.connect(() => {
+            //app.update();
+        //});
 
         top_bar = new HeaderBar();
         top_bar.set_title("Singularity");
         top_bar.set_subtitle("You have no subscriptions");
         top_bar.set_show_close_button(true);
-        top_bar.pack_end(refresh_button);
+        top_bar.pack_end(app_menu);
+        //top_bar.pack_end(refresh_button);
         set_titlebar(top_bar);
 
         content_fill = new Box(Orientation.VERTICAL, 0);
@@ -71,6 +100,7 @@ class MainWindow : Gtk.Window {
 
         Button add_button = new Button.from_icon_name("add", IconSize.MENU);
         Button rm_button = new Button.from_icon_name("remove", IconSize.MENU);
+        //Button settings_button = new Button.from_icon_name("preferences-system", IconSize.MENU);
         rm_button.set_sensitive(false);
         rm_button.clicked.connect((ev) => {
             var f = feed_list.selected;
@@ -84,10 +114,6 @@ class MainWindow : Gtk.Window {
             } else {
                 top_bar.set_subtitle("You have no subscriptions");
                 firststart = true;
-                content_pane.remove(web_view);
-                content_pane.set_position(0);
-                content_pane.pack2(welcome_view, true, false);
-                this.show_all();
             }
         });
         add_button.clicked.connect((ev) => {
@@ -117,17 +143,18 @@ class MainWindow : Gtk.Window {
         feed_list.item_selected.connect((item) => {
             rm_button.set_sensitive(false);
             if(item == unread_item)
-            web_view.load_html(app.constructUnreadHtml(), "");
+                web_view.load_html(app.constructUnreadHtml(), "");
             else if(item == all_item)
-            web_view.load_html(app.constructAllHtml(), "");
+                web_view.load_html(app.constructAllHtml(), "");
             else if(item == starred_item)
-            web_view.load_html(app.constructStarredHtml(), "");
+                web_view.load_html(app.constructStarredHtml(), "");
             else {
             if(feed_items.index_of(item) < 0)
                 return;
-            web_view.load_html(app.constructFeedHtml(feed_items.index_of(item)), "");
-            rm_button.set_sensitive(true);
+                web_view.load_html(app.constructFeedHtml(feed_items.index_of(item)), "");
+                rm_button.set_sensitive(true);
             }
+            set_content(web_view);
         });
 
         web_view = new WebKit.WebView();
@@ -165,6 +192,15 @@ class MainWindow : Gtk.Window {
             add_win.show_all();
         });
         content_pane.pack2(welcome_view, true, true);
+        current_view = welcome_view;
+
+        settings = new SettingsPane();
+        settings.done.connect(() => {
+            if(firststart)
+                set_content(welcome_view);
+            else
+                set_content(web_view);
+        });
 
         this.destroy.connect(() => {
             Gtk.main_quit();
@@ -177,6 +213,14 @@ class MainWindow : Gtk.Window {
         } catch(Error e) {
             stderr.printf(e.message);
         }
+        this.show_all();
+    }
+
+    public void set_content(Gtk.Widget widget) {
+        content_pane.remove(current_view);
+        content_pane.set_position(0);
+        content_pane.pack2(widget, true, false);
+        current_view = widget;
         this.show_all();
     }
 
@@ -199,10 +243,8 @@ class MainWindow : Gtk.Window {
         }
         if(firststart) {
             firststart = false;
-            content_pane.remove(welcome_view);
-            content_pane.set_position(0);
-            content_pane.pack2(web_view, true, false);
-            this.show_all();
+            refresh_action.set_enabled(true);
+            set_content(web_view);
         }
     }
 

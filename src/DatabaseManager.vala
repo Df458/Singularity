@@ -23,6 +23,7 @@ using SQLHeavy;
 public class DatabaseManager {
     private Database db;
     private bool _open = false;
+    public int next_id = 0;
     
     public bool open { get { return _open; } }
     
@@ -49,8 +50,10 @@ public class DatabaseManager {
 	try {
 	    Query load_query = new Query(db, "SELECT * FROM feeds");
 	    for(QueryResult result = yield load_query.execute_async(); !result.finished; result.next() ) {
-		Feed f = new Feed.from_db(result);
-		feed_list.add(f);
+            if(result.fetch_int(0) >= next_id)
+                next_id = result.fetch_int(0) + 1;
+            Feed f = new Feed.from_db(result);
+            feed_list.add(f);
 	    }
 	} catch(SQLHeavy.Error e) {
 	    stderr.printf("Error loading feed data: %s\n", e.message);

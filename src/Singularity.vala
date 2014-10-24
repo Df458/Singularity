@@ -20,9 +20,7 @@
 
 using Gee;
 
-class Singularity {
-//:TODO: 27.08.14 11:26:14, Hugues Ross
-// Update feeds periodically
+class Singularity : Gtk.Application {
 //:TODO: 27.08.14 15:35:13, Hugues Ross
 // Add a variable for auto-delete time
     private ArrayList<Feed> feeds;
@@ -31,58 +29,23 @@ class Singularity {
     string css_path;
     string css_dat = "";
     private ArrayList<Item> view_list;
-    string js_str = "<script>function isElementInViewport (el) {
-	    var rect = el.getBoundingClientRect();
-
-	    return (
-		rect.top <= window.innerHeight / 2 ||
-		rect.bottom <= window.innerHeight
-	    );
-    }
-
-    function callback (el, id) {
-	    window.location.assign('command://test/' + id);
-	    //el.style.color='red'
-    } 
-
-
-    function fireIfElementVisible (el, id, callback) {
-	    return function () {
-		if ( isElementInViewport(el) && el.getAttribute('marked') != 'true' && el.getAttribute('viewed') != 'true') {
-		    callback(el, id);
-		    el.setAttribute('viewed', 'true');
-		    el.setAttribute('marked', 'true');
-		}
-	    }
-    }
-
-    function swapViewed() {
-	if ( el.getAttribute('viewed') == 'false') {
-	    el.setAttribute('viewed', 'true');
-	} else {
-	    el.setAttribute('viewed', 'false');
-	}
-	el.setAttribute('marked', 'true');
-    }
-
-    var items = document.getElementsByClassName('item-head');
-    items[0].setAttribute('marked', 'false');
-    callback(items[0], 0);
-    for(i = 1; i < items.length; ++i){
-    var handler = fireIfElementVisible (items[i], i, callback);
-    items[i].setAttribute('marked', 'false');
-    //addEventListener('DOMContentLoaded', handler, false);
-    addEventListener('load', handler, false);
-    addEventListener('scroll', handler, false);
-    addEventListener('resize', handler, false);
-    }</script>";
+    private Settings app_settings;
+    public bool auto_update = true;
+    public uint timeout_value = 600;
+    public bool update_running = true;
+    public uint update_next = 600;
 
     public Singularity(string[] args) {
+        Object(application_id: "org.df458.singularity");
         Granite.Services.Paths.initialize("singularity", Environment.get_user_data_dir());
         Granite.Services.Paths.ensure_directory_exists(Granite.Services.Paths.user_data_folder);
 
         string db_path = Environment.get_user_data_dir() + "/singularity/feeds.db";
         css_path = Environment.get_user_data_dir() + "/singularity/default.css";
+
+        app_settings = new Settings("org.df458.singularity");
+        auto_update = app_settings.get_boolean("auto-update");
+        timeout_value = app_settings.get_uint("auto-update-freq") * 60;
         if(args.length > 1)
             db_path = args[1];
         if(args.length > 2)
@@ -107,72 +70,86 @@ class Singularity {
             main_window.add_feeds(feeds);
             update();
         });
-        main_window = new MainWindow();
+        main_window = new MainWindow(this);
         view_list = new ArrayList<Item>();
-        Timeout.add_seconds(600, update);
+        if(auto_update)
+            Timeout.add_seconds(timeout_value, update);
     }
 
     public string constructFeedHtml(int feed_id) {
-	view_list.clear();
-	string html_str = "<html><head><style>" + css_dat + "</style></head><body>" + feeds[feed_id].constructHtml(db_man) + js_str + "</body></html>";
-	main_window.updateFeedItem(feeds[feed_id], feed_id);
-	return html_str;
+        view_list.clear();
+        string html_str = "<html><head><style>" + css_dat + "</style></head><body>" + feeds[feed_id].constructHtml(db_man) + js_str + "</body></html>";
+        main_window.updateFeedItem(feeds[feed_id], feed_id);
+        return html_str;
     }
 
     public string constructUnreadHtml() {
-	view_list.clear();
-	string html_str = "<html><head><style>" + css_dat + "</style></head><body><br/>";
-		foreach(Feed f in feeds) {
-	    html_str += f.constructUnreadHtml(db_man);
-	}
-	html_str += js_str + "</body></html>";
-	return html_str;
+        view_list.clear();
+        string html_str = "<html><head><style>" + css_dat + "</style></head><body><br/>";
+        foreach(Feed f in feeds) {
+            html_str += f.constructUnreadHtml(db_man);
+        }
+        html_str += js_str + "</body></html>";
+        return html_str;
     }
 
     public string constructAllHtml() {
-	view_list.clear();
-	string html_str = "<html><head><style>" + css_dat + "</style></head><body>";
-	foreach(Feed f in feeds) {
-	    html_str += f.constructHtml(db_man);
-	    main_window.updateFeedItem(f, feeds.index_of(f));
-	}
-	html_str += js_str + "</body></html>";
-	return html_str;
+        view_list.clear();
+        string html_str = "<html><head><style>" + css_dat + "</style></head><body>";
+        foreach(Feed f in feeds) {
+            html_str += f.constructHtml(db_man);
+            main_window.updateFeedItem(f, feeds.index_of(f));
+        }
+        html_str += js_str + "</body></html>";
+        return html_str;
     }
 
     public string constructStarredHtml() {
-	view_list.clear();
-	return "<html><head><style>" + css_dat + "</style></head><body><p>Starred view not implemented yet.</p></body></html>";
+        view_list.clear();
+        return "<html><head><style>" + css_dat + "</style></head><body><p>Starred view not implemented yet.</p></body></html>";
     }
 
     public void createFeed(string url) {
-	getXmlData.begin(url, (obj, res) => {
-	    Xml.Doc* doc = getXmlData.end(res);
-	    if(doc == null || doc->get_root_element() == null) {
-		stderr.printf("Error: doc is null\n");
-		return;
-	    }
-	    Feed f = new Feed.from_xml(doc->get_root_element(), url, feeds.size);
-	    if(f.status == 3)
-		return;
-	    db_man.saveFeed.begin(f, true);
-	    feeds.add(f);
-	    main_window.add_feed(f);
-	    main_window.updateFeedItem(f, feeds.index_of(f));
-	    delete doc;
-	});
+        getXmlData.begin(url, (obj, res) => {
+            Xml.Doc* doc = getXmlData.end(res);
+            if(doc == null || doc->get_root_element() == null) {
+                stderr.printf("Error: doc is null\n");
+                return;
+            }
+//:FIXME: 23.10.14 14:18:53, df458
+// Setting the id to feeds.size causes overlap
+            Feed f = new Feed.from_xml(doc->get_root_element(), url, db_man.next_id);
+            db_man.next_id++;
+            if(f.status == 3)
+                return;
+            db_man.saveFeed.begin(f, true);
+            feeds.add(f);
+            main_window.add_feed(f);
+            main_window.updateFeedItem(f, feeds.index_of(f));
+            delete doc;
+        });
     }
 
     public void removeFeed(int feed_index) {
-	Feed f = feeds[feed_index];
-	db_man.removeFeed.begin(f);
-	feeds.remove(f);
+        Feed f = feeds[feed_index];
+        db_man.removeFeed.begin(f);
+        feeds.remove(f);
     }
 
-    public int run() {
-	Gtk.main();
-	exit();
-	return 0;
+    public void update_settings() {
+        app_settings.set_boolean("auto-update", auto_update);
+        app_settings.set_uint("auto-update-freq", timeout_value / 60);
+        if(auto_update && !update_running) {
+            update_running = true;
+            update_next = timeout_value;
+            Timeout.add_seconds(timeout_value, update);
+        }
+    }
+
+    public int runall() {
+        Gtk.main();
+        exit();
+        return 0;
     }
 
     public void updateFeedItems(Feed f) {
@@ -180,7 +157,7 @@ class Singularity {
     }
 
     public void updateFeedIcons(Feed f) {
-	main_window.updateFeedIcon(feeds.index_of(f), f.status);
+        main_window.updateFeedIcon(feeds.index_of(f), f.status);
     }
 
     public void interpretUriEncodedAction(string action) {
@@ -202,7 +179,7 @@ class Singularity {
     }
 
     public void exit() {
-	db_man.clearExpunged();
+        db_man.clearExpunged();
     }
 
     public void addToView(Item i) {
@@ -215,6 +192,12 @@ class Singularity {
                 f.updateFromWeb.begin(db_man);
             });
         }
-        return true;
+        update_running = auto_update;
+        if(update_running && update_next != timeout_value) {
+            update_next = timeout_value;
+            Timeout.add_seconds(timeout_value, update);
+            return false;
+        }
+        return auto_update;
     }
 }
