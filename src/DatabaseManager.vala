@@ -117,8 +117,8 @@ public class DatabaseManager {
 	    test_query[":guid"] = item.guid;
 	    QueryResult test_result = yield test_query.execute_async();
 	    if(!test_result.finished) {
-		stderr.printf("Item <%s> already exists!\n", item.guid);
-		return;
+            stderr.printf("Item <%s> already exists!\n", item.guid);
+            return;
 	    }
 
 	    Query save_query = new Query(db, "INSERT INTO entries (feed_id, title, link, description, author, guid, pubdate, unread, savedate) VALUES (:id, :title, :link, :description, :author, :guid, :pubdate, :unread, :savedate)");

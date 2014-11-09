@@ -287,6 +287,9 @@ public class Feed {
         if(new_item.time_posted.compare(_last_time) > 0) {
             _last_time = new_item.time_posted;
             _last_guid_post = new_item.guid;
+        } else if(new_item.time_posted.compare(_last_time) == 0 && new_item.time_posted.compare(new DateTime.from_unix_utc(0)) == 0) {
+            _last_time = new_item.time_added;
+            _last_guid_post = new_item.guid;
         }
         new_item.feed = this;
         _items.add(new_item);

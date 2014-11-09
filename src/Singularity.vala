@@ -37,7 +37,7 @@ class Singularity : Gtk.Application {
     //Count, Increment(m,h,d,m,y), action(nothing,read/unread,star/unstar,delete)
     public int[] unread_unstarred_rule = {7, 3, 1}; //1 week, read
     public int[] unread_starred_rule   = {0, 0, 0}; //nothing
-    public int[] read_unstarred_rule   = {1, 4, 3}; //1 minute, delete
+    public int[] read_unstarred_rule   = {1, 1, 3}; //1 minute, delete
     public int[] read_starred_rule     = {6, 4, 2}; //6 months, unstar
 
     public Singularity(string[] args) {

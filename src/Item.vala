@@ -157,6 +157,7 @@ public class Item {
 		    break;
 
 		    case "id":
+		    case "guid":
 			_guid = getNodeContents(dat, true);
 		    break;
 
@@ -185,7 +186,7 @@ public class Item {
 	    }
 	}
 	unread = true;
-	if(_guid == "") {
+	if(_guid == "" || _guid == null) {
 	    _guid = link;
 	    if(link == "" && title != "")
 		_guid = title;
@@ -195,7 +196,6 @@ public class Item {
     }
 
     public bool applyRule(int[] rule) {
-        stdout.printf("Applying rule... [%d, %d, %d]\n", rule[0], rule[1], rule[2]);
         if(rule[1] == 0 || rule[2] == 0)
             return true;
 
