@@ -194,6 +194,50 @@ public class Item {
 	    _empty = false;
     }
 
+    public bool applyRule(int[] rule) {
+        stdout.printf("Applying rule... [%d, %d, %d]\n", rule[0], rule[1], rule[2]);
+        if(rule[1] == 0 || rule[2] == 0)
+            return true;
+
+        if(rule[0] != 0) {
+            int timediff;
+            switch(rule[0]) {
+                case 1:
+                    timediff = time_added.add_minutes(rule[0]).compare(new DateTime.now_utc());
+                break;
+                case 2:
+                    timediff = time_added.add_hours(rule[0]).compare(new DateTime.now_utc());
+                break;
+                case 3:
+                    timediff = time_added.add_days(rule[0]).compare(new DateTime.now_utc());
+                break;
+                case 4:
+                    timediff = time_added.add_months(rule[0]).compare(new DateTime.now_utc());
+                break;
+                case 5:
+                    timediff = time_added.add_years(rule[0]).compare(new DateTime.now_utc());
+                break;
+                default:
+                    return true;
+            }
+
+            if(timediff > 0)
+                return true;
+        }
+
+        switch(rule[2]) {
+            case 1:
+                unread = !unread;
+            break;
+            case 2:
+                starred = !starred;
+            break;
+            case 3:
+                return false;
+        }
+        return true;
+    }
+
     public string constructHtml() {
 	string html_string = "<article class=\"singularity-item\"><header class=\"item-head\" viewed=\"" + (unread ? "false" : "true") +"\"><a href=" + link + "><h3>" + title + "</h3></a>\n";
 	html_string += "<p>Posted";

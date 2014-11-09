@@ -49,21 +49,21 @@ public class Feed {
     public int status = 0; //0:standby 1:download 2:success 3:failure
     
     public Feed.from_db(SQLHeavy.QueryResult result) {
-	_items = new Gee.ArrayList<Item>();
-	_items_unread = new Gee.ArrayList<Item>();
-	_items_holding = new Gee.ArrayList<Item>();
-	try {
-	    _id = result.fetch_int(0);
-	    title = result.fetch_string(1);
-	    link = result.fetch_string(2);
-	    description = result.fetch_string(3);
-	    origin_link = result.fetch_string(4);
-	    _last_guid = result.fetch_string(5);
-	    _last_time = new DateTime.from_unix_utc(result.fetch_int(6));
-	} catch(SQLHeavy.Error e) {
-	    stderr.printf("Error loading feed data: %s\n", e.message);
-	    return;
-	}
+        _items = new Gee.ArrayList<Item>();
+        _items_unread = new Gee.ArrayList<Item>();
+        _items_holding = new Gee.ArrayList<Item>();
+        try {
+            _id = result.fetch_int(0);
+            title = result.fetch_string(1);
+            link = result.fetch_string(2);
+            description = result.fetch_string(3);
+            origin_link = result.fetch_string(4);
+            _last_guid = result.fetch_string(5);
+            _last_time = new DateTime.from_unix_utc(result.fetch_int(6));
+        } catch(SQLHeavy.Error e) {
+            stderr.printf("Error loading feed data: %s\n", e.message);
+            return;
+        }
     }
 
     public Feed.from_xml(Xml.Node* node, string url, int new_id = -1) {
@@ -250,59 +250,74 @@ public class Feed {
     }
 
     public Item get(int id) {
-	return _items[id];
+        return _items[id];
     }
     
     public bool add_item(Item new_item, bool hold = false) {
-	if(hold && (new_item.guid == _last_guid || 
-	(new_item.time_added.add_months(1).compare(new DateTime.now_utc()) <= 0 && new_item.unread == false && new_item.starred == false)
-	|| new_item.empty == true)) {
-	    return false;
-	}
-	foreach(Item i in _items) {
-	    if(i.guid == new_item.guid) {
-		return false;
-	    }
-	}
-	if(hold == true) {
-	    _items_holding.add(new_item);
-	}
-	if(new_item.unread == true)
-	    _items_unread.add(new_item);
-	if(new_item.time_posted.compare(_last_time) > 0) {
-	    _last_time = new_item.time_posted;
-	    _last_guid_post = new_item.guid;
-	}
-	new_item.feed = this;
-	_items.add(new_item);
-	return true;
+        if(hold && (new_item.guid == _last_guid || new_item.empty == true)) {
+            return false;
+        }
+
+        bool keep = true;
+        if(new_item.unread) {
+            if(new_item.starred) {
+                keep = new_item.applyRule(app.unread_starred_rule);
+            } else {
+                keep = new_item.applyRule(app.unread_unstarred_rule);
+            }
+        } else if(new_item.starred) {
+            keep = new_item.applyRule(app.read_starred_rule);
+        } else {
+            keep = new_item.applyRule(app.read_unstarred_rule);
+        }
+
+        if(!keep)
+            return false;
+
+        foreach(Item i in _items) {
+            if(i.guid == new_item.guid) {
+                return false;
+            }
+        }
+        if(hold == true) {
+            _items_holding.add(new_item);
+        }
+        if(new_item.unread == true)
+            _items_unread.add(new_item);
+        if(new_item.time_posted.compare(_last_time) > 0) {
+            _last_time = new_item.time_posted;
+            _last_guid_post = new_item.guid;
+        }
+        new_item.feed = this;
+        _items.add(new_item);
+        return true;
     }
     
     public Item get_item(int id = 0) {
-	return _items[id];
+        return _items[id];
     }
 
     public string constructHtml(DatabaseManager man) {
-	string html_string = "<div class=\"feed\">";
-	foreach(Item i in _items) {
-	    html_string += i.constructHtml();
-	}
-	html_string += "</div>";
-	return html_string;
+        string html_string = "<div class=\"feed\">";
+        foreach(Item i in _items) {
+            html_string += i.constructHtml();
+        }
+        html_string += "</div>";
+        return html_string;
     }
 
     public string constructUnreadHtml(DatabaseManager man) {
-	string html_string = "<div class=\"feed\">";
-	foreach(Item i in _items_unread) {
-	    html_string += i.constructHtml();
-	}
-	if(html_string == "<div class=\"feed\">")
-	    return "";
-	html_string += "</div>";
-	return html_string;
+        string html_string = "<div class=\"feed\">";
+        foreach(Item i in _items_unread) {
+            html_string += i.constructHtml();
+        }
+        if(html_string == "<div class=\"feed\">")
+            return "";
+        html_string += "</div>";
+        return html_string;
     }
 
     public void removeUnreadItem(Item i) {
-	_items_unread.remove(i);
+        _items_unread.remove(i);
     }
 }

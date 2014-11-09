@@ -107,14 +107,7 @@ class MainWindow : Gtk.ApplicationWindow {
             app.removeFeed(feed_items.index_of(f));
             category_all.remove(f);
             feed_items.remove(f);
-            if(feed_items.size > 1) {
-                top_bar.set_subtitle("You have " + feed_items.size.to_string() + " subscriptions");
-            } else if(feed_items.size == 1) {
-                top_bar.set_subtitle("You have 1 subscription");
-            } else {
-                top_bar.set_subtitle("You have no subscriptions");
-                firststart = true;
-            }
+            updateSubtitle();
         });
         add_button.clicked.connect((ev) => {
             add_win.show_all();
@@ -224,6 +217,17 @@ class MainWindow : Gtk.ApplicationWindow {
         this.show_all();
     }
 
+    public void updateSubtitle() {
+        if(feed_items.size > 1) {
+            top_bar.set_subtitle("You have " + feed_items.size.to_string() + " subscriptions");
+        } else if(feed_items.size == 1) {
+            top_bar.set_subtitle("You have 1 subscription");
+        } else {
+            top_bar.set_subtitle("You have no subscriptions");
+            firststart = true;
+        }
+    }
+
     public void add_feeds(Gee.ArrayList<Feed> feeds) {
         foreach(Feed f in feeds) {
             add_feed(f);
@@ -236,11 +240,7 @@ class MainWindow : Gtk.ApplicationWindow {
         category_all.add(feed_item);
         unread_item.badge = (int.parse(unread_item.badge) + f.unread_count).to_string();
         feed_items.add(feed_item);
-        if(feed_items.size > 1) {
-            top_bar.set_subtitle("You have " + feed_items.size.to_string() + " subscriptions");
-        } else {
-            top_bar.set_subtitle("You have 1 subscription");
-        }
+        updateSubtitle();
         if(firststart) {
             firststart = false;
             refresh_action.set_enabled(true);
