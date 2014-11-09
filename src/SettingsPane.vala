@@ -32,6 +32,7 @@ class SettingsPane : VBox {
     public signal void done();
 
     public SettingsPane() {
+        spacing = 5;
         confirm_buttons = new HButtonBox();
         Gtk.Button cancel_button = new Gtk.Button.with_label("Cancel");
         cancel_button.clicked.connect(() => {done();});
@@ -53,8 +54,15 @@ class SettingsPane : VBox {
         us_entry = new RuleEntry("unread and starred entries", false, true);
         rs_entry = new RuleEntry("read and starred entries", true, true);
 
-        pack_start(auto_update_switch, false, false);
-        pack_start(auto_update_time_entry, false, false);
+        Box auto_update_box = new Box(Orientation.HORIZONTAL, 0);
+        auto_update_box.pack_start(new Label("auto-update subscriptions: "), false, false);
+        auto_update_box.pack_start(auto_update_switch, false, false);
+        auto_update_box.pack_start(new Label(" every "), false, false);
+        auto_update_box.pack_start(auto_update_time_entry);
+        auto_update_box.pack_start(new Label(" minutes."), false, false);
+
+        pack_start(auto_update_box, false, false);
+        pack_start(new Gtk.Separator(Orientation.HORIZONTAL), false, false);
         pack_start(uu_entry, false, false);
         pack_start(ru_entry, false, false);
         pack_start(us_entry, false, false);
