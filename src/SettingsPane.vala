@@ -24,6 +24,10 @@ class SettingsPane : VBox {
     Switch auto_update_switch;
     SpinButton auto_update_time_entry;
     ButtonBox confirm_buttons;
+    RuleEntry uu_entry;
+    RuleEntry ru_entry;
+    RuleEntry us_entry;
+    RuleEntry rs_entry;
 
     public signal void done();
 
@@ -44,20 +48,38 @@ class SettingsPane : VBox {
         auto_update_time_entry = new SpinButton.with_range(1, 10000, 1);
         auto_update_time_entry.snap_to_ticks = true;
 
-        pack_start(auto_update_switch);
-        pack_start(auto_update_time_entry);
-        pack_end(confirm_buttons);
+        uu_entry = new RuleEntry("unread and unstarred entries", false, false);
+        ru_entry = new RuleEntry("read and unstarred entries", true, false);
+        us_entry = new RuleEntry("unread and starred entries", false, true);
+        rs_entry = new RuleEntry("read and starred entries", true, true);
+
+        pack_start(auto_update_switch, false, false);
+        pack_start(auto_update_time_entry, false, false);
+        pack_start(uu_entry, false, false);
+        pack_start(ru_entry, false, false);
+        pack_start(us_entry, false, false);
+        pack_start(rs_entry, false, false);
+        pack_end(confirm_buttons, false, false);
         this.show_all();
     }
 
     public void sync() {
         auto_update_switch.set_active(app.auto_update);
         auto_update_time_entry.set_value(app.timeout_value / 60);
+        auto_update_time_entry.set_sensitive(app.auto_update);
+        uu_entry.sync(app.unread_unstarred_rule);
+        ru_entry.sync(app.read_unstarred_rule);
+        us_entry.sync(app.unread_starred_rule);
+        rs_entry.sync(app.read_starred_rule);
     }
 
     public void save() {
         app.auto_update = auto_update_switch.get_active();
         app.timeout_value = (int)auto_update_time_entry.get_value() * 60;
+        app.unread_unstarred_rule = uu_entry.get_value();
+        app.read_unstarred_rule = ru_entry.get_value();
+        app.unread_starred_rule = us_entry.get_value();
+        app.read_starred_rule = rs_entry.get_value();   
         app.update_settings();
         done();
     }

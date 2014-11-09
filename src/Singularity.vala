@@ -21,8 +21,6 @@
 using Gee;
 
 class Singularity : Gtk.Application {
-//:TODO: 27.08.14 15:35:13, Hugues Ross
-// Add a variable for auto-delete time
     private ArrayList<Feed> feeds;
     private DatabaseManager db_man;
     private MainWindow main_window;
@@ -35,10 +33,10 @@ class Singularity : Gtk.Application {
     public bool update_running = true;
     public uint update_next = 600;
     //Count, Increment(m,h,d,m,y), action(nothing,read/unread,star/unstar,delete)
-    public int[] unread_unstarred_rule = {7, 3, 1}; //1 week, read
+    public int[] unread_unstarred_rule = {0, 0, 0}; //1 week, read
     public int[] unread_starred_rule   = {0, 0, 0}; //nothing
-    public int[] read_unstarred_rule   = {1, 1, 3}; //1 minute, delete
-    public int[] read_starred_rule     = {6, 4, 2}; //6 months, unstar
+    public int[] read_unstarred_rule   = {0, 0, 0}; //1 month, delete
+    public int[] read_starred_rule     = {0, 0, 0}; //6 months, unstar
 
     public Singularity(string[] args) {
         Object(application_id: "org.df458.singularity");
@@ -51,6 +49,27 @@ class Singularity : Gtk.Application {
         app_settings = new Settings("org.df458.singularity");
         auto_update = app_settings.get_boolean("auto-update");
         timeout_value = app_settings.get_uint("auto-update-freq") * 60;
+        var uu_val = app_settings.get_value("unread-unstarred-rule");
+        var uu_iter = uu_val.iterator();
+        uu_iter.next("i", &unread_unstarred_rule[0]);
+        uu_iter.next("i", &unread_unstarred_rule[1]);
+        uu_iter.next("i", &unread_unstarred_rule[2]);
+        var us_val = app_settings.get_value("unread-starred-rule");
+        var us_iter = us_val.iterator();
+        us_iter.next("i", &unread_starred_rule[0]);
+        us_iter.next("i", &unread_starred_rule[1]);
+        us_iter.next("i", &unread_starred_rule[2]);
+        var ru_val = app_settings.get_value("read-unstarred-rule");
+        var ru_iter = ru_val.iterator();
+        ru_iter.next("i", &read_unstarred_rule[0]);
+        ru_iter.next("i", &read_unstarred_rule[1]);
+        ru_iter.next("i", &read_unstarred_rule[2]);
+        var rs_val = app_settings.get_value("read-starred-rule");
+        var rs_iter = rs_val.iterator();
+        rs_iter.next("i", &read_starred_rule[0]);
+        rs_iter.next("i", &read_starred_rule[1]);
+        rs_iter.next("i", &read_starred_rule[2]);
+
         if(args.length > 1)
             db_path = args[1];
         if(args.length > 2)
@@ -144,6 +163,10 @@ class Singularity : Gtk.Application {
     public void update_settings() {
         app_settings.set_boolean("auto-update", auto_update);
         app_settings.set_uint("auto-update-freq", timeout_value / 60);
+        app_settings.set_value("unread-unstarred-rule", new Variant("(iii)",unread_unstarred_rule[0],unread_unstarred_rule[1],unread_unstarred_rule[2]));
+        app_settings.set_value("read-unstarred-rule", new Variant("(iii)",read_unstarred_rule[0],read_unstarred_rule[1],read_unstarred_rule[2]));
+        app_settings.set_value("unread-starred-rule", new Variant("(iii)",unread_starred_rule[0],unread_starred_rule[1],unread_starred_rule[2]));
+        app_settings.set_value("read-starred-rule", new Variant("(iii)",read_starred_rule[0],read_starred_rule[1],read_starred_rule[2]));
         if(auto_update && !update_running) {
             update_running = true;
             update_next = timeout_value;
