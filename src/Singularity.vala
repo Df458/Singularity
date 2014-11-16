@@ -130,7 +130,12 @@ class Singularity : Gtk.Application {
 
     public string constructStarredHtml() {
         view_list.clear();
-        return "<html><head><style>" + css_dat + "</style></head><body><p>Starred view not implemented yet.</p></body></html>";
+        string html_str = "<html><head><style>" + css_dat + "</style></head><body><br/>";
+        foreach(Feed f in feeds) {
+            html_str += f.constructStarredHtml(db_man);
+        }
+        html_str += js_str + "</body></html>";
+        return html_str;
     }
 
     public void createFeed(string url) {
@@ -140,8 +145,6 @@ class Singularity : Gtk.Application {
                 stderr.printf("Error: doc is null\n");
                 return;
             }
-//:FIXME: 23.10.14 14:18:53, df458
-// Setting the id to feeds.size causes overlap
             Feed f = new Feed.from_xml(doc->get_root_element(), url, db_man.next_id);
             db_man.next_id++;
             if(f.status == 3)

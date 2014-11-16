@@ -40,168 +40,173 @@ public class Item {
     public string enclosure_type = "";
     
     public Item.from_db(SQLHeavy.QueryResult result) {
-	try {
-	    title = result.fetch_string(1);
-	    link = result.fetch_string(2);
-	    description = result.fetch_string(3);
-	    author = result.fetch_string(4);
-	    _guid = result.fetch_string(8);
-	    _time_posted = new DateTime.from_unix_utc(result.fetch_int(9));
-	    if(result.fetch_int(11) == 1) {
-		unread = true;
-	    }
-	    _time_added = new DateTime.from_unix_utc(result.fetch_int(12));
-	    _empty = false;
-	} catch(SQLHeavy.Error e) {
-	    stderr.printf("Error loading feed data: %s\n", e.message);
-	    return;
-	}
+        try {
+            title = result.fetch_string(1);
+            link = result.fetch_string(2);
+            description = result.fetch_string(3);
+            author = result.fetch_string(4);
+            _guid = result.fetch_string(8);
+            _time_posted = new DateTime.from_unix_utc(result.fetch_int(9));
+            if(result.fetch_int(11) == 1) {
+                unread = true;
+            }
+            _time_added = new DateTime.from_unix_utc(result.fetch_int(12));
+            if(result.fetch_int(13) == 1) {
+                starred = true;
+            }
+            _empty = false;
+        } catch(SQLHeavy.Error e) {
+            stderr.printf("Error loading feed data: %s\n", e.message);
+            return;
+        }
     }
 
     public Item.from_rss(Xml.Node* node) {
-	_time_added = new DateTime.now_utc();
-	for(Xml.Node* dat = node->children; dat != null; dat = dat->next) {
-	    if(dat->type == Xml.ElementType.ELEMENT_NODE) {
-		switch(dat->name) {
-		    case "title":
-			title = getNodeContents(dat);
-		    break;
+        _time_added = new DateTime.now_utc();
+        for(Xml.Node* dat = node->children; dat != null; dat = dat->next) {
+            if(dat->type == Xml.ElementType.ELEMENT_NODE) {
+            switch(dat->name) {
+                case "title":
+                title = getNodeContents(dat);
+                break;
 
-		    case "link":
-			link = getNodeContents(dat);
-		    break;
+                case "link":
+                link = getNodeContents(dat);
+                break;
 
-		    case "description":
-			description = getNodeContents(dat);
-		    break;
+                case "description":
+                description = getNodeContents(dat);
+                break;
 
-		    case "guid":
-			_guid = getNodeContents(dat);
-		    break;
+                case "guid":
+                _guid = getNodeContents(dat);
+                break;
 
-		    case "pubDate":
-			string input = getNodeContents(dat);
-			string[] date_strs = input.split(" ");
-			if(date_strs.length < 5)
-			    break;
-			string[] time_strs = date_strs[4].split(":");
-			if(time_strs.length < 3)
-			    break;
-			_time_posted = new DateTime.utc(int.parse(date_strs[3]), getMonth(date_strs[2]), int.parse(date_strs[1]), int.parse(time_strs[0]), int.parse(time_strs[1]), int.parse(time_strs[2]));
-		    break;
+                case "pubDate":
+                string input = getNodeContents(dat);
+                string[] date_strs = input.split(" ");
+                if(date_strs.length < 5)
+                    break;
+                string[] time_strs = date_strs[4].split(":");
+                if(time_strs.length < 3)
+                    break;
+                _time_posted = new DateTime.utc(int.parse(date_strs[3]), getMonth(date_strs[2]), int.parse(date_strs[1]), int.parse(time_strs[0]), int.parse(time_strs[1]), int.parse(time_strs[2]));
+                break;
 
-		    case "date":
-			string[] big_strs = getNodeContents(dat).split("T");
-			if(big_strs.length < 2)
-			    break;
-			string[] date_strs = big_strs[0].split("-");
-			if(date_strs.length < 3)
-			    break;
-			string[] time_strs = big_strs[1].split(":");
-			if(time_strs.length < 3)
-			    break;
-			_time_posted = new DateTime.utc(int.parse(date_strs[0]), int.parse(date_strs[1]), int.parse(date_strs[2]), int.parse(time_strs[0]), int.parse(time_strs[1]), int.parse(time_strs[2]));
-		    break;
+                case "date":
+                string[] big_strs = getNodeContents(dat).split("T");
+                if(big_strs.length < 2)
+                    break;
+                string[] date_strs = big_strs[0].split("-");
+                if(date_strs.length < 3)
+                    break;
+                string[] time_strs = big_strs[1].split(":");
+                if(time_strs.length < 3)
+                    break;
+                _time_posted = new DateTime.utc(int.parse(date_strs[0]), int.parse(date_strs[1]), int.parse(date_strs[2]), int.parse(time_strs[0]), int.parse(time_strs[1]), int.parse(time_strs[2]));
+                break;
 
-		    case "author":
-		    case "creator":
-			author = getNodeContents(dat);
-		    break;
+                case "author":
+                case "creator":
+                author = getNodeContents(dat);
+                break;
 
-		    case "enclosure":
-			if(dat->has_prop("url") != null)
-			    enclosure_url = dat->has_prop("url")->children->content;
-			if(dat->has_prop("length") != null)
-			    enclosure_length = int.parse(dat->has_prop("length")->children->content);
-			if(dat->has_prop("type") != null)
-			    enclosure_type = dat->has_prop("type")->children->content;
-		    break;
-		    
-		    default:
-			//stderr.printf("Item element <%s> is not currently supported.\n", dat->name);
-		    break;
-		}
-	    }
-	}
-	unread = true;
-	if(_guid == "" || _guid == null) {
-	    _guid = link;
-	    if(link == "" || link == null) {
-		_guid = title;
-		if(title == "" || title == null) {
-		    _guid = "";
-		}
-	    }
-	}
-	if(_guid != "")
-	    _empty = false;
+                case "enclosure":
+                if(dat->has_prop("url") != null)
+                    enclosure_url = dat->has_prop("url")->children->content;
+                if(dat->has_prop("length") != null)
+                    enclosure_length = int.parse(dat->has_prop("length")->children->content);
+                if(dat->has_prop("type") != null)
+                    enclosure_type = dat->has_prop("type")->children->content;
+                break;
+                
+                default:
+                //stderr.printf("Item element <%s> is not currently supported.\n", dat->name);
+                break;
+            }
+            }
+        }
+        unread = true;
+        if(_guid == "" || _guid == null) {
+            _guid = link;
+            if(link == "" || link == null) {
+            _guid = title;
+            if(title == "" || title == null) {
+                _guid = "";
+            }
+            }
+        }
+        if(_guid != "")
+            _empty = false;
     }
 
     public Item.from_atom(Xml.Node* node) {
-	_time_added = new DateTime.now_utc();
-	for(Xml.Node* dat = node->children; dat != null; dat = dat->next) {
-	    if(dat->type == Xml.ElementType.ELEMENT_NODE) {
-		switch(dat->name) {
-		    case "title":
-			title = getNodeContents(dat, true);
-		    break;
+        _time_added = new DateTime.now_utc();
+        for(Xml.Node* dat = node->children; dat != null; dat = dat->next) {
+            if(dat->type == Xml.ElementType.ELEMENT_NODE) {
+            switch(dat->name) {
+                case "title":
+                title = getNodeContents(dat, true);
+                break;
 
-		    case "link":
-			if(dat->has_prop("rel") == null || dat->has_prop("rel")->children->content == "alternate") {
-			    link = dat->has_prop("href")->children->content;
-			}
-		    break;
+                case "link":
+                if(dat->has_prop("rel") == null || dat->has_prop("rel")->children->content == "alternate") {
+                    link = dat->has_prop("href")->children->content;
+                }
+                break;
 
-		    case "content":
-			description = getNodeContents(dat, true);
-		    break;
+                case "content":
+                description = getNodeContents(dat, true);
+                break;
 
-		    case "id":
-		    case "guid":
-			_guid = getNodeContents(dat, true);
-		    break;
+                case "id":
+                case "guid":
+                _guid = getNodeContents(dat, true);
+                break;
 
-		    case "updated": 
-			if(getNodeContents(dat) == null)
-			    break;
-			string input = getNodeContents(dat);
-			string[] big_strs = input.split("T");
-			if(big_strs.length < 2)
-			    break;
-			string[] date_strs = big_strs[0].split("-");
-			string[] time_strs = big_strs[1].split(":");
-			_time_posted = new DateTime.utc(int.parse(date_strs[0]), int.parse(date_strs[1]), int.parse(date_strs[2]), int.parse(time_strs[0]), int.parse(time_strs[1]), int.parse(time_strs[2]));
-		    break;
+                case "updated": 
+                if(getNodeContents(dat) == null)
+                    break;
+                string input = getNodeContents(dat);
+                string[] big_strs = input.split("T");
+                if(big_strs.length < 2)
+                    break;
+                string[] date_strs = big_strs[0].split("-");
+                string[] time_strs = big_strs[1].split(":");
+                _time_posted = new DateTime.utc(int.parse(date_strs[0]), int.parse(date_strs[1]), int.parse(date_strs[2]), int.parse(time_strs[0]), int.parse(time_strs[1]), int.parse(time_strs[2]));
+                break;
 
-		    case "author":
-			for(Xml.Node* a = dat->children; a != null; a = a->next)
-			    if(a->name == "name")
-				author = getNodeContents(a, true);
-		    break;
-		    
-		    default:
-			//stderr.printf("Element <%s> is not currently supported.\n", dat->name);
-		    break;
-		}
-	    }
-	}
-	unread = true;
-	if(_guid == "" || _guid == null) {
-	    _guid = link;
-	    if(link == "" && title != "")
-		_guid = title;
-	}
-	if(_guid != "" || time_posted != new DateTime.from_unix_utc(0))
-	    _empty = false;
+                case "author":
+                for(Xml.Node* a = dat->children; a != null; a = a->next)
+                    if(a->name == "name")
+                    author = getNodeContents(a, true);
+                break;
+                
+                default:
+                //stderr.printf("Element <%s> is not currently supported.\n", dat->name);
+                break;
+            }
+            }
+        }
+        unread = true;
+        if(_guid == "" || _guid == null) {
+            _guid = link;
+            if(link == "" && title != "")
+            _guid = title;
+        }
+        if(_guid != "" || time_posted != new DateTime.from_unix_utc(0))
+            _empty = false;
     }
 
     public bool applyRule(int[] rule) {
+        //stdout.printf("Rule: %d, %d, %d\n", rule[0], rule[1], rule[2]);
         if(rule[1] == 0 || rule[2] == 0)
             return true;
 
+        //stdout.printf("Getting time(%d)...\n", rule[0]);
         if(rule[0] != 0) {
             int timediff;
-            switch(rule[0]) {
+            switch(rule[1]) {
                 case 1:
                     timediff = time_added.add_minutes(rule[0]).compare(new DateTime.now_utc());
                 break;
@@ -220,9 +225,12 @@ public class Item {
                 default:
                     return true;
             }
+            //stdout.printf("diff: %d\n", timediff);
 
-            if(timediff > 0)
+            if(timediff > 0) {
+                //stdout.printf("Time has not arrived yet!\n");
                 return true;
+            }
         }
 
         switch(rule[2]) {
@@ -239,18 +247,18 @@ public class Item {
     }
 
     public string constructHtml() {
-	string html_string = "<article class=\"singularity-item\"><header class=\"item-head\" viewed=\"" + (unread ? "false" : "true") +"\"><a href=" + link + "><h3>" + title + "</h3></a>\n";
-	html_string += "<p>Posted";
-	if(author != "")
-	    html_string += " by " + author;
-	if(_time_posted != new DateTime.from_unix_utc(0))
-	    html_string += " on " + _time_posted.to_string();
-	html_string += "</header><br/><div class='item-content'>" + description + "</div><br/>";
-	if(enclosure_url != "") {
-	    html_string += "<a href=" + enclosure_url + ">Attachment</a>";
-	}
-	html_string += "</article>";
-	app.addToView(this);
-	return html_string;
+        string html_string = "<article class=\"singularity-item\"><header class=\"item-head\" viewed=\"" + (unread ? "false" : "true") +"\"><a href=" + link + "><h3>" + title + "</h3></a>\n";
+        html_string += "<p>Posted";
+        if(author != "" && author != null)
+            html_string += " by " + author;
+        if(_time_posted.compare(new DateTime.from_unix_utc(0)) != 0)
+            html_string += " on " + _time_posted.to_string();
+        html_string += "</header><br/><div class='item-content'>" + description + "</div><br/>";
+        if(enclosure_url != "" && enclosure_url != null) {
+            html_string += "<a href=" + enclosure_url + ">Attachment</a>";
+        }
+        html_string += "</article>";
+        app.addToView(this);
+        return html_string;
     }
 }

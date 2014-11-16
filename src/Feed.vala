@@ -24,11 +24,13 @@ public class Feed {
     private int _id;
     private Gee.ArrayList<Item> _items;
     private Gee.ArrayList<Item> _items_unread;
+    private Gee.ArrayList<Item> _items_starred;
     private Gee.ArrayList<Item> _items_holding;
     private string _last_guid;
     private string _last_guid_post;
     private DateTime _last_time = new DateTime.from_unix_utc(0);
     private DateTime _last_time_post = new DateTime.from_unix_utc(0);
+    private bool accept_empty = false;
     
     public Gee.ArrayList<Item> items { get { return _items; } }
 
@@ -45,12 +47,14 @@ public class Feed {
 
     public int item_count { get { return _items.size;  } } //
     public int unread_count { get { return _items_unread.size; } }
+    public int starred_count { get { return _items_starred.size; } }
 
     public int status = 0; //0:standby 1:download 2:success 3:failure
     
     public Feed.from_db(SQLHeavy.QueryResult result) {
         _items = new Gee.ArrayList<Item>();
         _items_unread = new Gee.ArrayList<Item>();
+        _items_starred = new Gee.ArrayList<Item>();
         _items_holding = new Gee.ArrayList<Item>();
         try {
             _id = result.fetch_int(0);
@@ -67,124 +71,126 @@ public class Feed {
     }
 
     public Feed.from_xml(Xml.Node* node, string url, int new_id = -1) {
-	_id = new_id;
-	origin_link = url;
-	_items = new Gee.ArrayList<Item>();
-	_items_unread = new Gee.ArrayList<Item>();
-	_items_holding = new Gee.ArrayList<Item>();
+        _id = new_id;
+        origin_link = url;
+        accept_empty = true;
+        _items = new Gee.ArrayList<Item>();
+        _items_unread = new Gee.ArrayList<Item>();
+        _items_starred = new Gee.ArrayList<Item>();
+        _items_holding = new Gee.ArrayList<Item>();
 
-	while(node != null && node->name != "rss" && node->name != "RDF" && node->name != "feed") {
-	    node = node->next;
-	}
-	if(node == null) {
-	    stderr.printf("Error: No defining node was found\n");
-	    status = 3;
-	    return;
-	}
-	if(node->name == "rss") {
-	    for(node = node->children; node != null; node = node->next) {
-		if(node->type == Xml.ElementType.ELEMENT_NODE) {
-		    for(Xml.Node* dat = node->children; dat != null; dat = dat->next) {
-			if(dat->type == Xml.ElementType.ELEMENT_NODE) {
-			    switch(dat->name) {
-				case "title":
-				    title = getNodeContents(dat);
-				break;
+        while(node != null && node->name != "rss" && node->name != "RDF" && node->name != "feed") {
+            node = node->next;
+        }
+        if(node == null) {
+            stderr.printf("Error: No defining node was found\n");
+            status = 3;
+            return;
+        }
+        if(node->name == "rss") {
+            for(node = node->children; node != null; node = node->next) {
+            if(node->type == Xml.ElementType.ELEMENT_NODE) {
+                for(Xml.Node* dat = node->children; dat != null; dat = dat->next) {
+                if(dat->type == Xml.ElementType.ELEMENT_NODE) {
+                    switch(dat->name) {
+                    case "title":
+                        title = getNodeContents(dat);
+                    break;
 
-				case "link":
-				    link = getNodeContents(dat);
-				break;
+                    case "link":
+                        link = getNodeContents(dat);
+                    break;
 
-				case "description":
-				    description = getNodeContents(dat);
-				break;
+                    case "description":
+                        description = getNodeContents(dat);
+                    break;
 
-				case "item":
-				    if(!add_item(new Item.from_rss(dat))) {
-					return;
-				    }
-				break;
-				
-				default:
-				    //stderr.printf("Feed element <%s> is not currently supported.\n", dat->name);
-				break;
-			    }
-			}
-		    }
-		}
-	    }
-	} else if(node->name == "feed") {
-	    for(node = node->children; node != null; node = node->next) {
-		if(node->type == Xml.ElementType.ELEMENT_NODE) {
-		    switch(node->name) {
-			case "title":
-			    title = getNodeContents(node, true);
-			break;
+                    case "item":
+                        if(!add_item(new Item.from_rss(dat))) {
+                        return;
+                        }
+                    break;
+                    
+                    default:
+                        //stderr.printf("Feed element <%s> is not currently supported.\n", dat->name);
+                    break;
+                    }
+                }
+                }
+            }
+            }
+        } else if(node->name == "feed") {
+            for(node = node->children; node != null; node = node->next) {
+            if(node->type == Xml.ElementType.ELEMENT_NODE) {
+                switch(node->name) {
+                case "title":
+                    title = getNodeContents(node, true);
+                break;
 
-			case "link":
-			    if(node->has_prop("rel") != null && node->has_prop("rel")->children->content == "alternate")
-				link = node->has_prop("href")->children->content;
-			break;
+                case "link":
+                    if(node->has_prop("rel") != null && node->has_prop("rel")->children->content == "alternate")
+                    link = node->has_prop("href")->children->content;
+                break;
 
-			case "description":
-			    description = getNodeContents(node, true);
-			break;
+                case "description":
+                    description = getNodeContents(node, true);
+                break;
 
-			case "entry":
-			    if(!add_item(new Item.from_atom(node))) {
-				return;
-			    }
-			break;
-			
-			default:
-			    //stderr.printf("Element <%s> is not currently supported.\n", node->name);
-			break;
-		    }
-		}
-	    }
-	} else if(node->name == "RDF") {
-	    for(; node != null; node = node->next) {
-		if(node->type == Xml.ElementType.ELEMENT_NODE) {
-		    for(Xml.Node* dat = node->children; dat != null; dat = dat->next) {
-			if(dat->type == Xml.ElementType.ELEMENT_NODE) {
-			    switch(dat->name) {
-				case "channel":
-				    for(Xml.Node* cdat = dat->children; cdat != null; cdat = cdat->next)
-					if(cdat->type == Xml.ElementType.ELEMENT_NODE) {
-					    switch(cdat->name) {
-						case "title":
-						    title = getNodeContents(cdat);
-						break;
+                case "entry":
+                    if(!add_item(new Item.from_atom(node))) {
+                    return;
+                    }
+                break;
+                
+                default:
+                    //stderr.printf("Element <%s> is not currently supported.\n", node->name);
+                break;
+                }
+            }
+            }
+        } else if(node->name == "RDF") {
+            for(; node != null; node = node->next) {
+            if(node->type == Xml.ElementType.ELEMENT_NODE) {
+                for(Xml.Node* dat = node->children; dat != null; dat = dat->next) {
+                if(dat->type == Xml.ElementType.ELEMENT_NODE) {
+                    switch(dat->name) {
+                    case "channel":
+                        for(Xml.Node* cdat = dat->children; cdat != null; cdat = cdat->next)
+                        if(cdat->type == Xml.ElementType.ELEMENT_NODE) {
+                            switch(cdat->name) {
+                            case "title":
+                                title = getNodeContents(cdat);
+                            break;
 
-						case "link":
-						    link = getNodeContents(cdat);
-						break;
+                            case "link":
+                                link = getNodeContents(cdat);
+                            break;
 
-						case "description":
-						    description = getNodeContents(cdat);
-						break;
-					    }
-					}
-				break;
+                            case "description":
+                                description = getNodeContents(cdat);
+                            break;
+                            }
+                        }
+                    break;
 
-				case "item":
-				    if(!add_item(new Item.from_rss(dat))) {
-					return;
-				    }
-				break;
-				
-				default:
-				    //stderr.printf("Feed element <%s> is not currently supported.\n", dat->name);
-				break;
-			    }
-			}
-		    }
-		}
-	    }
-	}
-	_last_guid = _last_guid_post;
-	if(title == null)
-	    title = "Untitled Feed";
+                    case "item":
+                        if(!add_item(new Item.from_rss(dat))) {
+                        return;
+                        }
+                    break;
+                    
+                    default:
+                        //stderr.printf("Feed element <%s> is not currently supported.\n", dat->name);
+                    break;
+                    }
+                }
+                }
+            }
+            }
+        }
+        _last_guid = _last_guid_post;
+        if(title == null)
+            title = "Untitled Feed";
     }
 
     public async void updateFromWeb(DatabaseManager man) {
@@ -194,6 +200,7 @@ public class Feed {
 	app.updateFeedIcons(this);
 	Xml.Doc* doc = yield getXmlData(origin_link);
 	Xml.Node* node = doc->get_root_element();
+    accept_empty = true;
 
 	while(node != null && node->name != "rss" && node->name != "RDF" && node->name != "feed")
 	    node = node->next;
@@ -207,9 +214,9 @@ public class Feed {
 	    while(node != null && node->type != Xml.ElementType.ELEMENT_NODE)
 		node = node->next;
 	    if(node == null) {
-		status = 3;
-		app.updateFeedIcons(this);
-		return;
+            status = 3;
+            app.updateFeedIcons(this);
+            return;
 	    }
 
 	    for(Xml.Node* dat = node->children; dat != null; dat = dat->next) {
@@ -284,11 +291,11 @@ public class Feed {
         }
         if(new_item.unread == true)
             _items_unread.add(new_item);
-        if(new_item.time_posted.compare(_last_time) > 0) {
+        if(new_item.starred == true)
+            _items_starred.add(new_item);
+        if(accept_empty && hold) {
+            accept_empty = false;
             _last_time = new_item.time_posted;
-            _last_guid_post = new_item.guid;
-        } else if(new_item.time_posted.compare(_last_time) == 0 && new_item.time_posted.compare(new DateTime.from_unix_utc(0)) == 0) {
-            _last_time = new_item.time_added;
             _last_guid_post = new_item.guid;
         }
         new_item.feed = this;
@@ -312,6 +319,17 @@ public class Feed {
     public string constructUnreadHtml(DatabaseManager man) {
         string html_string = "<div class=\"feed\">";
         foreach(Item i in _items_unread) {
+            html_string += i.constructHtml();
+        }
+        if(html_string == "<div class=\"feed\">")
+            return "";
+        html_string += "</div>";
+        return html_string;
+    }
+
+    public string constructStarredHtml(DatabaseManager man) {
+        string html_string = "<div class=\"feed\">";
+        foreach(Item i in _items_starred) {
             html_string += i.constructHtml();
         }
         if(html_string == "<div class=\"feed\">")

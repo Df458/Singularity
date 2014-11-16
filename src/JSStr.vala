@@ -8,8 +8,7 @@ const string js_str = "<script>function isElementInViewport (el) {
 }
 
 function callback (el, id) {
-    window.location.assign('command://test/' + id);
-    //el.style.color='red'
+    window.location.assign('command://read/' + id);
 }
 
 
@@ -36,10 +35,11 @@ var items = document.getElementsByClassName('item-head');
 items[0].setAttribute('marked', 'false');
 callback(items[0], 0);
 for(i = 1; i < items.length; ++i){
-var handler = fireIfElementVisible (items[i], i, callback);
-items[i].setAttribute('marked', 'false');
-//addEventListener('DOMContentLoaded', handler, false);
-addEventListener('load', handler, false);
-addEventListener('scroll', handler, false);
-addEventListener('resize', handler, false);
-}</script>";
+    var handler = fireIfElementVisible (items[i], i, callback);
+    items[i].setAttribute('marked', 'false');
+    //addEventListener('DOMContentLoaded', handler, false);
+    addEventListener('load', handler, false);
+    addEventListener('scroll', handler, false);
+    addEventListener('resize', handler, false);
+}
+</script>";

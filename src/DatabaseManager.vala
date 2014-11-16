@@ -34,9 +34,9 @@ public class DatabaseManager {
 	    build_feeds_query.execute();
 	    Query build_feeds_expunged_query = new Query(db, "CREATE TABLE IF NOT EXISTS feedsExpunged (id INTEGER, title TEXT, link TEXT, description TEXT, origin TEXT, last_guid TEXT, last_time INTEGER)");
 	    build_feeds_expunged_query.execute();
-	    Query build_entries_query = new Query(db, "CREATE TABLE IF NOT EXISTS entries (feed_id INTEGER, title TEXT, link TEXT, description TEXT, author TEXT, categories TEXT, comments_url TEXT, enclosures TEXT, guid TEXT, pubdate INTEGER, source TEXT, unread INTEGER, savedate INTEGER)");
+	    Query build_entries_query = new Query(db, "CREATE TABLE IF NOT EXISTS entries (feed_id INTEGER, title TEXT, link TEXT, description TEXT, author TEXT, categories TEXT, comments_url TEXT, enclosures TEXT, guid TEXT, pubdate INTEGER, source TEXT, unread INTEGER, starred INTEGER, savedate INTEGER)");
 	    build_entries_query.execute();
-	    Query build_entries_expunged_query = new Query(db, "CREATE TABLE IF NOT EXISTS entriesExpunged (feed_id INTEGER, title TEXT, link TEXT, description TEXT, author TEXT, categories TEXT, comments_url TEXT, enclosures TEXT, guid TEXT, pubdate INTEGER, source TEXT, unread INTEGER, savedate INTEGER)");
+	    Query build_entries_expunged_query = new Query(db, "CREATE TABLE IF NOT EXISTS entriesExpunged (feed_id INTEGER, title TEXT, link TEXT, description TEXT, author TEXT, categories TEXT, comments_url TEXT, enclosures TEXT, guid TEXT, pubdate INTEGER, source TEXT, unread INTEGER, starred INTEGER, savedate INTEGER)");
 	    build_entries_expunged_query.execute();
 	} catch(SQLHeavy.Error e) {
 	    stderr.printf("Error creating database: %s\n", e.message);
@@ -45,21 +45,21 @@ public class DatabaseManager {
     }
     
     public async Gee.ArrayList<Feed> loadFeeds() {
-	Gee.ArrayList<Feed> feed_list = new Gee.ArrayList<Feed>();
-	
-	try {
-	    Query load_query = new Query(db, "SELECT * FROM feeds");
-	    for(QueryResult result = yield load_query.execute_async(); !result.finished; result.next() ) {
-            if(result.fetch_int(0) >= next_id)
-                next_id = result.fetch_int(0) + 1;
-            Feed f = new Feed.from_db(result);
-            feed_list.add(f);
-	    }
-	} catch(SQLHeavy.Error e) {
-	    stderr.printf("Error loading feed data: %s\n", e.message);
-	}
-	
-	return feed_list;
+        Gee.ArrayList<Feed> feed_list = new Gee.ArrayList<Feed>();
+
+        try {
+            Query load_query = new Query(db, "SELECT * FROM feeds");
+            for(QueryResult result = yield load_query.execute_async(); !result.finished; result.next() ) {
+                if(result.fetch_int(0) >= next_id)
+                    next_id = result.fetch_int(0) + 1;
+                Feed f = new Feed.from_db(result);
+                feed_list.add(f);
+            }
+        } catch(SQLHeavy.Error e) {
+            stderr.printf("Error loading feed data: %s\n", e.message);
+        }
+
+        return feed_list;
     }
 	
     public async void loadFeedItems(Feed feed, int item_count = -1, int starting_id = -1) {
@@ -96,18 +96,18 @@ public class DatabaseManager {
     }
 
     public async void saveFeedItems(Feed feed, Gee.ArrayList<Item> items) {
-	try {
-	    Query update_query = new Query(db, "UPDATE feeds SET last_guid = :last_guid, last_time = :last_time WHERE id = :id");
-	    update_query[":last_guid"] = feed.last_guid;
-	    update_query[":last_time"] = feed.last_time.to_unix();
-	    update_query[":id"] = feed.id;
-	    yield update_query.execute_async();
-	} catch(SQLHeavy.Error e) {
-	    stderr.printf("Error updating feed: %s", e.message);
-	}
-	foreach(Item i in items) {
-	    yield saveItem(i, feed.id);
-	}
+        try {
+            Query update_query = new Query(db, "UPDATE feeds SET last_guid = :last_guid, last_time = :last_time WHERE id = :id");
+            update_query[":last_guid"] = feed.last_guid;
+            update_query[":last_time"] = feed.last_time.to_unix();
+            update_query[":id"] = feed.id;
+            yield update_query.execute_async();
+        } catch(SQLHeavy.Error e) {
+            stderr.printf("Error updating feed: %s", e.message);
+        }
+        foreach(Item i in items) {
+            yield saveItem(i, feed.id);
+        }
     }
 
     public async void saveItem(Item item, int feed_id) {
@@ -121,7 +121,7 @@ public class DatabaseManager {
             return;
 	    }
 
-	    Query save_query = new Query(db, "INSERT INTO entries (feed_id, title, link, description, author, guid, pubdate, unread, savedate) VALUES (:id, :title, :link, :description, :author, :guid, :pubdate, :unread, :savedate)");
+	    Query save_query = new Query(db, "INSERT INTO entries (feed_id, title, link, description, author, guid, pubdate, unread, starred, savedate) VALUES (:id, :title, :link, :description, :author, :guid, :pubdate, :unread, :starred, :savedate)");
 	    save_query[":id"] = feed_id;
 	    save_query[":title"] = item.title;
 	    save_query[":link"] = item.link;
@@ -130,6 +130,7 @@ public class DatabaseManager {
 	    save_query[":guid"] = item.guid;
 	    save_query[":pubdate"] = item.time_posted.to_unix();
 	    save_query[":unread"] = item.unread ? 1 : 0;
+        save_query[":starred"] = item.starred ? 1 : 0;
 	    save_query[":savedate"] = item.time_added.to_unix();
 	    yield save_query.execute_async();
 	} catch(SQLHeavy.Error e) {
@@ -185,23 +186,23 @@ public class DatabaseManager {
     
     public async void updateSingleUnread(Item item) {
 	    try {
-		Query save_query = new Query(db, "UPDATE entries SET unread = :unread WHERE guid = :guid");
-		save_query[":guid"] = item.guid;
-		save_query[":unread"] = item.unread ? 1 : 0;
-		yield save_query.execute_async();
+            Query save_query = new Query(db, "UPDATE entries SET unread = :unread WHERE guid = :guid");
+            save_query[":guid"] = item.guid;
+            save_query[":unread"] = item.unread ? 1 : 0;
+            yield save_query.execute_async();
 	    } catch(SQLHeavy.Error e) {
-		stderr.printf("Error saving feed data: %s\n", e.message);
-	}
+            stderr.printf("Error saving feed data: %s\n", e.message);
+        }
     }
 
     public async void removeOld() {
-	try {
-	    DateTime cutoff = new DateTime.now_utc().add_months(-1);
-	    Query rm_query = new Query(db, "DELETE FROM entries WHERE savedate < :cutoff");
-	    rm_query[":cutoff"] = cutoff.to_unix();
-	    yield rm_query.execute_async();
-	} catch(SQLHeavy.Error e) {
-	    stderr.printf("Error clearing old items: %s", e.message);
-	}
+        try {
+            DateTime cutoff = new DateTime.now_utc().add_months(-1);
+            Query rm_query = new Query(db, "DELETE FROM entries WHERE savedate < :cutoff");
+            rm_query[":cutoff"] = cutoff.to_unix();
+            yield rm_query.execute_async();
+        } catch(SQLHeavy.Error e) {
+            stderr.printf("Error clearing old items: %s", e.message);
+        }
     }
 }

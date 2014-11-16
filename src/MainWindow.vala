@@ -71,23 +71,14 @@ class MainWindow : Gtk.ApplicationWindow {
         this.add_action(preferences_action);
         menu.append_item(refresh_item);
         menu.append_item(preferences_item);
-        //menu.append("Refresh", "refresh");
-        //menu.append("Preferences", "preferences");
-
         app_menu = new MenuButton();
         app_menu.set_menu_model(menu);
-
-        //refresh_button = new ToolButton(new Image.from_icon_name("view-refresh", IconSize.SMALL_TOOLBAR), "Refresh");
-        //refresh_button.clicked.connect(() => {
-            //app.update();
-        //});
 
         top_bar = new HeaderBar();
         top_bar.set_title("Singularity");
         top_bar.set_subtitle("You have no subscriptions");
         top_bar.set_show_close_button(true);
         top_bar.pack_end(app_menu);
-        //top_bar.pack_end(refresh_button);
         set_titlebar(top_bar);
 
         content_fill = new Box(Orientation.VERTICAL, 0);
@@ -100,7 +91,6 @@ class MainWindow : Gtk.ApplicationWindow {
 
         Button add_button = new Button.from_icon_name("add", IconSize.MENU);
         Button rm_button = new Button.from_icon_name("remove", IconSize.MENU);
-        //Button settings_button = new Button.from_icon_name("preferences-system", IconSize.MENU);
         rm_button.set_sensitive(false);
         rm_button.clicked.connect((ev) => {
             var f = feed_list.selected;
@@ -124,15 +114,13 @@ class MainWindow : Gtk.ApplicationWindow {
         starred_item = new SourceList.Item("Starred");
         category_collection.add(all_item);
         category_collection.add(unread_item);
-//:TODO: 30.08.14 13:58:34, Hugues Ross
-// Add starred collections
-        //category_collection.add(starred_item);
+        category_collection.add(starred_item);
         category_all = new SourceList.ExpandableItem("Subscriptions");
         feed_list.root.add(category_collection);
         feed_list.root.add(category_all);
         feed_list.root.expand_all();
         content_pane.pack1(feed_list, true, false);
-        starred_item.badge = "0";
+        //starred_item.badge = "0";
         feed_list.item_selected.connect((item) => {
             rm_button.set_sensitive(false);
             if(item == unread_item)
@@ -239,6 +227,7 @@ class MainWindow : Gtk.ApplicationWindow {
         feed_item.badge = f.unread_count.to_string();
         category_all.add(feed_item);
         unread_item.badge = (int.parse(unread_item.badge) + f.unread_count).to_string();
+        //starred_item.badge = (int.parse(starred_item.badge) + f.starred_count).to_string();
         feed_items.add(feed_item);
         updateSubtitle();
         if(firststart) {
