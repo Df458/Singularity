@@ -84,7 +84,7 @@ public class DatabaseManager {
 	    save_query[":link"] = feed.link;
 	    save_query[":description"] = feed.description;
 	    save_query[":origin"] = feed.origin_link;
-	    save_query[":last_guid"] = feed.last_guid;
+	    save_query[":last_guid"] = feed.get_guids();
 	    save_query[":last_time"] = feed.last_time.to_unix();
 	    yield save_query.execute_async();
 	} catch(SQLHeavy.Error e) {
@@ -98,7 +98,7 @@ public class DatabaseManager {
     public async void saveFeedItems(Feed feed, Gee.ArrayList<Item> items) {
         try {
             Query update_query = new Query(db, "UPDATE feeds SET last_guid = :last_guid, last_time = :last_time WHERE id = :id");
-            update_query[":last_guid"] = feed.last_guid;
+            update_query[":last_guid"] = feed.get_guids();
             update_query[":last_time"] = feed.last_time.to_unix();
             update_query[":id"] = feed.id;
             yield update_query.execute_async();

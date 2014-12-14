@@ -56,7 +56,8 @@ public class Item {
             }
             _empty = false;
         } catch(SQLHeavy.Error e) {
-            stderr.printf("Error loading feed data: %s\n", e.message);
+            if(verbose)
+                stderr.printf("Error loading feed data: %s\n", e.message);
             return;
         }
     }

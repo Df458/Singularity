@@ -22,8 +22,33 @@ using Gee;
 
 Singularity app;
 
+static string db_path;
+
+static string css_path;
+    
+static bool verbose;
+
+const OptionEntry[] options =
+{
+    { "database", 'd', 0, OptionArg.STRING, ref db_path, "database path", "DATABASE" },
+    { "css-path", 'c', 0, OptionArg.STRING, ref css_path, "css path", "STYLESHEET" },
+    { "verbose", 'v', 0, OptionArg.NONE, ref verbose, "display extra information", null},
+    { null }
+};
+
 public static int main (string[] args){
+    db_path = Environment.get_user_data_dir() + "/singularity/feeds.db";
+    css_path = Environment.get_user_data_dir() + "/singularity/default.css";
+    OptionContext ctx = new OptionContext("- Singularity");
+
+    ctx.add_main_entries(options, null);
+    try {
+        ctx.parse(ref args);
+    } catch(OptionError e) {
+        stderr.printf("Failed to parse args: %s\n", e.message);
+        return 1;
+    }
     Gtk.init(ref args);
-    app = new Singularity(args);
+    app = new Singularity();
     return app.runall();
 }

@@ -38,13 +38,10 @@ class Singularity : Gtk.Application {
     public int[] read_unstarred_rule   = {0, 0, 0}; //1 month, delete
     public int[] read_starred_rule     = {0, 0, 0}; //6 months, unstar
 
-    public Singularity(string[] args) {
+    public Singularity() {
         Object(application_id: "org.df458.singularity");
         Granite.Services.Paths.initialize("singularity", Environment.get_user_data_dir());
         Granite.Services.Paths.ensure_directory_exists(Granite.Services.Paths.user_data_folder);
-
-        string db_path = Environment.get_user_data_dir() + "/singularity/feeds.db";
-        css_path = Environment.get_user_data_dir() + "/singularity/default.css";
 
         app_settings = new Settings("org.df458.singularity");
         auto_update = app_settings.get_boolean("auto-update");
@@ -70,10 +67,10 @@ class Singularity : Gtk.Application {
         rs_iter.next("i", &read_starred_rule[1]);
         rs_iter.next("i", &read_starred_rule[2]);
 
-        if(args.length > 1)
-            db_path = args[1];
-        if(args.length > 2)
-            css_path = args[2];
+        //if(args.length > 1)
+            //db_path = args[1];
+        //if(args.length > 2)
+            //css_path = args[2];
         db_man = new DatabaseManager.from_path(db_path);
         File file = File.new_for_path(css_path);
         if(!file.query_exists()) {

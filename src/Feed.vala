@@ -26,8 +26,10 @@ public class Feed {
     private Gee.ArrayList<Item> _items_unread;
     private Gee.ArrayList<Item> _items_starred;
     private Gee.ArrayList<Item> _items_holding;
-    private string _last_guid;
-    private string _last_guid_post;
+    //private string _last_guid;
+    //private string _last_guid_post;
+    private Gee.ArrayList<string> _last_guids;
+    private Gee.ArrayList<string> _last_guids_post;
     private DateTime _last_time = new DateTime.from_unix_utc(0);
     private DateTime _last_time_post = new DateTime.from_unix_utc(0);
     private bool accept_empty = false;
@@ -42,7 +44,7 @@ public class Feed {
     public string image_uri { get; set; }
     public string image_title { get; set; }
     public string image_link { get; set; }
-    public string last_guid { get { return _last_guid; } }
+    //public string last_guid { get { return _last_guid; } }
     public DateTime last_time { get{ return _last_time; } }
 
     public int item_count { get { return _items.size;  } } //
@@ -52,6 +54,8 @@ public class Feed {
     public int status = 0; //0:standby 1:download 2:success 3:failure
     
     public Feed.from_db(SQLHeavy.QueryResult result) {
+        _last_guids = new Gee.ArrayList<string>();
+        _last_guids_post = new Gee.ArrayList<string>();
         _items = new Gee.ArrayList<Item>();
         _items_unread = new Gee.ArrayList<Item>();
         _items_starred = new Gee.ArrayList<Item>();
@@ -62,15 +66,20 @@ public class Feed {
             link = result.fetch_string(2);
             description = result.fetch_string(3);
             origin_link = result.fetch_string(4);
-            _last_guid = result.fetch_string(5);
+            var guid_list = result.fetch_string(5).split("\n");
+            foreach(string s in guid_list)
+                _last_guids.add(s);
             _last_time = new DateTime.from_unix_utc(result.fetch_int(6));
         } catch(SQLHeavy.Error e) {
-            stderr.printf("Error loading feed data: %s\n", e.message);
+            if(verbose)
+                stderr.printf("Error loading feed data: %s\n", e.message);
             return;
         }
     }
 
     public Feed.from_xml(Xml.Node* node, string url, int new_id = -1) {
+        _last_guids = new Gee.ArrayList<string>();
+        _last_guids_post = new Gee.ArrayList<string>();
         _id = new_id;
         origin_link = url;
         accept_empty = true;
@@ -83,7 +92,8 @@ public class Feed {
             node = node->next;
         }
         if(node == null) {
-            stderr.printf("Error: No defining node was found\n");
+            if(verbose)
+                stderr.printf("Error: No defining node was found\n");
             status = 3;
             return;
         }
@@ -188,13 +198,14 @@ public class Feed {
             }
             }
         }
-        _last_guid = _last_guid_post;
+        //_last_guid = _last_guid_post;
+        _last_guids = _last_guids_post;
         if(title == null)
             title = "Untitled Feed";
     }
 
     public async void updateFromWeb(DatabaseManager man) {
-	_last_guid_post = _last_guid;
+	//_last_guid_post = _last_guid;
 	_last_time_post = _last_time;
 	status = 1;
 	app.updateFeedIcons(this);
@@ -248,7 +259,8 @@ public class Feed {
 	app.updateFeedIcons(this);
 	app.updateFeedItems(this);
 	
-	_last_guid = _last_guid_post;
+	//_last_guid = _last_guid_post;
+    _last_guids = _last_guids_post;
 	_last_time = _last_time_post;
 	if(_items_holding.size != 0) {
 	    yield man.saveFeedItems(this, _items_holding);
@@ -259,9 +271,16 @@ public class Feed {
     public Item get(int id) {
         return _items[id];
     }
+
+    public string get_guids() {
+        string guid = "";
+        foreach(string s in _last_guids)
+            guid += s + "\n";
+        return guid;
+    }
     
     public bool add_item(Item new_item, bool hold = false) {
-        if(hold && (new_item.guid == _last_guid || new_item.empty == true)) {
+        if(hold && (_last_guids.contains(new_item.guid) || new_item.empty == true)) {
             return false;
         }
 
@@ -296,7 +315,7 @@ public class Feed {
         if(accept_empty && hold) {
             accept_empty = false;
             _last_time = new_item.time_posted;
-            _last_guid_post = new_item.guid;
+            _last_guids_post.add(new_item.guid);
         }
         new_item.feed = this;
         _items.add(new_item);
