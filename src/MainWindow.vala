@@ -44,6 +44,7 @@ class MainWindow : Gtk.ApplicationWindow {
 
     private SimpleAction refresh_action;
     private SimpleAction preferences_action;
+    private SimpleAction mkread_action;
 
     private Welcome welcome_view;
     private SettingsPane settings;
@@ -57,6 +58,7 @@ class MainWindow : Gtk.ApplicationWindow {
         GLib.Menu menu = new GLib.Menu();
         GLib.MenuItem refresh_item = new GLib.MenuItem("Refresh", "win.refresh-feeds");
         GLib.MenuItem preferences_item = new GLib.MenuItem("Preferences", "win.app-preferences");
+        GLib.MenuItem mkread_item = new GLib.MenuItem("Mark All as Read", "win.mark-read");
         refresh_action = new GLib.SimpleAction("refresh-feeds", null);
         refresh_action.set_enabled(false);
         refresh_action.activate.connect(() => {
@@ -69,8 +71,15 @@ class MainWindow : Gtk.ApplicationWindow {
             set_content(settings);
         });
         this.add_action(preferences_action);
+        mkread_action = new GLib.SimpleAction("mark-read", null);
+        mkread_action.set_enabled(false);
+        mkread_action.activate.connect(() => {
+            app.markAllAsRead();
+        });
+        this.add_action(mkread_action);
         menu.append_item(refresh_item);
         menu.append_item(preferences_item);
+        menu.append_item(mkread_item);
         app_menu = new MenuButton();
         app_menu.set_menu_model(menu);
 
@@ -123,6 +132,7 @@ class MainWindow : Gtk.ApplicationWindow {
         //starred_item.badge = "0";
         feed_list.item_selected.connect((item) => {
             rm_button.set_sensitive(false);
+            mkread_action.set_enabled(true);
             if(item == unread_item)
                 web_view.load_html(app.constructUnreadHtml(), "");
             else if(item == all_item)
@@ -198,6 +208,10 @@ class MainWindow : Gtk.ApplicationWindow {
     }
 
     public void set_content(Gtk.Widget widget) {
+        if(widget == web_view)
+            mkread_action.set_enabled(true);
+        else
+            mkread_action.set_enabled(false);
         content_pane.remove(current_view);
         content_pane.set_position(0);
         content_pane.pack2(widget, true, false);

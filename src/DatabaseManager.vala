@@ -98,6 +98,7 @@ public class DatabaseManager {
     public async void saveFeedItems(Feed feed, Gee.ArrayList<Item> items) {
         try {
             Query update_query = new Query(db, "UPDATE feeds SET last_guid = :last_guid, last_time = :last_time WHERE id = :id");
+            stdout.printf("Saving guids: %s\n", feed.get_guids());
             update_query[":last_guid"] = feed.get_guids();
             update_query[":last_time"] = feed.last_time.to_unix();
             update_query[":id"] = feed.id;
@@ -116,7 +117,7 @@ public class DatabaseManager {
 	    test_query[":id"] = feed_id;
 	    test_query[":guid"] = item.guid;
 	    QueryResult test_result = yield test_query.execute_async();
-	    if(!test_result.finished) {
+	    if(!test_result.finished && verbose) {
             stderr.printf("Item <%s> already exists!\n", item.guid);
             return;
 	    }

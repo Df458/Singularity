@@ -206,6 +206,25 @@ class Singularity : Gtk.Application {
         });
     }
 
+    public void markAllAsRead() {
+        stdout.printf("Clearing %d items:\n", view_list.size);
+        Gee.ArrayList<Item> to_mark = new Gee.ArrayList<Item>();
+        for(int i = 0; i < view_list.size; ++i) {
+            if(view_list[i].unread == true) {
+                view_list[i].unread = false;
+                to_mark.add(view_list[i]);
+            }
+        }
+        db_man.updateUnread.begin(new Feed(), to_mark, () => {
+            stdout.printf("Removing 1 item\n");
+            foreach(var item in to_mark) {
+                item.feed.removeUnreadItem(item);
+                updateFeedItems(item.feed);
+            }
+        });
+        stdout.printf("done. Waiting...\n");
+    }
+
     public void exit() {
         db_man.clearExpunged();
     }

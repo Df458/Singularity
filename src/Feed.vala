@@ -234,9 +234,9 @@ public class Feed {
 		if(dat->type == Xml.ElementType.ELEMENT_NODE) {
 		    if(dat->name == "item") {
 			if(!this.add_item(new Item.from_rss(dat), true)) {
-			    status = 0;
-			    app.updateFeedIcons(this);
-			    break;
+				//status = 0;
+				//app.updateFeedIcons(this);
+				//break;
 			}
 		    }
 		}
@@ -246,9 +246,9 @@ public class Feed {
 		if(dat->type == Xml.ElementType.ELEMENT_NODE) {
 		    if(dat->name == "entry") {
 			if(!this.add_item(new Item.from_atom(dat), true)) {
-			    status = 0;
-			    app.updateFeedIcons(this);
-			    break;
+				//status = 0;
+				//app.updateFeedIcons(this);
+				//break;
 			}
 		    }
 		}
@@ -283,6 +283,10 @@ public class Feed {
         if(hold && (_last_guids.contains(new_item.guid) || new_item.empty == true)) {
             return false;
         }
+        if(hold) {
+            _last_time = new_item.time_posted;
+            _last_guids_post.add(new_item.guid);
+        }
 
         bool keep = true;
         if(new_item.unread) {
@@ -312,11 +316,6 @@ public class Feed {
             _items_unread.add(new_item);
         if(new_item.starred == true)
             _items_starred.add(new_item);
-        if(accept_empty && hold) {
-            accept_empty = false;
-            _last_time = new_item.time_posted;
-            _last_guids_post.add(new_item.guid);
-        }
         new_item.feed = this;
         _items.add(new_item);
         return true;

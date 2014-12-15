@@ -22,18 +22,19 @@ async Xml.Doc* getXmlData(string url) {
     SourceFunc callback = getXmlData.callback;
     Soup.Session session = new Soup.Session();
     session.use_thread_context = true;
-    stdout.printf("Adding %s...", url);
+    if(verbose)
+        stdout.printf("Adding %s...", url);
     Soup.Message message = new Soup.Message("GET", url);
     string data = "";
     session.queue_message(message, (session_out, message_out) => {
-	data = (string)message_out.response_body.data;
-	Idle.add((owned) callback);
+        data = (string)message_out.response_body.data;
+        Idle.add((owned) callback);
     });
     yield;
     Xml.Doc* xml_doc = Xml.Parser.parse_doc(data);
     if(xml_doc == null && data != null) {
-	data = data.split("<!DOCTYPE html")[0];
-	xml_doc = Xml.Parser.parse_doc(data);
+        data = data.split("<!DOCTYPE html")[0];
+        xml_doc = Xml.Parser.parse_doc(data);
     }
     return xml_doc;
 }
@@ -41,8 +42,9 @@ async Xml.Doc* getXmlData(string url) {
 string getNodeContents(Xml.Node* node, bool atom = false) {
     string output = "";
     if(node == null || node->children == null){
-	stderr.printf("Unexpected null pointer. Ignoring...\n");
-	return output;
+        if(verbose)
+            stderr.printf("Unexpected null pointer. Ignoring...\n");
+        return output;
     }
     if(atom && node->has_prop("type") != null && node->has_prop("type")->children->content != "text") {
 	switch(node->has_prop("type")->children->content) {
