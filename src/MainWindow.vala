@@ -103,10 +103,17 @@ class MainWindow : Gtk.ApplicationWindow {
         rm_button.set_sensitive(false);
         rm_button.clicked.connect((ev) => {
             var f = feed_list.selected;
-            app.removeFeed(feed_items.index_of(f));
-            category_all.remove(f);
-            feed_items.remove(f);
-            updateSubtitle();
+            MessageDialog confirm = new MessageDialog(this, DialogFlags.MODAL, MessageType.QUESTION, ButtonsType.YES_NO, "Are you sure you want to unsubscribe from %s?", f.name);
+            confirm.response.connect((response) => {
+                if(response == Gtk.ResponseType.YES) {
+                    app.removeFeed(feed_items.index_of(f));
+                    category_all.remove(f);
+                    feed_items.remove(f);
+                    updateSubtitle();
+                }
+                confirm.destroy();
+            });
+            confirm.show_all();
         });
         add_button.clicked.connect((ev) => {
             add_win.show_all();
