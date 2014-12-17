@@ -2,14 +2,14 @@
     <schema id="org.df458.singularity" path="/org/df458/singularity/" gettext-domain="singularity">
         <key name="auto-update" type="b">
             <default>true</default>
-            <summary>Automatically Update Feeds</summary>
+            <summary>Automatically update feeds</summary>
             <description>
                 Sets whether or not to periodically check for feed updates.
             </description>
         </key>
         <key name="auto-update-freq" type="u">
             <default>10</default>
-            <summary>Update Frequency</summary>
+            <summary>Update frequency</summary>
             <description>
                 How often to check for updates, in minutes.
             </description>
@@ -25,6 +25,27 @@
         </key>
         <key name="read-starred-rule" type="(iii)">
             <default>(0,0,0)</default>
+        </key>
+        <key name="download-attachments" type="b">
+            <default>true</default>
+            <summary>Download attachments when clicked</summary>
+            <description>
+                Sets whether to download or open attachments when clicked.
+            </description>
+        </key>
+        <key name="ask-download-location" type="b">
+            <default>true</default>
+            <summary>Ask for a download location</summary>
+            <description>
+                Sets whether or not to ask where to download attachments.
+            </description>
+        </key>
+        <key name="default-download-location" type="s">
+            <default>""</default>
+            <summary>Default location to download to</summary>
+            <description>
+                Where to download attachments by default
+            </description>
         </key>
     </schema>
 </schemalist>

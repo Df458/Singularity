@@ -151,6 +151,7 @@ class MainWindow : Gtk.ApplicationWindow {
         web_view = new WebKit.WebView();
         WebKit.Settings view_settings = new WebKit.Settings();
         view_settings.enable_javascript = true;
+        view_settings.enable_developer_extras = true;
         web_view.set_settings(view_settings);
 //:TODO: 16.09.14 18:52:26, Hugues Ross
 // Add a custom right-click menu

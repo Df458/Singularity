@@ -248,13 +248,13 @@ public class Item {
     }
 
     public string constructHtml() {
-        string html_string = "<article class=\"singularity-item\"><header class=\"item-head\" viewed=\"" + (unread ? "false" : "true") +"\"><a href=" + link + "><h3>" + title + "</h3></a>\n";
+        string html_string = "<article class=\"singularity-item\"><header class=\"item-head\" viewed=\"" + (unread ? "false" : "true") +"\"><a href=" + link + "><h3>" + title + "</h3></a>" /*+ "<input type=\"image\" src=\"file:///usr/local/share/singularity/emblem_failure.png\"/>\n"*/;
         html_string += "<p>Posted";
         if(author != "" && author != null)
             html_string += " by " + author;
         if(_time_posted.compare(new DateTime.from_unix_utc(0)) != 0)
-            html_string += " on " + _time_posted.to_string();
-        html_string += "</header><br/><div class='item-content'>" + description + "</div><br/>";
+            html_string += " on <time datetime=\"" + _time_posted.to_string();
+        html_string += "\">" + _time_posted.to_string() + "</time></header><br/><div class='item-content'>" + description + "</div><br/>";
         if(enclosure_url != "" && enclosure_url != null) {
             html_string += "<a href=" + enclosure_url + ">Attachment</a>";
         }

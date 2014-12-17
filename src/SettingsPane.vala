@@ -28,6 +28,8 @@ class SettingsPane : VBox {
     RuleEntry ru_entry;
     RuleEntry us_entry;
     RuleEntry rs_entry;
+    FileChooserButton dl_location_button;
+    CheckButton dl_always_ask;
 
     public signal void done();
 
@@ -61,12 +63,23 @@ class SettingsPane : VBox {
         auto_update_box.pack_start(auto_update_time_entry);
         auto_update_box.pack_start(new Label(" minutes."), false, false);
 
+        dl_location_button = new FileChooserButton("download to", FileChooserAction.SELECT_FOLDER);
+
+        dl_always_ask = new CheckButton.with_label("Always ask for a location");
+
+        Box dl_box = new Box(Orientation.HORIZONTAL, 0);
+        dl_box.pack_start(new Label("download attachments to: "), false, false);
+        dl_box.pack_start(dl_location_button, false, false);
+
         pack_start(auto_update_box, false, false);
         pack_start(new Gtk.Separator(Orientation.HORIZONTAL), false, false);
         pack_start(uu_entry, false, false);
         pack_start(ru_entry, false, false);
         pack_start(us_entry, false, false);
         pack_start(rs_entry, false, false);
+        pack_start(new Gtk.Separator(Orientation.HORIZONTAL), false, false);
+        pack_start(dl_box, false, false);
+        pack_start(dl_always_ask, false, false);
         pack_end(confirm_buttons, false, false);
         this.show_all();
     }
@@ -79,6 +92,8 @@ class SettingsPane : VBox {
         ru_entry.sync(app.read_unstarred_rule);
         us_entry.sync(app.unread_starred_rule);
         rs_entry.sync(app.read_starred_rule);
+        dl_always_ask.set_active(app.get_location);
+        dl_location_button.set_current_folder(app.default_location);
     }
 
     public void save() {
@@ -88,6 +103,8 @@ class SettingsPane : VBox {
         app.read_unstarred_rule = ru_entry.get_value();
         app.unread_starred_rule = us_entry.get_value();
         app.read_starred_rule = rs_entry.get_value();   
+        app.get_location = dl_always_ask.get_active();
+        app.default_location = dl_location_button.get_filename();
         app.update_settings();
         done();
     }

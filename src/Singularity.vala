@@ -32,6 +32,9 @@ class Singularity : Gtk.Application {
     public uint timeout_value = 600;
     public bool update_running = true;
     public uint update_next = 600;
+    public bool get_location = true;
+    public string default_location;
+    public bool download_attachments = true;
     //Count, Increment(m,h,d,m,y), action(nothing,read/unread,star/unstar,delete)
     public int[] unread_unstarred_rule = {0, 0, 0}; //1 week, read
     public int[] unread_starred_rule   = {0, 0, 0}; //nothing
@@ -42,8 +45,12 @@ class Singularity : Gtk.Application {
         Object(application_id: "org.df458.singularity");
         Granite.Services.Paths.initialize("singularity", Environment.get_user_data_dir());
         Granite.Services.Paths.ensure_directory_exists(Granite.Services.Paths.user_data_folder);
-
         app_settings = new Settings("org.df458.singularity");
+        download_attachments = app_settings.get_boolean("download-attachments");
+        default_location = app_settings.get_string("default-download-location");
+        get_location = app_settings.get_boolean("ask-download-location");
+        if(default_location == "")
+            default_location = Environment.get_home_dir() + "/Downloads";
         auto_update = app_settings.get_boolean("auto-update");
         timeout_value = app_settings.get_uint("auto-update-freq") * 60;
         var uu_val = app_settings.get_value("unread-unstarred-rule");
@@ -167,6 +174,9 @@ class Singularity : Gtk.Application {
         app_settings.set_value("read-unstarred-rule", new Variant("(iii)",read_unstarred_rule[0],read_unstarred_rule[1],read_unstarred_rule[2]));
         app_settings.set_value("unread-starred-rule", new Variant("(iii)",unread_starred_rule[0],unread_starred_rule[1],unread_starred_rule[2]));
         app_settings.set_value("read-starred-rule", new Variant("(iii)",read_starred_rule[0],read_starred_rule[1],read_starred_rule[2]));
+        app_settings.set_boolean("download-attachments", download_attachments);
+        app_settings.set_boolean("ask-download-location", get_location);
+        app_settings.set_string("default-download-location", default_location);
         if(auto_update && !update_running) {
             update_running = true;
             update_next = timeout_value;

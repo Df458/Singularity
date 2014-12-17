@@ -260,7 +260,8 @@ public class Feed {
 	app.updateFeedItems(this);
 	
 	//_last_guid = _last_guid_post;
-    _last_guids = _last_guids_post;
+    if(_last_guids_post.size > 0)
+        _last_guids = _last_guids_post;
 	_last_time = _last_time_post;
 	if(_items_holding.size != 0) {
 	    yield man.saveFeedItems(this, _items_holding);
