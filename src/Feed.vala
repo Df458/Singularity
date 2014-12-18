@@ -281,13 +281,16 @@ public class Feed {
     }
     
     public bool add_item(Item new_item, bool hold = false) {
-        if(hold && (_last_guids.contains(new_item.guid) || new_item.empty == true)) {
+        if(hold && (new_item.empty == true)) {
             return false;
         }
         if(hold) {
             _last_time = new_item.time_posted;
             _last_guids_post.add(new_item.guid);
         }
+
+        if(_last_guids.contains(new_item.guid))
+            return false;
 
         bool keep = true;
         if(new_item.unread) {
