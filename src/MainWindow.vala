@@ -45,10 +45,13 @@ class MainWindow : Gtk.ApplicationWindow {
     private SimpleAction refresh_action;
     private SimpleAction preferences_action;
     private SimpleAction mkread_action;
+    private SimpleAction about_action;
 
     private Welcome welcome_view;
     private SettingsPane settings;
     private AddPopupWindow add_win;
+
+    string[] authorstr = { "Hugues Ross(df458)" };
 
     public MainWindow(Gtk.Application owner_app) {
         feed_items = new Gee.ArrayList<SourceList.Item>();
@@ -59,6 +62,7 @@ class MainWindow : Gtk.ApplicationWindow {
         GLib.MenuItem refresh_item = new GLib.MenuItem("Refresh", "win.refresh-feeds");
         GLib.MenuItem preferences_item = new GLib.MenuItem("Preferences", "win.app-preferences");
         GLib.MenuItem mkread_item = new GLib.MenuItem("Mark All as Read", "win.mark-read");
+        GLib.MenuItem about_item = new GLib.MenuItem("About", "win.about");
         refresh_action = new GLib.SimpleAction("refresh-feeds", null);
         refresh_action.set_enabled(false);
         refresh_action.activate.connect(() => {
@@ -77,9 +81,23 @@ class MainWindow : Gtk.ApplicationWindow {
             app.markAllAsRead();
         });
         this.add_action(mkread_action);
+        about_action = new GLib.SimpleAction("about", null);
+        about_action.activate.connect(() => {
+            Gtk.show_about_dialog(this,
+                "program-name", ("Singularity"),
+                "authors", (authorstr),
+                "website", ("http://github.com/Df458/Singularity"),
+                "website-label", ("Github"),
+                "comments", ("A simple webfeed aggregator"),
+                "version", ("0.2"),
+                "license-type", ((Gtk.License)License.GPL_3_0),
+                "copyright", ("Copyright © 2014 Hugues Ross"));
+        });
+        this.add_action(about_action);
         menu.append_item(refresh_item);
         menu.append_item(preferences_item);
         menu.append_item(mkread_item);
+        menu.append_item(about_item);
         app_menu = new MenuButton();
         app_menu.set_menu_model(menu);
 
