@@ -247,8 +247,8 @@ public class Item {
         return true;
     }
 
-    public string constructHtml() {
-        string html_string = "<article class=\"singularity-item\"><header class=\"item-head\" viewed=\"" + (unread ? "false" : "true") +"\"><h3><a href=" + link + ">" + title + "</a></h3>" /*+ "<input type=\"image\" src=\"file:///usr/local/share/singularity/emblem_failure.png\"/>\n"*/;
+    public string constructHtml(int id = 0) {
+        string html_string = "<article class=\"singularity-item\"><header class=\"item-head\" viewed=\"" + (unread ? "false" : "true") +"\"><h3><a href=" + link + ">" + title + "</a></h3>" + "<img class='starButton" + (starred ? "D" : "") +  "' src=\"data:image/png;base64," + star_icon_base64 + "\"/>\n";
         string authtimestr = "<p>Posted";
         if(author.strip() != "" && author != null)
             authtimestr += " by " + author;

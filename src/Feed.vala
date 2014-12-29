@@ -364,4 +364,14 @@ public class Feed {
     public void removeUnreadItem(Item i) {
         _items_unread.remove(i);
     }
+
+    public void toggleStar(Item i) {
+        if(_items.contains(i)) {
+            i.starred = !i.starred;
+            if(i.starred)
+                _items_starred.add(i);
+            else
+                _items_starred.remove(i);
+        }
+    }
 }

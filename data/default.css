@@ -30,3 +30,19 @@ img, object {
     max-width: 100%;
     height: auto;
 }
+
+.starButton {
+    position: absolute;
+    top: 5px;
+    right: -20px;
+    clip: rect(0px, 25px, 25px, 0px);
+    overflow:hidden;
+}
+
+.starButtonD {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    clip: rect(0px, 50px, 25px, 25px);
+    overflow:hidden;
+}

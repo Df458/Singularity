@@ -202,20 +202,41 @@ class Singularity : Gtk.Application {
 
     public void interpretUriEncodedAction(string action) {
         string[] args = action.split("/");
-        int pos = int.parse(args[1]);
-        Gee.ArrayList<Item> to_mark = new Gee.ArrayList<Item>();
-        for(int i = 0; i <= pos; ++i) {
-            if(view_list[i].unread == true) {
-                view_list[i].unread = false;
-                to_mark.add(view_list[i]);
-            }
+        if(verbose)
+            stderr.printf("calling function %s...\n", action);
+        switch(args[0]) {
+            case "read":
+                int pos = int.parse(args[1]);
+                Gee.ArrayList<Item> to_mark = new Gee.ArrayList<Item>();
+                for(int i = 0; i <= pos; ++i) {
+                    if(view_list[i].unread == true) {
+                        view_list[i].unread = false;
+                        to_mark.add(view_list[i]);
+                    }
+                }
+                db_man.updateUnread.begin(new Feed(), to_mark, () => {
+                    foreach(var item in to_mark) {
+                        item.feed.removeUnreadItem(item);
+                        updateFeedItems(item.feed);
+                    }
+                });
+            break;
+
+            case "toggleRead":
+                int pos = int.parse(args[1]);
+                view_list[pos].unread = !view_list[pos].unread;
+//:TODO: 29.12.14 14:30:40, df458
+// Finish this when the time to add a button for this feature arrives
+// For now, it shouldn't save this change, so nothing permanent should happen
+// if it gets activated by accident :)
+            break;
+            case "toggleStarred":
+                int pos = int.parse(args[1]);
+                Feed f = view_list[pos].feed;
+                f.toggleStar(view_list[pos]);
+                db_man.updateStarred.begin(f, view_list[pos]);
+            break;
         }
-        db_man.updateUnread.begin(new Feed(), to_mark, () => {
-            foreach(var item in to_mark) {
-                item.feed.removeUnreadItem(item);
-                updateFeedItems(item.feed);
-            }
-        });
     }
 
     public void markAllAsRead() {

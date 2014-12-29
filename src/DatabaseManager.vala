@@ -175,13 +175,26 @@ public class DatabaseManager {
     public async void updateUnread(Feed feed, Gee.ArrayList<Item> items) {
         foreach(Item item in items) {
             try {
-                Query save_query = new Query(db, "UPDATE entries SET unread = :unread WHERE guid = :guid");
+                Query save_query = new Query(db, "UPDATE entries SET unread = :unread WHERE feed_id = :fid AND guid = :guid");
                 save_query[":guid"] = item.guid;
                 save_query[":unread"] = item.unread ? 1 : 0;
+                save_query[":fid"] = feed.id;
                 yield save_query.execute_async();
             } catch(SQLHeavy.Error e) {
                 stderr.printf("Error saving feed data: %s\n", e.message);
             }
+        }
+    }
+
+    public async void updateStarred(Feed feed, Item item) {
+        try {
+            Query save_query = new Query(db, "UPDATE entries SET starred = :starred WHERE feed_id = :fid AND guid = :guid");
+            save_query[":guid"] = item.guid;
+            save_query[":starred"] = item.starred ? 1 : 0;
+            save_query[":fid"] = feed.id;
+            yield save_query.execute_async();
+        } catch(SQLHeavy.Error e) {
+            stderr.printf("Error saving feed data: %s\n", e.message);
         }
     }
     
