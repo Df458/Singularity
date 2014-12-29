@@ -49,7 +49,7 @@ class MainWindow : Gtk.ApplicationWindow {
 
     private Welcome welcome_view;
     private SettingsPane settings;
-    private AddPopupWindow add_win;
+    private AddPane add_pane;
 
     string[] authorstr = { "Hugues Ross(df458)" };
 
@@ -114,8 +114,6 @@ class MainWindow : Gtk.ApplicationWindow {
         content_pane = new ThinPaned();
         content_fill.add(content_pane);
 
-        add_win = new AddPopupWindow(this);
-
         Button add_button = new Button.from_icon_name("add", IconSize.MENU);
         Button rm_button = new Button.from_icon_name("remove", IconSize.MENU);
         rm_button.set_sensitive(false);
@@ -134,7 +132,7 @@ class MainWindow : Gtk.ApplicationWindow {
             confirm.show_all();
         });
         add_button.clicked.connect((ev) => {
-            add_win.show_all();
+            set_content(add_pane);
         });
         status_bar = new StatusBar();
         status_bar.insert_widget(add_button, true);
@@ -206,13 +204,21 @@ class MainWindow : Gtk.ApplicationWindow {
         welcome_view = new Welcome("Welcome", "You have no subscriptions");
         welcome_view.append("add", "Add", "Subscribe to a new feed.");
         welcome_view.activated.connect( () => {
-            add_win.show_all();
+            set_content(add_pane);
         });
         content_pane.pack2(welcome_view, true, true);
         current_view = welcome_view;
 
         settings = new SettingsPane();
         settings.done.connect(() => {
+            if(firststart)
+                set_content(welcome_view);
+            else
+                set_content(web_view);
+        });
+        
+        add_pane = new AddPane();
+        add_pane.done.connect(() => {
             if(firststart)
                 set_content(welcome_view);
             else

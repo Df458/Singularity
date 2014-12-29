@@ -281,12 +281,11 @@ public class Feed {
     }
     
     public bool add_item(Item new_item, bool hold = false) {
+        if(hold) {
+            _last_guids_post.add(new_item.guid);
+        }
         if(hold && (new_item.empty == true)) {
             return false;
-        }
-        if(hold) {
-            _last_time = new_item.time_posted;
-            _last_guids_post.add(new_item.guid);
         }
 
         if(_last_guids.contains(new_item.guid))
@@ -309,6 +308,8 @@ public class Feed {
             return false;
 
         foreach(Item i in _items) {
+            if(id == 0)
+                stdout.printf("%s -- %s", i.guid, new_item.guid);
             if(i.guid == new_item.guid) {
                 return false;
             }

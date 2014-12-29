@@ -24,7 +24,6 @@ class Singularity : Gtk.Application {
     private ArrayList<Feed> feeds;
     private DatabaseManager db_man;
     private MainWindow main_window;
-    string css_path;
     string css_dat = "";
     private ArrayList<Item> view_list;
     private Settings app_settings;
@@ -81,6 +80,7 @@ class Singularity : Gtk.Application {
         db_man = new DatabaseManager.from_path(db_path);
         File file = File.new_for_path(css_path);
         if(!file.query_exists()) {
+            warning("Custom CSS path(" + css_path + ") not found. Reverting to default.");
             file = File.new_for_path("/usr/local/share/singularity/default.css");
         }
         try {
@@ -143,6 +143,8 @@ class Singularity : Gtk.Application {
     }
 
     public void createFeed(string url) {
+        if(verbose)
+            stdout.printf("Fetching feed data from %s...", url);
         getXmlData.begin(url, (obj, res) => {
             Xml.Doc* doc = getXmlData.end(res);
             if(doc == null || doc->get_root_element() == null) {

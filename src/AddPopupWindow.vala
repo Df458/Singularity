@@ -21,36 +21,35 @@
 using Gtk;
 using Granite.Widgets;
 
-class AddPopupWindow : Dialog {
-    private Entry url_input;
+class AddPane : VBox {
+    Entry url_input;
+    ButtonBox confirm_buttons;
 
-    public AddPopupWindow(Window owner) {
-	this.set_transient_for(owner);
-	this.set_modal(true);
-	this.title = "Add a feed";
-	//this.focus_out_event.connect(() => {
-	    //this.hide();
-	    //return true;
-	//});
+    public signal void done();
 
-	add_buttons("Cancel", 0, "Preview", 1, "Ok", 2);
-	this.response.connect((sig) => {
-	    if(sig == 0) {
-		url_input.set_text("");
-		this.hide();
-	    } else if(sig == 2) {
-		app.createFeed(url_input.get_text());
-		url_input.set_text("");
-		this.hide();
-	    }
-	});
+    public AddPane() {
+        spacing = 5;
+        confirm_buttons = new HButtonBox();
+        Gtk.Button cancel_button = new Gtk.Button.with_label("Cancel");
+        cancel_button.clicked.connect(() => {
+            url_input.set_text("");
+            done();
+        });
+        Gtk.Button confirm_button = new Gtk.Button.with_label("Confirm");
+        confirm_button.clicked.connect(() => {
+            app.createFeed(url_input.get_text());
+            url_input.set_text("");
+            done();
+        });
+        confirm_buttons.add(cancel_button);
+        confirm_buttons.add(confirm_button);
 
+        url_input = new Entry();
+        url_input.editable = true;
+        url_input.input_purpose = InputPurpose.URL;
 
-	Box content_box = get_content_area() as Box;
-
-	url_input = new Entry();
-	url_input.editable = true;
-	url_input.input_purpose = InputPurpose.URL;
-	content_box.pack_start(url_input, false, true, 0);
+        pack_start(url_input, false, true, 0);
+        pack_end(confirm_buttons, false, false);
+        this.show_all();
     }
 }

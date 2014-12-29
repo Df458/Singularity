@@ -48,6 +48,7 @@ public static int main (string[] args){
         stderr.printf("Failed to parse args: %s\n", e.message);
         return 1;
     }
+    stderr.printf("??? --%s--", css_path);
     Gtk.init(ref args);
     app = new Singularity();
     return app.runall();
