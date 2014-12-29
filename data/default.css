@@ -4,6 +4,7 @@ body {
 
 .feed {
     overflow: hidden;
+    padding-bottom: 30px;
 }
 
 .singularity-item {
