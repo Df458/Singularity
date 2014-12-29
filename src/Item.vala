@@ -261,7 +261,7 @@ public class Item {
         if(description.strip() != "" && description != null)
             html_string += "<br /><div class='item-content'>" + description + "</div>";
         if(enclosure_url != "" && enclosure_url != null) {
-            html_string += "<br /><a href=" + enclosure_url + ">Attachment</a>";
+            html_string += "<br /><a href=download-attachment" + enclosure_url + ">Attachment</a>";
         }
         html_string += "</article>";
         app.addToView(this);

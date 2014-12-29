@@ -239,6 +239,26 @@ class Singularity : Gtk.Application {
         }
     }
 
+    public void downloadAttachment(string action) {
+        try {
+            if(!download_attachments)
+                GLib.Process.spawn_command_line_async("xdg-open " + action);
+            else {
+                if(get_location) {
+                    Gtk.FileChooserDialog dialog = new Gtk.FileChooserDialog("Download attachment", main_window, Gtk.FileChooserAction.SELECT_FOLDER, "Cancel", Gtk.ResponseType.CANCEL, "Download here", Gtk.ResponseType.ACCEPT);
+                    dialog.set_current_folder(default_location);
+                    if(dialog.run() == Gtk.ResponseType.ACCEPT) {
+                        GLib.Process.spawn_command_line_async("wget -b -P '" + dialog.get_filename() +  "' '" + action + "'");
+                    }
+                    dialog.close();
+                } else
+                    GLib.Process.spawn_command_line_async("wget -b -P '" + default_location +  "' '" + action + "'");
+            }
+        } catch(GLib.SpawnError e) {
+            stderr.printf("Failed to spawn %s: %s\n", (download_attachments ? "wget" : "xdg-open"), e.message);
+        }
+    }
+
     public void markAllAsRead() {
         stdout.printf("Clearing %d items:\n", view_list.size);
         Gee.ArrayList<Item> to_mark = new Gee.ArrayList<Item>();

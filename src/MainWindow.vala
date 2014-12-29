@@ -189,6 +189,13 @@ class MainWindow : Gtk.ApplicationWindow {
                 nav_dec.ignore();
                 return true;
             }
+
+            if(nav_dec.get_navigation_action().get_request().uri.has_prefix("download-attachment")) {
+                app.downloadAttachment(nav_dec.get_navigation_action().get_request().uri.substring(19));
+                nav_dec.ignore();
+                return true;
+            }
+
             if(nav_dec.get_navigation_action().get_navigation_type() != WebKit.NavigationType.LINK_CLICKED)
                 return false;
             try {
