@@ -163,6 +163,10 @@ class Singularity : Gtk.Application {
         });
     }
 
+    public Feed getFeed(int feed_index) {
+        return feeds[feed_index];
+    }
+
     public void removeFeed(int feed_index) {
         Feed f = feeds[feed_index];
         db_man.removeFeed.begin(f);
@@ -184,6 +188,13 @@ class Singularity : Gtk.Application {
             update_next = timeout_value;
             Timeout.add_seconds(timeout_value, update);
         }
+    }
+
+    public void update_feed_settings(Feed f) {
+        string outrule = "%d %d %d\n%d %d %d\n%d %d %d\n%d %d %d".printf(f.unread_unstarred_rule[0], f.unread_unstarred_rule[1], f.unread_unstarred_rule[2], f.unread_starred_rule[0], f.unread_starred_rule[1], f.unread_starred_rule[2], f.read_unstarred_rule[0], f.read_unstarred_rule[1], f.read_unstarred_rule[2], f.read_starred_rule[0], f.read_starred_rule[1], f.read_starred_rule[2]);
+        if(!f.override_rules)
+            outrule = "";
+        db_man.updateFeedSettings.begin(f, outrule);
     }
 
     public int runall() {
@@ -239,20 +250,35 @@ class Singularity : Gtk.Application {
         }
     }
 
-    public void downloadAttachment(string action) {
+    public void downloadAttachment(string att) {
+        bool getl = get_location;
+        string default_loc = default_location;
+
+        int id = -1;
+        string action = "";
+        att.scanf("%d_", &id);
+        action = att.substring(id.to_string().length + 1);
+        Feed tocheck = null;
+        foreach(Feed f in feeds)
+            if(f.id == id)
+                tocheck = f;
+        if(tocheck != null && tocheck.override_location) {
+            getl = tocheck.get_location;
+            default_loc = tocheck.default_location;
+        }
         try {
             if(!download_attachments)
                 GLib.Process.spawn_command_line_async("xdg-open " + action);
             else {
-                if(get_location) {
+                if(getl) {
                     Gtk.FileChooserDialog dialog = new Gtk.FileChooserDialog("Download attachment", main_window, Gtk.FileChooserAction.SELECT_FOLDER, "Cancel", Gtk.ResponseType.CANCEL, "Download here", Gtk.ResponseType.ACCEPT);
-                    dialog.set_current_folder(default_location);
+                    dialog.set_current_folder(default_loc);
                     if(dialog.run() == Gtk.ResponseType.ACCEPT) {
                         GLib.Process.spawn_command_line_async("wget -b -P '" + dialog.get_filename() +  "' '" + action + "'");
                     }
                     dialog.close();
                 } else
-                    GLib.Process.spawn_command_line_async("wget -b -P '" + default_location +  "' '" + action + "'");
+                    GLib.Process.spawn_command_line_async("wget -b -P '" + default_loc +  "' '" + action + "'");
             }
         } catch(GLib.SpawnError e) {
             stderr.printf("Failed to spawn %s: %s\n", (download_attachments ? "wget" : "xdg-open"), e.message);
@@ -269,11 +295,12 @@ class Singularity : Gtk.Application {
             }
         }
         db_man.updateUnread.begin(new Feed(), to_mark, () => {
-            stdout.printf("Removing 1 item\n");
+            stdout.printf("Removing items\n");
             foreach(var item in to_mark) {
                 item.feed.removeUnreadItem(item);
                 updateFeedItems(item.feed);
             }
+            stdout.printf("Items removed\n");
         });
         stdout.printf("done. Waiting...\n");
     }

@@ -49,6 +49,7 @@ class MainWindow : Gtk.ApplicationWindow {
 
     private Welcome welcome_view;
     private SettingsPane settings;
+    private FeedSettingsPane feed_settings;
     private AddPane add_pane;
 
     string[] authorstr = { "Hugues Ross(df458)" };
@@ -116,7 +117,9 @@ class MainWindow : Gtk.ApplicationWindow {
 
         Button add_button = new Button.from_icon_name("add", IconSize.MENU);
         Button rm_button = new Button.from_icon_name("remove", IconSize.MENU);
+        Button settings_button = new Button.from_icon_name("settings", IconSize.MENU);
         rm_button.set_sensitive(false);
+        settings_button.set_sensitive(false);
         rm_button.clicked.connect((ev) => {
             var f = feed_list.selected;
             MessageDialog confirm = new MessageDialog(this, DialogFlags.MODAL, MessageType.QUESTION, ButtonsType.YES_NO, "Are you sure you want to unsubscribe from %s?", f.name);
@@ -134,9 +137,14 @@ class MainWindow : Gtk.ApplicationWindow {
         add_button.clicked.connect((ev) => {
             set_content(add_pane);
         });
+        settings_button.clicked.connect((ev) => {
+            feed_settings.sync(app.getFeed(feed_items.index_of(feed_list.selected)));
+            set_content(feed_settings);
+        });
         status_bar = new StatusBar();
         status_bar.insert_widget(add_button, true);
         status_bar.insert_widget(rm_button, true);
+        status_bar.insert_widget(settings_button, true);
         content_fill.add(status_bar);
 
         feed_list = new SourceList();
@@ -155,6 +163,7 @@ class MainWindow : Gtk.ApplicationWindow {
         //starred_item.badge = "0";
         feed_list.item_selected.connect((item) => {
             rm_button.set_sensitive(false);
+            settings_button.set_sensitive(false);
             mkread_action.set_enabled(true);
             if(item == unread_item)
                 web_view.load_html(app.constructUnreadHtml(), "");
@@ -167,6 +176,7 @@ class MainWindow : Gtk.ApplicationWindow {
                 return;
                 web_view.load_html(app.constructFeedHtml(feed_items.index_of(item)), "");
                 rm_button.set_sensitive(true);
+                settings_button.set_sensitive(true);
             }
             set_content(web_view);
         });
@@ -178,9 +188,9 @@ class MainWindow : Gtk.ApplicationWindow {
         web_view.set_settings(view_settings);
 //:TODO: 16.09.14 18:52:26, Hugues Ross
 // Add a custom right-click menu
-        //web_view.context_menu.connect(()=>{
-            //return true;
-        //});
+        web_view.context_menu.connect(()=>{
+            return true;
+        });
         web_view.decide_policy.connect((decision, type) => {
             if(type == WebKit.PolicyDecisionType.NAVIGATION_ACTION) {
             WebKit.NavigationPolicyDecision nav_dec = (WebKit.NavigationPolicyDecision) decision;
@@ -222,6 +232,11 @@ class MainWindow : Gtk.ApplicationWindow {
                 set_content(welcome_view);
             else
                 set_content(web_view);
+        });
+
+        feed_settings = new FeedSettingsPane();
+        feed_settings.done.connect(() => {
+            set_content(web_view);
         });
         
         add_pane = new AddPane();

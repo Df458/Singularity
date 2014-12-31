@@ -36,7 +36,7 @@ public class Feed {
     
     public Gee.ArrayList<Item> items { get { return _items; } }
 
-    public int id   { get { return _id; } } //Databse entry id
+    public int id   { get { return _id; } } //Database entry id
     public string title       { get; set; } //Feed title
     public string link        { get; set; } //Feed link
     public string origin_link        { get; set; } //Feed origin
@@ -52,6 +52,19 @@ public class Feed {
     public int starred_count { get { return _items_starred.size; } }
 
     public int status = 0; //0:standby 1:download 2:success 3:failure
+
+//-Custom Settings-------------------------------------------------------------
+
+    //Count, Increment(m,h,d,m,y), action(nothing,read/unread,star/unstar,delete)
+    public bool override_rules = false;
+    public int[] unread_unstarred_rule = {0, 0, 0}; //1 week, read
+    public int[] unread_starred_rule   = {0, 0, 0}; //nothing
+    public int[] read_unstarred_rule   = {0, 0, 0}; //1 month, delete
+    public int[] read_starred_rule     = {0, 0, 0}; //6 months, unstar
+
+    public bool override_location = false;
+    public bool get_location = true;
+    public string default_location;
     
     public Feed.from_db(SQLHeavy.QueryResult result) {
         _last_guids = new Gee.ArrayList<string>();
@@ -70,11 +83,23 @@ public class Feed {
             foreach(string s in guid_list)
                 _last_guids.add(s);
             _last_time = new DateTime.from_unix_utc(result.fetch_int(6));
+            override_rules = parseRules(result.fetch_string(7));
+            override_location = result.fetch_int(8) == 1;
+            get_location = result.fetch_int(9) == 1;
+            default_location = result.fetch_string(10);
         } catch(SQLHeavy.Error e) {
             if(verbose)
                 stderr.printf("Error loading feed data: %s\n", e.message);
             return;
         }
+    }
+
+    bool parseRules(string? rulestr) {
+        if(rulestr == null || rulestr == "")
+           return false; 
+
+        rulestr.scanf("%d %d %d\n%d %d %d\n%d %d %d\n%d %d %d", &unread_unstarred_rule[0], &unread_unstarred_rule[1], &unread_unstarred_rule[2], &unread_starred_rule[0], &unread_starred_rule[1], &unread_starred_rule[2], &read_unstarred_rule[0], &read_unstarred_rule[1], &read_unstarred_rule[2], &read_starred_rule[0], &read_starred_rule[1], &read_starred_rule[2]);
+        return true;
     }
 
     public Feed.from_xml(Xml.Node* node, string url, int new_id = -1) {
@@ -288,28 +313,40 @@ public class Feed {
             return false;
         }
 
-        if(_last_guids.contains(new_item.guid))
+        if(hold && _last_guids.contains(new_item.guid))
             return false;
 
         bool keep = true;
-        if(new_item.unread) {
-            if(new_item.starred) {
-                keep = new_item.applyRule(app.unread_starred_rule);
+        if(override_rules) {
+            if(new_item.unread) {
+                if(new_item.starred) {
+                    keep = new_item.applyRule(unread_starred_rule);
+                } else {
+                    keep = new_item.applyRule(unread_unstarred_rule);
+                }
+            } else if(new_item.starred) {
+                keep = new_item.applyRule(read_starred_rule);
             } else {
-                keep = new_item.applyRule(app.unread_unstarred_rule);
+                keep = new_item.applyRule(read_unstarred_rule);
             }
-        } else if(new_item.starred) {
-            keep = new_item.applyRule(app.read_starred_rule);
         } else {
-            keep = new_item.applyRule(app.read_unstarred_rule);
+            if(new_item.unread) {
+                if(new_item.starred) {
+                    keep = new_item.applyRule(app.unread_starred_rule);
+                } else {
+                    keep = new_item.applyRule(app.unread_unstarred_rule);
+                }
+            } else if(new_item.starred) {
+                keep = new_item.applyRule(app.read_starred_rule);
+            } else {
+                keep = new_item.applyRule(app.read_unstarred_rule);
+            }
         }
 
         if(!keep)
             return false;
 
         foreach(Item i in _items) {
-            if(id == 0)
-                stdout.printf("%s -- %s", i.guid, new_item.guid);
             if(i.guid == new_item.guid) {
                 return false;
             }

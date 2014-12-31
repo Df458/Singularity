@@ -30,9 +30,9 @@ public class DatabaseManager {
     public DatabaseManager.from_path(string location) {
 	try {
 	    db = new Database(location, FileMode.READ | FileMode.WRITE | FileMode.CREATE);
-	    Query build_feeds_query = new Query(db, "CREATE TABLE IF NOT EXISTS feeds (id INTEGER, title TEXT, link TEXT, description TEXT, origin TEXT, last_guid TEXT, last_time INTEGER)");
+	    Query build_feeds_query = new Query(db, "CREATE TABLE IF NOT EXISTS feeds (id INTEGER, title TEXT, link TEXT, description TEXT, origin TEXT, last_guid TEXT, last_time INTEGER, rules TEXT, override_dl INTEGER, getloc_dl INTEGER, loc_dl TEXT)");
 	    build_feeds_query.execute();
-	    Query build_feeds_expunged_query = new Query(db, "CREATE TABLE IF NOT EXISTS feedsExpunged (id INTEGER, title TEXT, link TEXT, description TEXT, origin TEXT, last_guid TEXT, last_time INTEGER)");
+	    Query build_feeds_expunged_query = new Query(db, "CREATE TABLE IF NOT EXISTS feedsExpunged (id INTEGER, title TEXT, link TEXT, description TEXT, origin TEXT, last_guid TEXT, last_time INTEGER, rules TEXT, override_dl INTEGER, getloc_dl INTEGER, loc_dl TEXT)");
 	    build_feeds_expunged_query.execute();
 	    Query build_entries_query = new Query(db, "CREATE TABLE IF NOT EXISTS entries (feed_id INTEGER, title TEXT, link TEXT, description TEXT, author TEXT, categories TEXT, comments_url TEXT, enclosures TEXT, guid TEXT, pubdate INTEGER, source TEXT, unread INTEGER, starred INTEGER, savedate INTEGER)");
 	    build_entries_query.execute();
@@ -122,7 +122,7 @@ public class DatabaseManager {
             return;
 	    }
 
-	    Query save_query = new Query(db, "INSERT INTO entries (feed_id, title, link, description, author, guid, pubdate, unread, starred, savedate) VALUES (:id, :title, :link, :description, :author, :guid, :pubdate, :unread, :starred, :savedate)");
+	    Query save_query = new Query(db, "INSERT INTO entries (feed_id, title, link, description, author, guid, pubdate, unread, starred, savedate, enclosures) VALUES (:id, :title, :link, :description, :author, :guid, :pubdate, :unread, :starred, :savedate, :enclosures)");
 	    save_query[":id"] = feed_id;
 	    save_query[":title"] = item.title;
 	    save_query[":link"] = item.link;
@@ -133,26 +133,49 @@ public class DatabaseManager {
 	    save_query[":unread"] = item.unread ? 1 : 0;
         save_query[":starred"] = item.starred ? 1 : 0;
 	    save_query[":savedate"] = item.time_added.to_unix();
+	    save_query[":enclosures"] = item.enclosure_url;
 	    yield save_query.execute_async();
 	} catch(SQLHeavy.Error e) {
 	    stderr.printf("Error saving feed data: %s\n", e.message);
 	}
     }
 
+    public async void updateFeedSettings(Feed f, string rules) {
+        try {
+            Query save_query = new Query(db, "UPDATE feeds SET rules = :rules, override_dl = :override, getloc_dl = :getloc, loc_dl = :loc WHERE id = :id");
+            save_query[":id"] = f.id;
+            save_query[":rules"] = rules;
+            save_query[":override"] = f.override_location ? 1 : 0;
+            save_query[":getloc"] = f.get_location ? 1 : 0;
+            save_query[":loc"] = f.default_location;
+            yield save_query.execute_async();
+        } catch(SQLHeavy.Error e) {
+            stderr.printf("Error saving feed data: %s\n", e.message);
+        }
+    }
+
     public async void removeFeed(Feed f) {
 	try {
+        if(verbose)
+            stderr.printf("Trashing feed...");
 	    Query feed_mv_query = new Query(db, "INSERT INTO feedsExpunged SELECT * FROM feeds WHERE `id` = :id");
 	    feed_mv_query[":id"] = f.id;
 	    yield feed_mv_query.execute_async();
 
+        if(verbose)
+            stderr.printf("Trashing entries...");
 	    Query entry_mv_query = new Query(db, "INSERT INTO entriesExpunged SELECT * FROM entries WHERE `feed_id` = :id");
 	    entry_mv_query[":id"] = f.id;
 	    yield entry_mv_query.execute_async();
 	    
+        if(verbose)
+            stderr.printf("Removing feed...");
 	    Query feed_rm_query = new Query(db, "DELETE FROM feeds WHERE `id` = :id");
 	    feed_rm_query[":id"] = f.id;
 	    yield feed_rm_query.execute_async();
 	    
+        if(verbose)
+            stderr.printf("Removing entries...");
 	    Query item_rm_query = new Query(db, "DELETE FROM entries WHERE `feed_id` = :id");
 	    item_rm_query[":id"] = f.id;
 	    yield item_rm_query.execute_async();
@@ -175,10 +198,10 @@ public class DatabaseManager {
     public async void updateUnread(Feed feed, Gee.ArrayList<Item> items) {
         foreach(Item item in items) {
             try {
-                Query save_query = new Query(db, "UPDATE entries SET unread = :unread WHERE feed_id = :fid AND guid = :guid");
+                Query save_query = new Query(db, "UPDATE entries SET unread = :unread WHERE guid = :guid");
                 save_query[":guid"] = item.guid;
                 save_query[":unread"] = item.unread ? 1 : 0;
-                save_query[":fid"] = feed.id;
+                //save_query[":fid"] = feed.id;
                 yield save_query.execute_async();
             } catch(SQLHeavy.Error e) {
                 stderr.printf("Error saving feed data: %s\n", e.message);

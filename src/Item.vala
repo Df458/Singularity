@@ -45,6 +45,7 @@ public class Item {
             link = result.fetch_string(2);
             description = result.fetch_string(3);
             author = result.fetch_string(4);
+            enclosure_url = result.fetch_string(7);
             _guid = result.fetch_string(8);
             _time_posted = new DateTime.from_unix_utc(result.fetch_int(9));
             if(result.fetch_int(11) == 1) {
@@ -249,7 +250,7 @@ public class Item {
 
     public string constructHtml(int id = 0) {
         string html_string = "<article class=\"singularity-item\"><header class=\"item-head\" viewed=\"" + (unread ? "false" : "true") +"\"><h3><a href=" + link + ">" + title + "</a></h3>" + "<img class='starButton" + (starred ? "D" : "") +  "' src=\"data:image/png;base64," + star_icon_base64 + "\"/>\n";
-        string authtimestr = "<p>Posted";
+        string authtimestr = "";
         if(author.strip() != "" && author != null)
             authtimestr += " by " + author;
         if(_time_posted.compare(new DateTime.from_unix_utc(0)) != 0) {
@@ -257,11 +258,11 @@ public class Item {
             authtimestr += "\">" + _time_posted.to_string() + "</time></header>";
         }
         if(authtimestr != "")
-            html_string += authtimestr;
+            html_string += "<p>Posted" + authtimestr + "</p>";
         if(description.strip() != "" && description != null)
             html_string += "<br /><div class='item-content'>" + description + "</div>";
         if(enclosure_url != "" && enclosure_url != null) {
-            html_string += "<br /><a href=download-attachment" + enclosure_url + ">Attachment</a>";
+            html_string += "<br /><a href=download-attachment" + feed.id.to_string() + "_" + enclosure_url + ">Attachment</a>";
         }
         html_string += "</article>";
         app.addToView(this);
