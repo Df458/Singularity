@@ -117,7 +117,7 @@ class MainWindow : Gtk.ApplicationWindow {
 
         Button add_button = new Button.from_icon_name("add", IconSize.MENU);
         Button rm_button = new Button.from_icon_name("remove", IconSize.MENU);
-        Button settings_button = new Button.from_icon_name("settings", IconSize.MENU);
+        Button settings_button = new Button.from_icon_name("gtk-preferences", IconSize.MENU);
         rm_button.set_sensitive(false);
         settings_button.set_sensitive(false);
         rm_button.clicked.connect((ev) => {
@@ -262,6 +262,7 @@ class MainWindow : Gtk.ApplicationWindow {
     }
 
     public void set_content(Gtk.Widget widget) {
+        int pos = content_pane.get_position();
         if(widget == web_view)
             mkread_action.set_enabled(true);
         else
@@ -270,6 +271,7 @@ class MainWindow : Gtk.ApplicationWindow {
         content_pane.set_position(0);
         content_pane.pack2(widget, true, false);
         current_view = widget;
+        content_pane.set_position(pos);
         this.show_all();
     }
 
