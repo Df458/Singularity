@@ -116,8 +116,11 @@ class MainWindow : Gtk.ApplicationWindow {
         content_fill.add(content_pane);
 
         Button add_button = new Button.from_icon_name("add", IconSize.MENU);
+        add_button.set_tooltip_text("Subscribe to a new feed");
         Button rm_button = new Button.from_icon_name("remove", IconSize.MENU);
+        rm_button.set_tooltip_text("Unsubscribe from this feed");
         Button settings_button = new Button.from_icon_name("gtk-preferences", IconSize.MENU);
+        settings_button.set_tooltip_text("Feed settings");
         rm_button.set_sensitive(false);
         settings_button.set_sensitive(false);
         rm_button.clicked.connect((ev) => {
