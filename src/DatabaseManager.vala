@@ -98,7 +98,8 @@ public class DatabaseManager {
     public async void saveFeedItems(Feed feed, Gee.ArrayList<Item> items) {
         try {
             Query update_query = new Query(db, "UPDATE feeds SET last_guid = :last_guid, last_time = :last_time WHERE id = :id");
-            stdout.printf("Saving guids: %s\n", feed.get_guids());
+            if(verbose)
+                stdout.printf("Saving guids: %s\n", feed.get_guids());
             update_query[":last_guid"] = feed.get_guids();
             update_query[":last_time"] = feed.last_time.to_unix();
             update_query[":id"] = feed.id;
