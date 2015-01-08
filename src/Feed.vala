@@ -378,8 +378,8 @@ public class Feed {
 
     public string constructUnreadHtml(DatabaseManager man) {
         string html_string = "<div class=\"feed\">";
-        foreach(Item i in _items_unread) {
-            html_string += i.constructHtml();
+        for(int i = _items_unread.size - 1; i >= 0; --i) {
+            html_string += _items_unread[i].constructHtml();
         }
         if(html_string == "<div class=\"feed\">")
             return "";
