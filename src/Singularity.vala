@@ -27,6 +27,8 @@ class Singularity : Gtk.Application {
     string css_dat = "";
     private ArrayList<Item> view_list;
     private Settings app_settings;
+    bool done_load = false;
+    int load_counter = 0;
     public bool auto_update = true;
     public uint timeout_value = 600;
     public bool update_running = true;
@@ -51,6 +53,8 @@ class Singularity : Gtk.Application {
         if(default_location == "")
             default_location = Environment.get_home_dir() + "/Downloads";
         auto_update = app_settings.get_boolean("auto-update");
+        if(nogui)
+            auto_update = false;
         timeout_value = app_settings.get_uint("auto-update-freq") * 60;
         var uu_val = app_settings.get_value("unread-unstarred-rule");
         var uu_iter = uu_val.iterator();
@@ -78,30 +82,33 @@ class Singularity : Gtk.Application {
         //if(args.length > 2)
             //css_path = args[2];
         db_man = new DatabaseManager.from_path(db_path);
-        File file = File.new_for_path(css_path);
-        if(!file.query_exists()) {
-            warning("Custom CSS path(" + css_path + ") not found. Reverting to default.");
-            file = File.new_for_path("/usr/local/share/singularity/default.css");
-        }
-        try {
-            DataInputStream stream = new DataInputStream(file.read());
-            string indat;
-            while((indat = stream.read_line()) != null)
-            css_dat += indat;
-        } catch (Error e) {
-            error("%s", e.message);
-        }
-
         db_man.removeOld.begin();
         db_man.loadFeeds.begin((obj, res) =>{
             feeds = db_man.loadFeeds.end(res);
-            main_window.add_feeds(feeds);
+            if(main_window != null)
+                main_window.add_feeds(feeds);
             update();
         });
-        main_window = new MainWindow(this);
-        view_list = new ArrayList<Item>();
-        if(auto_update)
-            Timeout.add_seconds(timeout_value, update);
+        if(!nogui) {
+            File file = File.new_for_path(css_path);
+            if(!file.query_exists()) {
+                warning("Custom CSS path(" + css_path + ") not found. Reverting to default.");
+                file = File.new_for_path("/usr/local/share/singularity/default.css");
+            }
+            try {
+                DataInputStream stream = new DataInputStream(file.read());
+                string indat;
+                while((indat = stream.read_line()) != null)
+                css_dat += indat;
+            } catch (Error e) {
+                error("%s", e.message);
+            }
+
+            main_window = new MainWindow(this);
+            view_list = new ArrayList<Item>();
+            if(auto_update)
+                Timeout.add_seconds(timeout_value, update);
+        }
     }
 
     public string constructFeedHtml(int feed_id) {
@@ -198,17 +205,34 @@ class Singularity : Gtk.Application {
     }
 
     public int runall() {
-        Gtk.main();
+        if(!nogui)
+            Gtk.main();
+        else {
+            MainLoop ml = new MainLoop();
+            TimeoutSource t = new TimeoutSource.seconds(2);
+
+            t.attach(ml.get_context());
+            t.set_callback(() => {
+                if(done_load) {
+                    ml.quit();
+                    return false;
+                }
+                return true;
+            });
+            ml.run();
+        }
         exit();
         return 0;
     }
 
     public void updateFeedItems(Feed f) {
-        main_window.updateFeedItem(f, feeds.index_of(f));
+        if(!nogui)
+            main_window.updateFeedItem(f, feeds.index_of(f));
     }
 
     public void updateFeedIcons(Feed f) {
-        main_window.updateFeedIcon(feeds.index_of(f), f.status);
+        if(!nogui)
+            main_window.updateFeedIcon(feeds.index_of(f), f.status);
     }
 
     public void interpretUriEncodedAction(string action) {
@@ -316,7 +340,14 @@ class Singularity : Gtk.Application {
     public bool update() {
         foreach(Feed f in feeds) {
             db_man.loadFeedItems.begin(f, -1, -1, (obj, res) => {
-                f.updateFromWeb.begin(db_man);
+                load_counter++;
+                f.updateFromWeb.begin(db_man, (obj, res) => {
+                    load_counter--;
+                    if(load_counter <= 0) {
+                        load_counter = 0;
+                        done_load = true;
+                    }
+                });
             });
         }
         update_running = auto_update;

@@ -28,10 +28,13 @@ static string css_path;
     
 static bool verbose;
 
+static bool nogui;
+
 const OptionEntry[] options =
 {
     { "database", 'd', 0, OptionArg.STRING, ref db_path, "database path", "DATABASE" },
     { "css-path", 'c', 0, OptionArg.STRING, ref css_path, "css path", "STYLESHEET" },
+    { "no-gui", 'n', 0, OptionArg.NONE, ref nogui, "check for new entries, then exit without opening the main window" },
     { "verbose", 'v', 0, OptionArg.NONE, ref verbose, "display extra information", null},
     { null }
 };
