@@ -36,6 +36,7 @@ class Singularity : Gtk.Application {
     public bool get_location = true;
     public string default_location;
     public bool download_attachments = true;
+    public Notify.Notification update_complete_notification;
     //Count, Increment(m,h,d,m,y), action(nothing,read/unread,star/unstar,delete)
     public int[] unread_unstarred_rule = {0, 0, 0}; //1 week, read
     public int[] unread_starred_rule   = {0, 0, 0}; //nothing
@@ -76,6 +77,9 @@ class Singularity : Gtk.Application {
         rs_iter.next("i", &read_starred_rule[0]);
         rs_iter.next("i", &read_starred_rule[1]);
         rs_iter.next("i", &read_starred_rule[2]);
+
+        Notify.init("Singularity");
+        update_complete_notification = new Notify.Notification("Update Complete", "You have new feeds", null);
 
         //if(args.length > 1)
             //db_path = args[1];
@@ -346,6 +350,15 @@ class Singularity : Gtk.Application {
                     if(load_counter <= 0) {
                         load_counter = 0;
                         done_load = true;
+                        int unread_count = main_window.get_unread_count();
+                        if(unread_count != 0) {
+                        try {
+                            update_complete_notification.update("Update Complete", "You have " + unread_count.to_string() + " unread item" + (unread_count > 1 ? "s." : "."), null);
+                            update_complete_notification.show();
+                        } catch(GLib.Error e) {
+                            stderr.printf("Error displaying notification: %s.\n", e.message);
+                        }
+                        }
                     }
                 });
             });

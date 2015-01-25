@@ -27,6 +27,7 @@ public class Item {
     public string title       { get; set; } //Item title
     public string link        { get; set; } //Item link
     public string description { get; set; } //Item description
+    public string content     { get; set; } //Item content
     public string author      { get; set; } //Item author
     public string guid { get { return _guid; } } //Unique identifier
     public Feed feed { get; set; }

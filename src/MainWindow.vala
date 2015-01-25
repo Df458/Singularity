@@ -316,6 +316,10 @@ class MainWindow : Gtk.ApplicationWindow {
         feed_items[index].badge = f.unread_count.to_string();
     }
 
+    public int get_unread_count() {
+        return int.parse(unread_item.badge);
+    }
+
     public void updateFeedIcon(int index, int icon) {
         switch(icon) {
             case 0:
