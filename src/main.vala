@@ -30,11 +30,14 @@ static bool verbose;
 
 static bool nogui;
 
+static string new_sub;
+
 const OptionEntry[] options =
 {
     { "database", 'd', 0, OptionArg.STRING, ref db_path, "database path", "DATABASE" },
     { "css-path", 'c', 0, OptionArg.STRING, ref css_path, "css path", "STYLESHEET" },
     { "no-gui", 'n', 0, OptionArg.NONE, ref nogui, "check for new entries, then exit without opening the main window" },
+    { "verbose", 'v', 0, OptionArg.NONE, ref verbose, "display extra information", null},
     { "verbose", 'v', 0, OptionArg.NONE, ref verbose, "display extra information", null},
     { null }
 };
@@ -51,7 +54,13 @@ public static int main (string[] args){
         stderr.printf("Failed to parse args: %s\n", e.message);
         return 1;
     }
+
+    if(args.length > 1) {
+        new_sub = args[1].replace("feed://", "http://");
+    }
+
     Gtk.init(ref args);
+
     app = new Singularity();
     return app.runall();
 }

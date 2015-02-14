@@ -66,9 +66,7 @@ string getNodeContents(Xml.Node* node, bool atom = false) {
         output = node->children->get_content();
     } 
 
-    stdout.printf("BEGIN REPLACE:\n%s\n", output);
     output = output.replace("\"//", "\"http://");
-    stdout.printf("\n\n%s\nEND REPLACE\n", output);
     return output;
 }
 

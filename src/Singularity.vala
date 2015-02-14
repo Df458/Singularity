@@ -113,6 +113,9 @@ class Singularity : Gtk.Application {
             if(auto_update)
                 Timeout.add_seconds(timeout_value, update);
         }
+
+        if(new_sub != null && new_sub != "")
+            createFeed(new_sub);
     }
 
     public string constructFeedHtml(int feed_id) {
