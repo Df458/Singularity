@@ -53,18 +53,22 @@ string getNodeContents(Xml.Node* node, bool atom = false) {
 //:TODO: 05.09.14 11:25:16, Hugues Ross
 // Add support for HTML escapes
 	    case "html":
-		output = node->children->get_content();
+            output = node->children->get_content();
 	    break;
 
 	    case "xhtml":
-		output = dumpXml(node);
+            output = dumpXml(node);
 	    break;
 	}
     } else if(node->children->type != Xml.ElementType.TEXT_NODE && node->children->type != Xml.ElementType.CDATA_SECTION_NODE) {
-	stderr.printf("Unexpected element <%s> detected.", node->children->name);
+        stderr.printf("Unexpected element <%s> detected.", node->children->name);
     } else {
-	output = node->children->get_content();
+        output = node->children->get_content();
     } 
+
+    stdout.printf("BEGIN REPLACE:\n%s\n", output);
+    output = output.replace("\"//", "\"http://");
+    stdout.printf("\n\n%s\nEND REPLACE\n", output);
     return output;
 }
 

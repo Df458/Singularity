@@ -53,6 +53,7 @@ public class Item {
                 unread = true;
             }
             _time_added = new DateTime.from_unix_utc(result.fetch_int(12));
+            content = result.fetch_string(13);
             if(result.fetch_int(13) == 1) {
                 starred = true;
             }
@@ -159,7 +160,15 @@ public class Item {
                 break;
 
                 case "content":
-                description = getNodeContents(dat, true);
+                    string cont = getNodeContents(dat, true);
+                    if(cont.length > 0)
+                        description = cont;
+                break;
+
+                case "summary":
+                    string sum = getNodeContents(dat, true);
+                    if(sum.length > 0)
+                    description = sum;
                 break;
 
                 case "id":
@@ -191,6 +200,7 @@ public class Item {
             }
             }
         }
+                stdout.printf("HI I'M DESC: %s\n\n\n", description);
         unread = true;
         if(_guid == "" || _guid == null) {
             _guid = link;

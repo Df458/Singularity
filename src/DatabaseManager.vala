@@ -32,11 +32,11 @@ public class DatabaseManager {
 	    db = new Database(location, FileMode.READ | FileMode.WRITE | FileMode.CREATE);
 	    Query build_feeds_query = new Query(db, "CREATE TABLE IF NOT EXISTS feeds (id INTEGER, title TEXT, link TEXT, description TEXT, origin TEXT, last_guid TEXT, last_time INTEGER, rules TEXT, override_dl INTEGER, getloc_dl INTEGER, loc_dl TEXT)");
 	    build_feeds_query.execute();
-	    Query build_feeds_expunged_query = new Query(db, "CREATE TABLE IF NOT EXISTS feedsExpunged (id INTEGER, title TEXT, link TEXT, description TEXT, origin TEXT, last_guid TEXT, last_time INTEGER, rules TEXT, override_dl INTEGER, getloc_dl INTEGER, loc_dl TEXT)");
+	    Query build_feeds_expunged_query = new Query(db, "CREATE TABLE IF NOT EXISTS feedsExpunged (id INTEGER, title TEXT, link TEXT, description TEXT,  origin TEXT, last_guid TEXT, last_time INTEGER, rules TEXT, override_dl INTEGER, getloc_dl INTEGER, loc_dl TEXT)");
 	    build_feeds_expunged_query.execute();
-	    Query build_entries_query = new Query(db, "CREATE TABLE IF NOT EXISTS entries (feed_id INTEGER, title TEXT, link TEXT, description TEXT, author TEXT, categories TEXT, comments_url TEXT, enclosures TEXT, guid TEXT, pubdate INTEGER, source TEXT, unread INTEGER, starred INTEGER, savedate INTEGER)");
+	    Query build_entries_query = new Query(db, "CREATE TABLE IF NOT EXISTS entries (feed_id INTEGER, title TEXT, link TEXT, description TEXT, author TEXT, categories TEXT, comments_url TEXT, enclosures TEXT, guid TEXT, pubdate INTEGER, source TEXT, unread INTEGER, starred INTEGER, savedate INTEGER, content TEXT)");
 	    build_entries_query.execute();
-	    Query build_entries_expunged_query = new Query(db, "CREATE TABLE IF NOT EXISTS entriesExpunged (feed_id INTEGER, title TEXT, link TEXT, description TEXT, author TEXT, categories TEXT, comments_url TEXT, enclosures TEXT, guid TEXT, pubdate INTEGER, source TEXT, unread INTEGER, starred INTEGER, savedate INTEGER)");
+	    Query build_entries_expunged_query = new Query(db, "CREATE TABLE IF NOT EXISTS entriesExpunged (feed_id INTEGER, title TEXT, link TEXT, description TEXT, author TEXT, categories TEXT, comments_url TEXT, enclosures TEXT, guid TEXT, pubdate INTEGER, source TEXT, unread INTEGER, starred INTEGER, savedate INTEGER, content TEXT)");
 	    build_entries_expunged_query.execute();
 	} catch(SQLHeavy.Error e) {
 	    stderr.printf("Error creating database: %s\n", e.message);
