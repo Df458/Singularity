@@ -135,6 +135,12 @@ class Singularity : Gtk.Application {
         return html_str;
     }
 
+    public string constructFrontPage() {
+        view_list.clear();
+        string html_str = "<html><head><style>" + css_dat + "</style></head><body>" + js_str + "</body></html>";
+        return html_str;
+    }
+
     public string constructAllHtml() {
         view_list.clear();
         string html_str = "<html><head><style>" + css_dat + "</style></head><body>";

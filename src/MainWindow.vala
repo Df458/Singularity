@@ -54,7 +54,7 @@ class MainWindow : Gtk.ApplicationWindow {
 
     string[] authorstr = { "Hugues Ross(df458)" };
 
-    public MainWindow(Gtk.Application owner_app) {
+    public MainWindow(Singularity owner_app) {
         feed_items = new Gee.ArrayList<SourceList.Item>();
         window_position = WindowPosition.CENTER;
         set_default_size(800, 600);
@@ -228,6 +228,7 @@ class MainWindow : Gtk.ApplicationWindow {
         });
         content_pane.pack2(welcome_view, true, true);
         current_view = welcome_view;
+        web_view.load_html(owner_app.constructFrontPage(), "");
 
         settings = new SettingsPane();
         settings.done.connect(() => {
