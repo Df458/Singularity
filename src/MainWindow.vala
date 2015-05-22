@@ -22,7 +22,8 @@ using Gtk;
 using Gdk;
 using Granite.Widgets;
 
-class MainWindow : Gtk.ApplicationWindow {
+class MainWindow : Gtk.ApplicationWindow
+{
     private HeaderBar top_bar;
     private ThinPaned content_pane;
     private WebKit.WebView web_view;
@@ -54,7 +55,8 @@ class MainWindow : Gtk.ApplicationWindow {
 
     string[] authorstr = { "Hugues Ross(df458)" };
 
-    public MainWindow(Singularity owner_app) {
+    public MainWindow(Singularity owner_app)
+    {
         feed_items = new Gee.ArrayList<SourceList.Item>();
         window_position = WindowPosition.CENTER;
         set_default_size(800, 600);
@@ -265,7 +267,8 @@ class MainWindow : Gtk.ApplicationWindow {
         this.show_all();
     }
 
-    public void set_content(Gtk.Widget widget) {
+    public void set_content(Gtk.Widget widget)
+    {
         int pos = content_pane.get_position();
         if(widget == web_view)
             mkread_action.set_enabled(true);
@@ -279,7 +282,8 @@ class MainWindow : Gtk.ApplicationWindow {
         this.show_all();
     }
 
-    public void updateSubtitle() {
+    public void updateSubtitle()
+    {
         if(feed_items.size > 1) {
             top_bar.set_subtitle("You have " + feed_items.size.to_string() + " subscriptions");
         } else if(feed_items.size == 1) {
@@ -290,13 +294,15 @@ class MainWindow : Gtk.ApplicationWindow {
         }
     }
 
-    public void add_feeds(Gee.ArrayList<Feed> feeds) {
+    public void add_feeds(Gee.ArrayList<Feed> feeds)
+    {
         foreach(Feed f in feeds) {
             add_feed(f);
         }
     }
 
-    public void add_feed(Feed f) {
+    public void add_feed(Feed f)
+    {
         SourceList.Item feed_item = new SourceList.Item(f.title);
         feed_item.badge = f.unread_count.to_string();
         category_all.add(feed_item);
@@ -311,17 +317,20 @@ class MainWindow : Gtk.ApplicationWindow {
         }
     }
 
-    public void updateFeedItem(Feed f, int index) {
+    public void updateFeedItem(Feed f, int index)
+    {
         int unread_diff = f.unread_count - int.parse(feed_items[index].badge);
         unread_item.badge = (int.parse(unread_item.badge) + unread_diff).to_string();
         feed_items[index].badge = f.unread_count.to_string();
     }
 
-    public int get_unread_count() {
+    public int get_unread_count()
+    {
         return int.parse(unread_item.badge);
     }
 
-    public void updateFeedIcon(int index, int icon) {
+    public void updateFeedIcon(int index, int icon)
+    {
         switch(icon) {
             case 0:
             feed_items[index].icon = null;

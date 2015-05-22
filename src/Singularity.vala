@@ -20,7 +20,8 @@
 
 using Gee;
 
-class Singularity : Gtk.Application {
+class Singularity : Gtk.Application
+{
     private ArrayList<Feed> feeds;
     private DatabaseManager db_man;
     private MainWindow main_window;
@@ -43,7 +44,8 @@ class Singularity : Gtk.Application {
     public int[] read_unstarred_rule   = {0, 0, 0}; //1 month, delete
     public int[] read_starred_rule     = {0, 0, 0}; //6 months, unstar
 
-    public Singularity() {
+    public Singularity()
+    {
         Object(application_id: "org.df458.singularity");
         Granite.Services.Paths.initialize("singularity", Environment.get_user_data_dir());
         Granite.Services.Paths.ensure_directory_exists(Granite.Services.Paths.user_data_folder);
@@ -118,14 +120,16 @@ class Singularity : Gtk.Application {
             createFeed(new_sub);
     }
 
-    public string constructFeedHtml(int feed_id) {
+    public string constructFeedHtml(int feed_id)
+    {
         view_list.clear();
         string html_str = "<html><head><style>" + css_dat + "</style></head><body>" + feeds[feed_id].constructHtml(db_man) + js_str + "</body></html>";
         main_window.updateFeedItem(feeds[feed_id], feed_id);
         return html_str;
     }
 
-    public string constructUnreadHtml() {
+    public string constructUnreadHtml()
+    {
         view_list.clear();
         string html_str = "<html><head><style>" + css_dat + "</style></head><body><br/>";
         foreach(Feed f in feeds) {
@@ -135,13 +139,15 @@ class Singularity : Gtk.Application {
         return html_str;
     }
 
-    public string constructFrontPage() {
+    public string constructFrontPage()
+    {
         view_list.clear();
         string html_str = "<html><head><style>" + css_dat + "</style></head><body>" + js_str + "</body></html>";
         return html_str;
     }
 
-    public string constructAllHtml() {
+    public string constructAllHtml()
+    {
         view_list.clear();
         string html_str = "<html><head><style>" + css_dat + "</style></head><body>";
         foreach(Feed f in feeds) {
@@ -152,7 +158,8 @@ class Singularity : Gtk.Application {
         return html_str;
     }
 
-    public string constructStarredHtml() {
+    public string constructStarredHtml()
+    {
         view_list.clear();
         string html_str = "<html><head><style>" + css_dat + "</style></head><body><br/>";
         foreach(Feed f in feeds) {
@@ -162,7 +169,8 @@ class Singularity : Gtk.Application {
         return html_str;
     }
 
-    public void createFeed(string url) {
+    public void createFeed(string url)
+    {
         if(verbose)
             stdout.printf("Fetching feed data from %s...", url);
         getXmlData.begin(url, (obj, res) => {
@@ -183,17 +191,20 @@ class Singularity : Gtk.Application {
         });
     }
 
-    public Feed getFeed(int feed_index) {
+    public Feed getFeed(int feed_index)
+    {
         return feeds[feed_index];
     }
 
-    public void removeFeed(int feed_index) {
+    public void removeFeed(int feed_index)
+    {
         Feed f = feeds[feed_index];
         db_man.removeFeed.begin(f);
         feeds.remove(f);
     }
 
-    public void update_settings() {
+    public void update_settings()
+    {
         app_settings.set_boolean("auto-update", auto_update);
         app_settings.set_uint("auto-update-freq", timeout_value / 60);
         app_settings.set_value("unread-unstarred-rule", new Variant("(iii)",unread_unstarred_rule[0],unread_unstarred_rule[1],unread_unstarred_rule[2]));
@@ -210,14 +221,16 @@ class Singularity : Gtk.Application {
         }
     }
 
-    public void update_feed_settings(Feed f) {
+    public void update_feed_settings(Feed f)
+    {
         string outrule = "%d %d %d\n%d %d %d\n%d %d %d\n%d %d %d".printf(f.unread_unstarred_rule[0], f.unread_unstarred_rule[1], f.unread_unstarred_rule[2], f.unread_starred_rule[0], f.unread_starred_rule[1], f.unread_starred_rule[2], f.read_unstarred_rule[0], f.read_unstarred_rule[1], f.read_unstarred_rule[2], f.read_starred_rule[0], f.read_starred_rule[1], f.read_starred_rule[2]);
         if(!f.override_rules)
             outrule = "";
         db_man.updateFeedSettings.begin(f, outrule);
     }
 
-    public int runall() {
+    public int runall()
+    {
         if(!nogui)
             Gtk.main();
         else {
@@ -238,17 +251,20 @@ class Singularity : Gtk.Application {
         return 0;
     }
 
-    public void updateFeedItems(Feed f) {
+    public void updateFeedItems(Feed f)
+    {
         if(!nogui)
             main_window.updateFeedItem(f, feeds.index_of(f));
     }
 
-    public void updateFeedIcons(Feed f) {
+    public void updateFeedIcons(Feed f)
+    {
         if(!nogui)
             main_window.updateFeedIcon(feeds.index_of(f), f.status);
     }
 
-    public void interpretUriEncodedAction(string action) {
+    public void interpretUriEncodedAction(string action)
+    {
         string[] args = action.split("/");
         if(verbose)
             stderr.printf("calling function %s...\n", action);
@@ -287,7 +303,8 @@ class Singularity : Gtk.Application {
         }
     }
 
-    public void downloadAttachment(string att) {
+    public void downloadAttachment(string att)
+    {
         bool getl = get_location;
         string default_loc = default_location;
 
@@ -311,7 +328,7 @@ class Singularity : Gtk.Application {
                     Gtk.FileChooserDialog dialog = new Gtk.FileChooserDialog("Download attachment", main_window, Gtk.FileChooserAction.SELECT_FOLDER, "Cancel", Gtk.ResponseType.CANCEL, "Download here", Gtk.ResponseType.ACCEPT);
                     dialog.set_current_folder(default_loc);
                     if(dialog.run() == Gtk.ResponseType.ACCEPT) {
-                        GLib.Process.spawn_command_line_async("wget -b -P '" + dialog.get_filename() +  "' '" + action + "'");
+                        GLib.Process.spawn_command_line_async("wget -b -o'/tmp/singularity-wget-log' -P '" + dialog.get_filename() +  "' '" + action + "'");
                     }
                     dialog.close();
                 } else
@@ -322,7 +339,8 @@ class Singularity : Gtk.Application {
         }
     }
 
-    public void markAllAsRead() {
+    public void markAllAsRead()
+    {
         stdout.printf("Clearing %d items:\n", view_list.size);
         Gee.ArrayList<Item> to_mark = new Gee.ArrayList<Item>();
         for(int i = 0; i < view_list.size; ++i) {
@@ -342,15 +360,18 @@ class Singularity : Gtk.Application {
         stdout.printf("done. Waiting...\n");
     }
 
-    public void exit() {
+    public void exit()
+    {
         db_man.clearExpunged();
     }
 
-    public void addToView(Item i) {
+    public void addToView(Item i)
+    {
         view_list.add(i);
     }
 
-    public bool update() {
+    public bool update()
+    {
         foreach(Feed f in feeds) {
             db_man.loadFeedItems.begin(f, -1, -1, (obj, res) => {
                 load_counter++;
