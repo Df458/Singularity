@@ -32,6 +32,7 @@ class Singularity : Gtk.Application
     bool done_load = false;
     int load_counter = 0;
     public bool auto_update = true;
+    public bool start_update = true;
     public uint timeout_value = 600;
     public bool update_running = true;
     public uint update_next = 600;
@@ -57,8 +58,11 @@ class Singularity : Gtk.Application
         if(default_location == "")
             default_location = Environment.get_home_dir() + "/Downloads";
         auto_update = app_settings.get_boolean("auto-update");
-        if(nogui)
+        start_update = app_settings.get_boolean("auto-update");
+        if(nogui) {
             auto_update = false;
+            start_update = true;
+        }
         timeout_value = app_settings.get_uint("auto-update-freq") * 60;
         var uu_val = app_settings.get_value("unread-unstarred-rule");
         var uu_iter = uu_val.iterator();
@@ -94,7 +98,8 @@ class Singularity : Gtk.Application
             feeds = db_man.loadFeeds.end(res);
             if(main_window != null)
                 main_window.add_feeds(feeds);
-            update();
+            if(start_update)
+                update();
         });
         if(!nogui) {
             File file = File.new_for_path(css_path);

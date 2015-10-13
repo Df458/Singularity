@@ -22,6 +22,7 @@ using Gtk;
 
 class SettingsPane : VBox {
     Switch auto_update_switch;
+    Switch start_update_switch;
     SpinButton auto_update_time_entry;
     ButtonBox confirm_buttons;
     RuleEntry uu_entry;
@@ -43,6 +44,7 @@ class SettingsPane : VBox {
         confirm_buttons.add(cancel_button);
         confirm_buttons.add(confirm_button);
 
+        start_update_switch = new Switch();
         auto_update_switch = new Switch();
         auto_update_switch.state_set.connect((state) => {
             auto_update_time_entry.set_sensitive(state);
@@ -56,8 +58,11 @@ class SettingsPane : VBox {
         us_entry = new RuleEntry("unread and starred entries", false, true);
         rs_entry = new RuleEntry("read and starred entries", true, true);
 
+        Box start_update_box = new Box(Orientation.HORIZONTAL, 0);
+        start_update_box.pack_start(new Label("Update subscriptions on startup: "), false, false);
+        start_update_box.pack_start(start_update_switch, false, false);
         Box auto_update_box = new Box(Orientation.HORIZONTAL, 0);
-        auto_update_box.pack_start(new Label("auto-update subscriptions: "), false, false);
+        auto_update_box.pack_start(new Label("Auto-update subscriptions: "), false, false);
         auto_update_box.pack_start(auto_update_switch, false, false);
         auto_update_box.pack_start(new Label(" every "), false, false);
         auto_update_box.pack_start(auto_update_time_entry);
@@ -72,6 +77,7 @@ class SettingsPane : VBox {
         dl_box.pack_start(dl_location_button, false, false);
 
         pack_start(auto_update_box, false, false);
+        pack_start(start_update_box, false, false);
         pack_start(new Gtk.Separator(Orientation.HORIZONTAL), false, false);
         pack_start(uu_entry, false, false);
         pack_start(ru_entry, false, false);
@@ -86,6 +92,7 @@ class SettingsPane : VBox {
 
     public void sync() {
         auto_update_switch.set_active(app.auto_update);
+        start_update_switch.set_active(app.start_update);
         auto_update_time_entry.set_value(app.timeout_value / 60);
         auto_update_time_entry.set_sensitive(app.auto_update);
         uu_entry.sync(app.unread_unstarred_rule);
@@ -98,6 +105,7 @@ class SettingsPane : VBox {
 
     public void save() {
         app.auto_update = auto_update_switch.get_active();
+        app.start_update = start_update_switch.get_active();
         app.timeout_value = (int)auto_update_time_entry.get_value() * 60;
         app.unread_unstarred_rule = uu_entry.get_value();
         app.read_unstarred_rule = ru_entry.get_value();

@@ -7,6 +7,13 @@
                 Sets whether or not to periodically check for feed updates.
             </description>
         </key>
+        <key name="start-update" type="b">
+            <default>true</default>
+            <summary>Update feeds on startup</summary>
+            <description>
+                Sets whether or not to update when launching the application(Ignored by -n)
+            </description>
+        </key>
         <key name="auto-update-freq" type="u">
             <default>10</default>
             <summary>Update frequency</summary>
