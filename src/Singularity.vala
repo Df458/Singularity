@@ -235,7 +235,7 @@ class Singularity : Gtk.Application
             Gtk.main();
         else {
             MainLoop ml = new MainLoop();
-            TimeoutSource t = new TimeoutSource.seconds(2);
+            TimeoutSource t = new TimeoutSource.seconds(1);
 
             t.attach(ml.get_context());
             t.set_callback(() => {

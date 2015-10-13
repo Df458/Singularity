@@ -62,6 +62,8 @@ public static int main (string[] args){
     if(!nogui)
         Gtk.init(ref args);
 
+    stderr.printf("Creating App...");
     app = new Singularity();
+    stderr.printf("Running App...");
     return app.runall();
 }
