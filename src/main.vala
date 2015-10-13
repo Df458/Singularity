@@ -59,7 +59,8 @@ public static int main (string[] args){
         new_sub = args[1].replace("feed://", "http://");
     }
 
-    Gtk.init(ref args);
+    if(!nogui)
+        Gtk.init(ref args);
 
     app = new Singularity();
     return app.runall();
