@@ -185,7 +185,7 @@ class Singularity : Gtk.Application
                 return;
             db_man.saveFeed.begin(f, true);
             feeds.add(f);
-            main_window.add_feed(f);
+            main_window.add_feed(f, feeds.index_of(f));
             main_window.updateFeedItem(f, feeds.index_of(f));
             delete doc;
         });
@@ -380,14 +380,16 @@ class Singularity : Gtk.Application
                     if(load_counter <= 0) {
                         load_counter = 0;
                         done_load = true;
-                        int unread_count = main_window.get_unread_count();
-                        if(unread_count != 0) {
-                        try {
-                            update_complete_notification.update("Update Complete", "You have " + unread_count.to_string() + " unread item" + (unread_count > 1 ? "s." : "."), null);
-                            update_complete_notification.show();
-                        } catch(GLib.Error e) {
-                            stderr.printf("Error displaying notification: %s.\n", e.message);
-                        }
+                        if(!nogui) {
+                            int unread_count = main_window.get_unread_count();
+                                if(unread_count != 0) {
+                                try {
+                                    update_complete_notification.update("Update Complete", "You have " + unread_count.to_string() + " unread item" + (unread_count > 1 ? "s." : "."), null);
+                                    update_complete_notification.show();
+                                } catch(GLib.Error e) {
+                                    stderr.printf("Error displaying notification: %s.\n", e.message);
+                                }
+                            }
                         }
                     }
                 });
