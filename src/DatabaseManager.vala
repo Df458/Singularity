@@ -29,6 +29,8 @@ public class DatabaseManager {
     
     public DatabaseManager.from_path(string location)
     {
+        if(verbose)
+            stderr.printf("Creating database...\n");
         try {
             db = new Database(location, FileMode.READ | FileMode.WRITE | FileMode.CREATE);
             Query build_feeds_query = new Query(db, "CREATE TABLE IF NOT EXISTS feeds (id INTEGER, title TEXT, link TEXT, description TEXT, origin TEXT, last_guid TEXT, last_time INTEGER, rules TEXT, override_dl INTEGER, getloc_dl INTEGER, loc_dl TEXT)");

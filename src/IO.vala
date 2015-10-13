@@ -23,7 +23,7 @@ async Xml.Doc* getXmlData(string url) {
     Soup.Session session = new Soup.Session();
     session.use_thread_context = true;
     if(verbose)
-        stdout.printf("Adding %s Started...\n", url);
+        stderr.printf("Adding %s Started...\n", url);
     Soup.Message message = new Soup.Message("GET", url);
     string data = "";
     session.queue_message(message, (session_out, message_out) => {
@@ -39,7 +39,7 @@ async Xml.Doc* getXmlData(string url) {
         xml_doc = Xml.Parser.parse_doc(data);
     }
     if(verbose)
-        stdout.printf("Adding %s Succeeded...\n", url);
+        stderr.printf("Adding %s Succeeded...\n", url);
     return xml_doc;
 }
 

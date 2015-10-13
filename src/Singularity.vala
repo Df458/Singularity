@@ -25,6 +25,7 @@ class Singularity : Gtk.Application
     private ArrayList<Feed> feeds;
     private DatabaseManager db_man;
     private MainWindow main_window;
+    private MainLoop ml;
     string css_dat = "";
     private ArrayList<Item> view_list;
     private Settings app_settings;
@@ -234,20 +235,23 @@ class Singularity : Gtk.Application
         if(!nogui)
             Gtk.main();
         else {
-            MainLoop ml = new MainLoop();
-            TimeoutSource t = new TimeoutSource.seconds(1);
-
-            t.attach(ml.get_context());
-            t.set_callback(() => {
-                if(done_load) {
-                    ml.quit();
-                    return false;
-                }
+            ml = new MainLoop();
+            TimeoutSource time = new TimeoutSource(300000);
+            time.set_callback(() => {
+                stderr.printf("Operation is taking too long. Exiting...\n");
+                ml.quit();
+                return false;
+            });
+            TimeoutSource counter = new TimeoutSource(5000);
+            counter.set_callback(() => {
+                if(verbose)
+                    stderr.printf("Loading %d feeds...\n", load_counter);
                 return true;
             });
+            time.attach(ml.get_context());
+            counter.attach(ml.get_context());
             ml.run();
         }
-        exit();
         return 0;
     }
 
@@ -372,6 +376,8 @@ class Singularity : Gtk.Application
 
     public bool update()
     {
+        if(verbose)
+            stderr.printf("Running updates on %d feeds...\n", feeds.size);
         foreach(Feed f in feeds) {
             db_man.loadFeedItems.begin(f, -1, -1, (obj, res) => {
                 load_counter++;
@@ -390,11 +396,15 @@ class Singularity : Gtk.Application
                                     stderr.printf("Error displaying notification: %s.\n", e.message);
                                 }
                             }
+                        } else {
+                            ml.quit();
                         }
                     }
                 });
             });
         }
+        if(feeds.size == 0)
+            done_load = true;
         update_running = auto_update;
         if(update_running && update_next != timeout_value) {
             update_next = timeout_value;
