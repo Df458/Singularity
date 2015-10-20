@@ -54,5 +54,12 @@
                 Where to download attachments by default
             </description>
         </key>
+        <key name="link-command" type="s">
+            <default>"xdg-open %s"</default>
+            <summary>Command to call when opening links</summary>
+            <description>
+                This defines what gets called when opening links. '%s' inserts the address.
+            </description>
+        </key>
     </schema>
 </schemalist>

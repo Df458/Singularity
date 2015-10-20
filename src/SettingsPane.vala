@@ -30,6 +30,7 @@ class SettingsPane : VBox {
     RuleEntry us_entry;
     RuleEntry rs_entry;
     FileChooserButton dl_location_button;
+    Entry link_open_entry;
     CheckButton dl_always_ask;
 
     public signal void done();
@@ -72,9 +73,14 @@ class SettingsPane : VBox {
 
         dl_always_ask = new CheckButton.with_label("Always ask for a location");
 
+        link_open_entry = new Entry();
+
         Box dl_box = new Box(Orientation.HORIZONTAL, 0);
-        dl_box.pack_start(new Label("download attachments to: "), false, false);
+        dl_box.pack_start(new Label("Download attachments to: "), false, false);
         dl_box.pack_start(dl_location_button, false, false);
+        Box link_box = new Box(Orientation.HORIZONTAL, 0);
+        link_box.pack_start(new Label("Command to open links: "), false, false);
+        link_box.pack_start(link_open_entry, false, false);
 
         pack_start(auto_update_box, false, false);
         pack_start(start_update_box, false, false);
@@ -86,6 +92,7 @@ class SettingsPane : VBox {
         pack_start(new Gtk.Separator(Orientation.HORIZONTAL), false, false);
         pack_start(dl_box, false, false);
         pack_start(dl_always_ask, false, false);
+        pack_start(link_box, false, false);
         pack_end(confirm_buttons, false, false);
         this.show_all();
     }
@@ -101,6 +108,7 @@ class SettingsPane : VBox {
         rs_entry.sync(app.read_starred_rule);
         dl_always_ask.set_active(app.get_location);
         dl_location_button.set_current_folder(app.default_location);
+        link_open_entry.set_text(app.link_command);
     }
 
     public void save() {
@@ -113,6 +121,7 @@ class SettingsPane : VBox {
         app.read_starred_rule = rs_entry.get_value();   
         app.get_location = dl_always_ask.get_active();
         app.default_location = dl_location_button.get_filename();
+        app.link_command = link_open_entry.text;
         app.update_settings();
         done();
     }

@@ -38,6 +38,7 @@ class Singularity : Gtk.Application
     public uint update_next = 600;
     public bool get_location = true;
     public string default_location;
+    public string link_command = "xdg-open %s";
     public bool download_attachments = true;
     public Notify.Notification update_complete_notification;
     //Count, Increment(m,h,d,m,y), action(nothing,read/unread,star/unstar,delete)
@@ -54,6 +55,7 @@ class Singularity : Gtk.Application
         app_settings = new Settings("org.df458.singularity");
         download_attachments = app_settings.get_boolean("download-attachments");
         default_location = app_settings.get_string("default-download-location");
+        link_command = app_settings.get_string("link-command");
         get_location = app_settings.get_boolean("ask-download-location");
         if(default_location == "")
             default_location = Environment.get_home_dir() + "/Downloads";
@@ -220,6 +222,7 @@ class Singularity : Gtk.Application
         app_settings.set_boolean("download-attachments", download_attachments);
         app_settings.set_boolean("ask-download-location", get_location);
         app_settings.set_string("default-download-location", default_location);
+        app_settings.set_string("link-command", link_command);
         if(auto_update && !update_running) {
             update_running = true;
             update_next = timeout_value;

@@ -291,7 +291,7 @@ class MainWindow : Gtk.ApplicationWindow
             if(nav_dec.get_navigation_action().get_navigation_type() != WebKit.NavigationType.LINK_CLICKED)
                 return false;
             try {
-                GLib.Process.spawn_command_line_async("xdg-open " + nav_dec.get_navigation_action().get_request().uri);
+                GLib.Process.spawn_command_line_async(app.link_command.printf(nav_dec.get_navigation_action().get_request().uri));
                 nav_dec.ignore();
             } catch(Error e) {
                 stderr.printf(e.message);
