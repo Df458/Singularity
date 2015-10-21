@@ -102,6 +102,22 @@ class Singularity : Gtk.Application
                 main_window.add_feeds(feeds);
             if(start_update)
                 update();
+            else {
+                foreach(Feed f in feeds) {
+                    db_man.loadFeedItems.begin(f, -1, -1, (obj, res) => {
+                        updateFeedItems(f);
+                    });
+                    int unread_count = main_window.get_unread_count();
+                    if(unread_count != 0) {
+                        try {
+                            update_complete_notification.update("Update Complete", "You have " + unread_count.to_string() + " unread item" + (unread_count > 1 ? "s." : "."), null);
+                            update_complete_notification.show();
+                        } catch(GLib.Error e) {
+                            stderr.printf("Error displaying notification: %s.\n", e.message);
+                        }
+                    }
+                }
+            }
         });
         if(!nogui) {
             File file = File.new_for_path(css_path);
