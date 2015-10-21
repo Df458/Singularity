@@ -60,7 +60,7 @@ class Singularity : Gtk.Application
         if(default_location == "")
             default_location = Environment.get_home_dir() + "/Downloads";
         auto_update = app_settings.get_boolean("auto-update");
-        start_update = app_settings.get_boolean("auto-update");
+        start_update = app_settings.get_boolean("start-update");
         if(nogui) {
             auto_update = false;
             start_update = true;
@@ -214,6 +214,7 @@ class Singularity : Gtk.Application
     public void update_settings()
     {
         app_settings.set_boolean("auto-update", auto_update);
+        app_settings.set_boolean("start-update", start_update);
         app_settings.set_uint("auto-update-freq", timeout_value / 60);
         app_settings.set_value("unread-unstarred-rule", new Variant("(iii)",unread_unstarred_rule[0],unread_unstarred_rule[1],unread_unstarred_rule[2]));
         app_settings.set_value("read-unstarred-rule", new Variant("(iii)",read_unstarred_rule[0],read_unstarred_rule[1],read_unstarred_rule[2]));
