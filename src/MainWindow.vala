@@ -113,6 +113,7 @@ class MainWindow : Gtk.ApplicationWindow
         menu.append_item(mkread_item);
         menu.append_item(about_item);
         app_menu = new MenuButton();
+        app_menu.set_image(new Gtk.Image.from_icon_name("open-menu-symbolic", Gtk.IconSize.SMALL_TOOLBAR));
         app_menu.set_menu_model(menu);
 
         top_bar = new HeaderBar();

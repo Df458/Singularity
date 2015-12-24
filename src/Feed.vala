@@ -230,68 +230,72 @@ public class Feed {
     }
 
     public async void updateFromWeb(DatabaseManager man) {
-	//_last_guid_post = _last_guid;
-	_last_time_post = _last_time;
-	status = 1;
-	app.updateFeedIcons(this);
-	Xml.Doc* doc = yield getXmlData(origin_link);
-	Xml.Node* node = doc->get_root_element();
-    accept_empty = true;
+        //_last_guid_post = _last_guid;
+        _last_time_post = _last_time;
+        status = 1;
+        app.updateFeedIcons(this);
+        Xml.Doc* doc = yield getXmlData(origin_link);
+        Xml.Node* node = doc->get_root_element();
+        accept_empty = true;
 
-	while(node != null && node->name != "rss" && node->name != "RDF" && node->name != "feed")
-	    node = node->next;
-	if(node == null) {
-	    status = 3;
-	    app.updateFeedIcons(this);
-	    return;
-	}
-	if(node->name == "rss" || node->name == "RDF") {
-	    node = node->name == "rss" ? node->children : node;
-	    while(node != null && node->type != Xml.ElementType.ELEMENT_NODE)
-		node = node->next;
-	    if(node == null) {
+        while(node != null && node->name != "rss" && node->name != "RDF" && node->name != "feed")
+            node = node->next;
+        if(node == null) {
             status = 3;
             app.updateFeedIcons(this);
             return;
-	    }
+        }
+        if(node->name == "rss" || node->name == "RDF") {
+            node = node->name == "rss" ? node->children : node;
+            while(node != null && node->type != Xml.ElementType.ELEMENT_NODE)
+            node = node->next;
+            if(node == null) {
+                status = 3;
+                app.updateFeedIcons(this);
+                return;
+            }
 
-	    for(Xml.Node* dat = node->children; dat != null; dat = dat->next) {
-		if(dat->type == Xml.ElementType.ELEMENT_NODE) {
-		    if(dat->name == "item") {
-			if(!this.add_item(new Item.from_rss(dat), true)) {
-				//status = 0;
-				//app.updateFeedIcons(this);
-				//break;
-			}
-		    }
-		}
-	    }
-	} else if(node->name == "feed") {
-	    for(Xml.Node* dat = node->children; dat != null; dat = dat->next) {
-		if(dat->type == Xml.ElementType.ELEMENT_NODE) {
-		    if(dat->name == "entry") {
-			if(!this.add_item(new Item.from_atom(dat), true)) {
-				//status = 0;
-				//app.updateFeedIcons(this);
-				//break;
-			}
-		    }
-		}
-	    }
-	}
-	if(status != 3)
-	    status = 2;
-	app.updateFeedIcons(this);
-	app.updateFeedItems(this);
-	
-	//_last_guid = _last_guid_post;
-    if(_last_guids_post.size > 0)
-        _last_guids = _last_guids_post;
-	_last_time = _last_time_post;
-	if(_items_holding.size != 0) {
-	    yield man.saveFeedItems(this, _items_holding);
-	    _items_holding.clear();
-	}
+            for(Xml.Node* dat = node->children; dat != null; dat = dat->next) {
+            if(dat->type == Xml.ElementType.ELEMENT_NODE) {
+                if(dat->name == "item") {
+                if(!this.add_item(new Item.from_rss(dat), true)) {
+                    //status = 0;
+                    //app.updateFeedIcons(this);
+                    //break;
+                }
+                }
+            }
+            }
+        } else if(node->name == "feed") {
+            for(Xml.Node* dat = node->children; dat != null; dat = dat->next) {
+            if(dat->type == Xml.ElementType.ELEMENT_NODE) {
+                if(dat->name == "entry") {
+                if(!this.add_item(new Item.from_atom(dat), true)) {
+                    //status = 0;
+                    //app.updateFeedIcons(this);
+                    //break;
+                }
+                }
+            }
+            }
+        }
+        if(status != 3)
+            status = 2;
+        app.updateFeedIcons(this);
+        app.updateFeedItems(this);
+        
+        //_last_guid = _last_guid_post;
+        if(_last_guids_post.size > 0) {
+            _last_guids = _last_guids_post;
+            stderr.printf("GUIDS FROM %s:", title);
+            foreach(string i in _last_guids_post)
+                stderr.printf("GUID: %s\n", i);
+        }
+        _last_time = _last_time_post;
+        if(_items_holding.size != 0) {
+            yield man.saveFeedItems(this, _items_holding);
+            _items_holding.clear();
+        }
     }
 
     public Item get(int id) {
