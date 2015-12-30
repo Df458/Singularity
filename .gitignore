@@ -1,5 +1,11 @@
 # Ignore vim undo files
 *.un~
 
+# Ignore Glade backups
+*.glade~
+
 # Ignore test databases
 *.db
+
+# Ignore compiled things
+singularity
