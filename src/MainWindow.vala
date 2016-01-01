@@ -174,6 +174,7 @@ class MainWindow : Gtk.ApplicationWindow
         view_switcher       = new Box(Orientation.HORIZONTAL, 0);
         add_button          = new Button.from_icon_name("list-add-symbolic");
         item_search_toggle  = new ToggleButton();
+        item_search_entry   = new SearchEntry();
         menu_button         = new MenuButton();
         grid_view_button    = new ToggleButton();
         column_view_button  = new ToggleButton();
@@ -221,6 +222,8 @@ class MainWindow : Gtk.ApplicationWindow
         init_feed_pane();
         grid_view_button.active = true;
 
+        item_search_bar.add(item_search_entry);
+        item_search_bar.connect_entry(item_search_entry);
         column_view_box.pack_end(column_view_display);
         feed_list_scroll.add(feed_list);
         view_switcher.add(grid_view_button);
@@ -340,6 +343,16 @@ class MainWindow : Gtk.ApplicationWindow
             if(prop.name == "position") {
                 resize_columns(main_paned.get_position());
             }
+        });
+
+        feed_list_scroll.size_allocate.connect(() =>
+        {
+            resize_columns(main_paned.get_position());
+        });
+
+        item_search_toggle.toggled.connect(() =>
+        {
+            item_search_bar.search_mode_enabled = item_search_toggle.active;
         });
 
         grid_view.context_menu.connect(() => { return true; });

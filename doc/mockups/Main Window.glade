@@ -264,7 +264,7 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkBox" id="box1">
+                  <object class="GtkBox" id="box3">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <property name="margin_left">18</property>
@@ -415,7 +415,7 @@
           </packing>
         </child>
         <child>
-          <object class="GtkStatusbar" id="status_bar">
+          <object class="GtkStatusbar" id="statusbar1">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <property name="margin_left">10</property>
@@ -424,7 +424,6 @@
             <property name="margin_end">10</property>
             <property name="margin_top">6</property>
             <property name="margin_bottom">6</property>
-            <property name="spacing">6</property>
             <child>
               <object class="GtkBox" id="view_switcher">
                 <property name="visible">True</property>
@@ -493,53 +492,26 @@
               </object>
               <packing>
                 <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="position">0</property>
+                <property name="fill">False</property>
+                <property name="position">2</property>
               </packing>
             </child>
             <child type="center">
-              <object class="GtkLabel" id="status_label">
+              <object class="GtkLabel" id="label4">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="label" translatable="yes">Checking feeds...</property>
+                <property name="label" translatable="yes">label</property>
               </object>
               <packing>
-                <property name="expand">False</property>
+                <property name="expand">True</property>
                 <property name="fill">True</property>
-                <property name="position">4</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkSpinner" id="progress_spinner">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="active">True</property>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="pack_type">end</property>
-                <property name="position">1</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkProgressBar" id="progress_bar">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="valign">center</property>
-                <property name="fraction">0.40000000000000002</property>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="pack_type">end</property>
                 <property name="position">2</property>
               </packing>
             </child>
           </object>
           <packing>
             <property name="expand">False</property>
-            <property name="fill">False</property>
+            <property name="fill">True</property>
             <property name="position">2</property>
           </packing>
         </child>
@@ -549,8 +521,6 @@
       <object class="GtkHeaderBar" id="headerbar1">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
-        <property name="title">Singularity</property>
-        <property name="subtitle">14 Unread Items</property>
         <property name="show_close_button">True</property>
         <child>
           <object class="GtkButton" id="add_button">
@@ -569,23 +539,39 @@
             </style>
           </object>
         </child>
-        <child>
-          <object class="GtkButton" id="menu_button">
+        <child type="title">
+          <object class="GtkBox" id="box2">
             <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="receives_default">True</property>
+            <property name="can_focus">False</property>
+            <property name="orientation">vertical</property>
+            <property name="spacing">6</property>
             <child>
-              <object class="GtkImage" id="image1">
+              <object class="GtkLabel" id="label3">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="icon_name">open-menu-symbolic</property>
+                <property name="label" translatable="yes">&lt;b&gt;Singularity&lt;/b&gt;</property>
+                <property name="use_markup">True</property>
               </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkProgressBar" id="progress_bar">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="valign">center</property>
+                <property name="fraction">0.40000000000000002</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">1</property>
+              </packing>
             </child>
           </object>
-          <packing>
-            <property name="pack_type">end</property>
-            <property name="position">2</property>
-          </packing>
         </child>
         <child>
           <object class="GtkToggleButton" id="item_search_toggle">
@@ -597,6 +583,24 @@
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="icon_name">edit-find-symbolic</property>
+              </object>
+            </child>
+          </object>
+          <packing>
+            <property name="pack_type">end</property>
+            <property name="position">2</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkButton" id="menu_button">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="receives_default">True</property>
+            <child>
+              <object class="GtkImage" id="image1">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="icon_name">open-menu-symbolic</property>
               </object>
             </child>
           </object>
