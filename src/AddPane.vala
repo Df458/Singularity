@@ -28,7 +28,8 @@ class AddPane : VBox {
     public signal void done();
 
     public AddPane() {
-        spacing = 5;
+        spacing = 6;
+        margin = 18;
         confirm_buttons = new HButtonBox();
         Gtk.Button cancel_button = new Gtk.Button.with_label("Cancel");
         cancel_button.clicked.connect(() => {

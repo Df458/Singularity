@@ -26,6 +26,7 @@ class MainWindow : Gtk.ApplicationWindow
     private Paned main_paned;
     private Gee.ArrayList<SourceList.Item> feed_items;
     private Singularity app;
+    private string current_view = "grid";
 
     // Headerbar
     private HeaderBar    top_bar;
@@ -73,24 +74,9 @@ class MainWindow : Gtk.ApplicationWindow
     private ListBox        item_column_box;
     private WebKit.WebView column_view_display;
     private WebKit.WebView stream_view;
-
-    /*
-    //private Paned content_pane;
-    //private WebKit.WebView web_view;
-
-    //private Box content_fill;
-    //private Gdk.Pixbuf icon_download;
-    //private Gdk.Pixbuf icon_success;
-    //private Gdk.Pixbuf icon_failure;
-    //private bool firststart = true;
-    //private MenuButton app_menu;
-    //private Gtk.Widget current_view;
-
-    //private Welcome welcome_view;
-    //private SettingsPane settings;
-    //private FeedSettingsPane feed_settings;
-    //private AddPane add_pane;
-    */
+    private SettingsPane settings;
+    private FeedSettingsPane feed_settings;
+    private AddPane add_pane;
 
     string[] authorstr = { "Hugues Ross(df458)" };
 
@@ -154,27 +140,6 @@ class MainWindow : Gtk.ApplicationWindow
         //});
         //content_pane.pack2(welcome_view, true, true);
         //current_view = welcome_view;
-
-        //settings = new SettingsPane();
-        //settings.done.connect(() => {
-            //if(firststart)
-                //set_content(welcome_view);
-            //else
-                //set_content(web_view);
-        //});
-
-        //feed_settings = new FeedSettingsPane();
-        //feed_settings.done.connect(() => {
-            //set_content(web_view);
-        //});
-        
-        //add_pane = new AddPane();
-        //add_pane.done.connect(() => {
-            //if(firststart)
-                //set_content(welcome_view);
-            //else
-                //set_content(web_view);
-        //});
         */
     }
 
@@ -219,6 +184,9 @@ class MainWindow : Gtk.ApplicationWindow
         grid_view           = new WebKit.WebView();
         column_view_display = new WebKit.WebView();
         stream_view         = new WebKit.WebView();
+        settings            = new SettingsPane();
+        feed_settings       = new FeedSettingsPane();
+        add_pane            = new AddPane();
 
         add_button.get_style_context().add_class(STYLE_CLASS_SUGGESTED_ACTION);
         add_button.set_tooltip_text("Subscribe to a new feed");
@@ -248,6 +216,7 @@ class MainWindow : Gtk.ApplicationWindow
         column_view_display.load_html(app.constructFrontPage(), "");
         stream_view.load_html(app.constructFrontPage(), "");
         init_feed_pane();
+        grid_view_button.active = true;
 
         column_view_box.pack_end(column_view_display);
         feed_list_scroll.add(feed_list);
@@ -257,6 +226,11 @@ class MainWindow : Gtk.ApplicationWindow
         view_stack.add_named(grid_view, "grid");
         view_stack.add_named(column_view_box, "column");
         view_stack.add_named(stream_view, "stream");
+        view_stack.add_named(settings, "settings");
+        view_stack.add_named(feed_settings, "feed_settings");
+        view_stack.add_named(add_pane, "add");
+        grid_view.show_all();
+        view_stack.set_visible_child(grid_view);
         status_bar.set_center_widget(status_label);
         status_bar.pack_start(view_switcher);
         status_bar.pack_end(progress_spinner);
@@ -355,8 +329,7 @@ class MainWindow : Gtk.ApplicationWindow
 
         add_button.clicked.connect((ev) =>
         {
-            // TODO: Redo this
-            //set_content(add_pane);
+            view_stack.set_visible_child_name("add");
         });
 
         main_paned.notify.connect((spec, prop) =>
@@ -372,6 +345,21 @@ class MainWindow : Gtk.ApplicationWindow
         grid_view.decide_policy.connect((decision, type) => { return policy_decision(decision, type); });
         column_view_display.decide_policy.connect((decision, type) => { return policy_decision(decision, type); });
         stream_view.decide_policy.connect((decision, type) => { return policy_decision(decision, type); });
+
+        settings.done.connect(() =>
+        {
+            view_stack.set_visible_child_name(current_view);
+        });
+
+        feed_settings.done.connect(() =>
+        {
+            view_stack.set_visible_child_name(current_view);
+        });
+        
+        add_pane.done.connect(() =>
+        {
+            view_stack.set_visible_child_name(current_view);
+        });
     }
 
     private void add_actions()
@@ -386,9 +374,8 @@ class MainWindow : Gtk.ApplicationWindow
         preferences_action = new GLib.SimpleAction("app-preferences", null);
         preferences_action.activate.connect(() =>
         {
-            // TODO: Redo this
-            //settings.sync();
-            //set_content(settings);
+            settings.sync();
+            view_stack.set_visible_child_name("settings");
         });
         this.add_action(preferences_action);
         mkread_action = new GLib.SimpleAction("mark-read", null);
@@ -431,21 +418,6 @@ class MainWindow : Gtk.ApplicationWindow
             w = 0;
         col_name.set_fixed_width(w);
     }
-
-    //public void set_content(Gtk.Widget widget)
-    //{
-        //int pos = content_pane.get_position();
-        //if(widget == web_view)
-            //mkread_action.set_enabled(true);
-        //else
-            //mkread_action.set_enabled(false);
-        //content_pane.remove(current_view);
-        //content_pane.set_position(0);
-        //content_pane.pack2(widget, true, false);
-        //current_view = widget;
-        //content_pane.set_position(pos);
-        //this.show_all();
-    //}
 
     public void updateSubtitle()
     {
