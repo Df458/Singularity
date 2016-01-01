@@ -286,12 +286,6 @@ class Singularity : Gtk.Application
             main_window.updateFeedItem(f, feeds.index_of(f));
     }
 
-    public void updateFeedIcons(Feed f)
-    {
-        if(!nogui)
-            main_window.updateFeedIcon(feeds.index_of(f), f.status);
-    }
-
     public void interpretUriEncodedAction(string action)
     {
         string[] args = action.split("/");
@@ -316,12 +310,12 @@ class Singularity : Gtk.Application
             break;
 
             case "toggleRead":
-                int pos = int.parse(args[1]);
-                view_list[pos].unread = !view_list[pos].unread;
 //:TODO: 29.12.14 14:30:40, df458
 // Finish this when the time to add a button for this feature arrives
 // For now, it shouldn't save this change, so nothing permanent should happen
 // if it gets activated by accident :)
+                int pos = int.parse(args[1]);
+                view_list[pos].unread = !view_list[pos].unread;
             break;
             case "toggleStarred":
                 int pos = int.parse(args[1]);
@@ -412,15 +406,16 @@ class Singularity : Gtk.Application
                         load_counter = 0;
                         done_load = true;
                         if(!nogui) {
-                            int unread_count = main_window.get_unread_count();
-                                if(unread_count != 0) {
-                                try {
-                                    update_complete_notification.update("Update Complete", "You have " + unread_count.to_string() + " unread item" + (unread_count > 1 ? "s." : "."), null);
-                                    update_complete_notification.show();
-                                } catch(GLib.Error e) {
-                                    stderr.printf("Error displaying notification: %s.\n", e.message);
-                                }
-                            }
+                        // TODO: Readd this
+                            //int unread_count = main_window.get_unread_count();
+                            //if(unread_count != 0) {
+                                //try {
+                                    //update_complete_notification.update("Update Complete", "You have " + unread_count.to_string() + " unread item" + (unread_count > 1 ? "s." : "."), null);
+                                    //update_complete_notification.show();
+                                //} catch(GLib.Error e) {
+                                    //stderr.printf("Error displaying notification: %s.\n", e.message);
+                                //}
+                            //}
                         } else {
                             ml.quit();
                         }

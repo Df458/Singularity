@@ -233,7 +233,7 @@ public class Feed {
         //_last_guid_post = _last_guid;
         _last_time_post = _last_time;
         status = 1;
-        app.updateFeedIcons(this);
+        //app.updateFeedIcons(this);
         Xml.Doc* doc = yield getXmlData(origin_link);
         Xml.Node* node = doc->get_root_element();
         accept_empty = true;
@@ -242,7 +242,7 @@ public class Feed {
             node = node->next;
         if(node == null) {
             status = 3;
-            app.updateFeedIcons(this);
+            //app.updateFeedIcons(this);
             return;
         }
         if(node->name == "rss" || node->name == "RDF") {
@@ -251,7 +251,7 @@ public class Feed {
             node = node->next;
             if(node == null) {
                 status = 3;
-                app.updateFeedIcons(this);
+                //app.updateFeedIcons(this);
                 return;
             }
 
@@ -281,7 +281,7 @@ public class Feed {
         }
         if(status != 3)
             status = 2;
-        app.updateFeedIcons(this);
+        //app.updateFeedIcons(this);
         app.updateFeedItems(this);
         
         //_last_guid = _last_guid_post;

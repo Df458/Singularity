@@ -42,7 +42,8 @@ const OptionEntry[] options =
     { null }
 };
 
-public static int main (string[] args){
+public static int main (string[] args)
+{
     db_path = Environment.get_user_data_dir() + "/singularity/feeds.db";
     css_path = Environment.get_user_data_dir() + "/singularity/default.css";
     OptionContext ctx = new OptionContext("- Singularity");
