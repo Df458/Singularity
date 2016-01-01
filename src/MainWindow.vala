@@ -27,6 +27,7 @@ class MainWindow : Gtk.ApplicationWindow
     private Gee.ArrayList<SourceList.Item> feed_items;
     private Singularity app;
     private string current_view = "grid";
+    private bool   toggle_lock = false; // Prevents extra button toggle changes when selecting a view
 
     // Headerbar
     private HeaderBar    top_bar;
@@ -197,12 +198,14 @@ class MainWindow : Gtk.ApplicationWindow
         view_switcher.get_style_context().add_class(STYLE_CLASS_LINKED);
         grid_view_button.set_image  (new Image.from_icon_name("view-grid-symbolic", IconSize.BUTTON));
         grid_view_button.set_tooltip_text("Grid view");
+        grid_view_button.can_focus = false;
         column_view_button.set_image(new Image.from_icon_name("view-column-symbolic", IconSize.BUTTON));
         column_view_button.set_tooltip_text("Column view");
+        column_view_button.can_focus = false;
         stream_view_button.set_image(new Image.from_icon_name("view-continuous-symbolic", IconSize.BUTTON));
         stream_view_button.set_tooltip_text("Stream view");
+        stream_view_button.can_focus = false;
         progress_bar.valign  = Align.CENTER;
-        progress_bar.visible = false;
 
         WebKit.Settings view_settings = new WebKit.Settings();
         view_settings.enable_javascript = true;
@@ -234,7 +237,7 @@ class MainWindow : Gtk.ApplicationWindow
         status_bar.set_center_widget(status_label);
         status_bar.pack_start(view_switcher);
         status_bar.pack_end(progress_spinner);
-        status_bar.pack_end(progress_bar);
+        //status_bar.pack_end(progress_bar);
         top_bar.pack_start(add_button);
         top_bar.pack_end(menu_button);
         top_bar.pack_end(item_search_toggle);
@@ -359,6 +362,51 @@ class MainWindow : Gtk.ApplicationWindow
         add_pane.done.connect(() =>
         {
             view_stack.set_visible_child_name(current_view);
+        });
+
+        grid_view_button.toggled.connect(() =>
+        {
+            if(toggle_lock)
+                return;
+
+            if(grid_view_button.active) {
+                toggle_lock = true;
+                column_view_button.active = false;
+                stream_view_button.active = false;
+                toggle_lock = false;
+                view_stack.set_visible_child_name("grid");
+            } else
+                grid_view_button.active = true;
+        });
+
+        column_view_button.toggled.connect(() =>
+        {
+            if(toggle_lock)
+                return;
+
+            if(column_view_button.active) {
+                toggle_lock = true;
+                grid_view_button.active = false;
+                stream_view_button.active = false;
+                toggle_lock = false;
+                view_stack.set_visible_child_name("column");
+            } else
+                column_view_button.active = true;
+        });
+
+        stream_view_button.toggled.connect(() =>
+        {
+            if(toggle_lock)
+                return;
+
+            if(stream_view_button.active) {
+                toggle_lock = true;
+                grid_view_button.active = false;
+                column_view_button.active = false;
+                toggle_lock = false;
+                view_stack.set_visible_child_name("stream");
+            } else
+                stream_view_button.active = true;
         });
     }
 
