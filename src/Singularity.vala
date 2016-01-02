@@ -16,8 +16,6 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// modules: webkit2gtk-4.0 libsoup-2.4 granite libxml-2.0 sqlheavy-0.1 glib-2.0 gee-0.8
-
 using Gee;
 
 class Singularity : Gtk.Application
@@ -41,11 +39,9 @@ class Singularity : Gtk.Application
     public string link_command = "xdg-open %s";
     public bool download_attachments = true;
     public Notify.Notification update_complete_notification;
-    //Count, Increment(m,h,d,m,y), action(nothing,read/unread,star/unstar,delete)
-    public int[] unread_unstarred_rule = {0, 0, 0}; //1 week, read
-    public int[] unread_starred_rule   = {0, 0, 0}; //nothing
-    public int[] read_unstarred_rule   = {0, 0, 0}; //1 month, delete
-    public int[] read_starred_rule     = {0, 0, 0}; //6 months, unstar
+    //Count, Increment(d,m,y), action(nothing,read(unread only),delete)
+    public int[] unread_rule = {0, 0, 0};
+    public int[] read_rule   = {0, 0, 0};
 
     public Singularity()
     {
@@ -66,34 +62,20 @@ class Singularity : Gtk.Application
             start_update = true;
         }
         timeout_value = app_settings.get_uint("auto-update-freq") * 60;
-        var uu_val = app_settings.get_value("unread-unstarred-rule");
-        var uu_iter = uu_val.iterator();
-        uu_iter.next("i", &unread_unstarred_rule[0]);
-        uu_iter.next("i", &unread_unstarred_rule[1]);
-        uu_iter.next("i", &unread_unstarred_rule[2]);
-        var us_val = app_settings.get_value("unread-starred-rule");
-        var us_iter = us_val.iterator();
-        us_iter.next("i", &unread_starred_rule[0]);
-        us_iter.next("i", &unread_starred_rule[1]);
-        us_iter.next("i", &unread_starred_rule[2]);
-        var ru_val = app_settings.get_value("read-unstarred-rule");
-        var ru_iter = ru_val.iterator();
-        ru_iter.next("i", &read_unstarred_rule[0]);
-        ru_iter.next("i", &read_unstarred_rule[1]);
-        ru_iter.next("i", &read_unstarred_rule[2]);
-        var rs_val = app_settings.get_value("read-starred-rule");
-        var rs_iter = rs_val.iterator();
-        rs_iter.next("i", &read_starred_rule[0]);
-        rs_iter.next("i", &read_starred_rule[1]);
-        rs_iter.next("i", &read_starred_rule[2]);
+        var u_val = app_settings.get_value("unread-rule");
+        var u_iter = u_val.iterator();
+        u_iter.next("i", &unread_rule[0]);
+        u_iter.next("i", &unread_rule[1]);
+        u_iter.next("i", &unread_rule[2]);
+        var r_val = app_settings.get_value("read-rule");
+        var r_iter = r_val.iterator();
+        r_iter.next("i", &read_rule[0]);
+        r_iter.next("i", &read_rule[1]);
+        r_iter.next("i", &read_rule[2]);
 
         Notify.init("Singularity");
         update_complete_notification = new Notify.Notification("Update Complete", "You have new feeds", null);
 
-        //if(args.length > 1)
-            //db_path = args[1];
-        //if(args.length > 2)
-            //css_path = args[2];
         db_man = new DatabaseManager.from_path(db_path);
         db_man.removeOld.begin();
         db_man.loadFeeds.begin((obj, res) =>{
@@ -232,10 +214,8 @@ class Singularity : Gtk.Application
         app_settings.set_boolean("auto-update", auto_update);
         app_settings.set_boolean("start-update", start_update);
         app_settings.set_uint("auto-update-freq", timeout_value / 60);
-        app_settings.set_value("unread-unstarred-rule", new Variant("(iii)",unread_unstarred_rule[0],unread_unstarred_rule[1],unread_unstarred_rule[2]));
-        app_settings.set_value("read-unstarred-rule", new Variant("(iii)",read_unstarred_rule[0],read_unstarred_rule[1],read_unstarred_rule[2]));
-        app_settings.set_value("unread-starred-rule", new Variant("(iii)",unread_starred_rule[0],unread_starred_rule[1],unread_starred_rule[2]));
-        app_settings.set_value("read-starred-rule", new Variant("(iii)",read_starred_rule[0],read_starred_rule[1],read_starred_rule[2]));
+        app_settings.set_value("unread-rule", new Variant("(iii)",unread_rule[0],unread_rule[1],unread_rule[2]));
+        app_settings.set_value("read-rule", new Variant("(iii)",read_rule[0],read_rule[1],read_rule[2]));
         app_settings.set_boolean("download-attachments", download_attachments);
         app_settings.set_boolean("ask-download-location", get_location);
         app_settings.set_string("default-download-location", default_location);
@@ -249,10 +229,11 @@ class Singularity : Gtk.Application
 
     public void update_feed_settings(Feed f)
     {
-        string outrule = "%d %d %d\n%d %d %d\n%d %d %d\n%d %d %d".printf(f.unread_unstarred_rule[0], f.unread_unstarred_rule[1], f.unread_unstarred_rule[2], f.unread_starred_rule[0], f.unread_starred_rule[1], f.unread_starred_rule[2], f.read_unstarred_rule[0], f.read_unstarred_rule[1], f.read_unstarred_rule[2], f.read_starred_rule[0], f.read_starred_rule[1], f.read_starred_rule[2]);
-        if(!f.override_rules)
-            outrule = "";
-        db_man.updateFeedSettings.begin(f, outrule);
+        // TODO: Re-enable once feed rules are updated
+        //string outrule = "%d %d %d\n%d %d %d\n%d %d %d\n%d %d %d".printf(f.unread_unstarred_rule[0], f.unread_unstarred_rule[1], f.unread_unstarred_rule[2], f.unread_starred_rule[0], f.unread_starred_rule[1], f.unread_starred_rule[2], f.read_unstarred_rule[0], f.read_unstarred_rule[1], f.read_unstarred_rule[2], f.read_starred_rule[0], f.read_starred_rule[1], f.read_starred_rule[2]);
+        //if(!f.override_rules)
+            //outrule = "";
+        //db_man.updateFeedSettings.begin(f, outrule);
     }
 
     public int runall()

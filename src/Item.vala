@@ -16,7 +16,8 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-public class Item {
+public class Item
+{
     private string _guid = "";
     private DateTime _time_posted = new DateTime.from_unix_utc(0);
     private DateTime _time_added = new DateTime.now_utc();
@@ -38,7 +39,8 @@ public class Item {
     public uint enclosure_length = 0;
     public string enclosure_type = "";
     
-    public Item.from_db(SQLHeavy.QueryResult result) {
+    public Item.from_db(SQLHeavy.QueryResult result)
+    {
         try {
             title = result.fetch_string(1);
             link = result.fetch_string(2);
@@ -63,7 +65,8 @@ public class Item {
         }
     }
 
-    public Item.from_rss(Xml.Node* node) {
+    public Item.from_rss(Xml.Node* node)
+    {
         _time_added = new DateTime.now_utc();
         for(Xml.Node* dat = node->children; dat != null; dat = dat->next) {
             if(dat->type == Xml.ElementType.ELEMENT_NODE) {
@@ -142,7 +145,8 @@ public class Item {
             _empty = false;
     }
 
-    public Item.from_atom(Xml.Node* node) {
+    public Item.from_atom(Xml.Node* node)
+    {
         _time_added = new DateTime.now_utc();
         for(Xml.Node* dat = node->children; dat != null; dat = dat->next) {
             if(dat->type == Xml.ElementType.ELEMENT_NODE) {
@@ -208,37 +212,28 @@ public class Item {
             _empty = false;
     }
 
-    public bool applyRule(int[] rule) {
-        //stdout.printf("Rule: %d, %d, %d\n", rule[0], rule[1], rule[2]);
-        if(rule[1] == 0 || rule[2] == 0)
+    public bool applyRule(int[] rule)
+    {
+        if(rule[2] == 0)
             return true;
 
-        //stdout.printf("Getting time(%d)...\n", rule[0]);
         if(rule[0] != 0) {
             int timediff;
             switch(rule[1]) {
-                case 1:
-                    timediff = time_added.add_minutes(rule[0]).compare(new DateTime.now_utc());
-                break;
-                case 2:
-                    timediff = time_added.add_hours(rule[0]).compare(new DateTime.now_utc());
-                break;
-                case 3:
+                case 0:
                     timediff = time_added.add_days(rule[0]).compare(new DateTime.now_utc());
                 break;
-                case 4:
+                case 1:
                     timediff = time_added.add_months(rule[0]).compare(new DateTime.now_utc());
                 break;
-                case 5:
+                case 2:
                     timediff = time_added.add_years(rule[0]).compare(new DateTime.now_utc());
                 break;
                 default:
                     return true;
             }
-            //stdout.printf("diff: %d\n", timediff);
 
             if(timediff > 0) {
-                //stdout.printf("Time has not arrived yet!\n");
                 return true;
             }
         }
@@ -248,15 +243,13 @@ public class Item {
                 unread = !unread;
             break;
             case 2:
-                starred = !starred;
-            break;
-            case 3:
                 return false;
         }
         return true;
     }
 
-    public string constructHtml(int id = 0) {
+    public string constructHtml(int id = 0)
+    {
         string html_string = "<article class=\"singularity-item\"><header class=\"item-head\" viewed=\"" + (unread ? "false" : "true") +"\"><h3><a href=" + link + ">" + title + "</a></h3>" + "<img class='starButton" + (starred ? "D" : "") +  "' src=\"data:image/png;base64," + star_icon_base64 + "\"/>\n";
         string authtimestr = "";
         if(author != null && author.strip() != "")

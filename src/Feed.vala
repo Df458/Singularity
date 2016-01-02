@@ -57,10 +57,8 @@ public class Feed {
 
     //Count, Increment(m,h,d,m,y), action(nothing,read/unread,star/unstar,delete)
     public bool override_rules = false;
-    public int[] unread_unstarred_rule = {0, 0, 0}; //1 week, read
-    public int[] unread_starred_rule   = {0, 0, 0}; //nothing
-    public int[] read_unstarred_rule   = {0, 0, 0}; //1 month, delete
-    public int[] read_starred_rule     = {0, 0, 0}; //6 months, unstar
+    public int[] unread_rule = {0, 0, 0}; //1 week, read
+    public int[] read_rule   = {0, 0, 0}; //1 month, delete
 
     public bool override_location = false;
     public bool get_location = true;
@@ -83,7 +81,8 @@ public class Feed {
             foreach(string s in guid_list)
                 _last_guids.add(s);
             _last_time = new DateTime.from_unix_utc(result.fetch_int(6));
-            override_rules = parseRules(result.fetch_string(7));
+            // TODO: Re-enable once this is updated
+            //override_rules = parseRules(result.fetch_string(7));
             override_location = result.fetch_int(8) == 1;
             get_location = result.fetch_int(9) == 1;
             default_location = result.fetch_string(10);
@@ -98,7 +97,8 @@ public class Feed {
         if(rulestr == null || rulestr == "")
            return false; 
 
-        rulestr.scanf("%d %d %d\n%d %d %d\n%d %d %d\n%d %d %d", &unread_unstarred_rule[0], &unread_unstarred_rule[1], &unread_unstarred_rule[2], &unread_starred_rule[0], &unread_starred_rule[1], &unread_starred_rule[2], &read_unstarred_rule[0], &read_unstarred_rule[1], &read_unstarred_rule[2], &read_starred_rule[0], &read_starred_rule[1], &read_starred_rule[2]);
+        // TODO: Update these later
+        //rulestr.scanf("%d %d %d\n%d %d %d\n%d %d %d\n%d %d %d", &unread_unstarred_rule[0], &unread_unstarred_rule[1], &unread_unstarred_rule[2], &unread_starred_rule[0], &unread_starred_rule[1], &unread_starred_rule[2], &read_unstarred_rule[0], &read_unstarred_rule[1], &read_unstarred_rule[2], &read_starred_rule[0], &read_starred_rule[1], &read_starred_rule[2]);
         return true;
     }
 
@@ -321,29 +321,19 @@ public class Feed {
             return false;
 
         bool keep = true;
-        if(override_rules) {
-            if(new_item.unread) {
-                if(new_item.starred) {
-                    keep = new_item.applyRule(unread_starred_rule);
+        if(!new_item.starred) {
+            if(override_rules) {
+                if(new_item.unread) {
+                    keep = new_item.applyRule(unread_rule);
                 } else {
-                    keep = new_item.applyRule(unread_unstarred_rule);
+                    keep = new_item.applyRule(read_rule);
                 }
-            } else if(new_item.starred) {
-                keep = new_item.applyRule(read_starred_rule);
             } else {
-                keep = new_item.applyRule(read_unstarred_rule);
-            }
-        } else {
-            if(new_item.unread) {
-                if(new_item.starred) {
-                    keep = new_item.applyRule(app.unread_starred_rule);
+                if(new_item.unread) {
+                    keep = new_item.applyRule(unread_rule);
                 } else {
-                    keep = new_item.applyRule(app.unread_unstarred_rule);
+                    keep = new_item.applyRule(read_rule);
                 }
-            } else if(new_item.starred) {
-                keep = new_item.applyRule(app.read_starred_rule);
-            } else {
-                keep = new_item.applyRule(app.read_unstarred_rule);
             }
         }
 

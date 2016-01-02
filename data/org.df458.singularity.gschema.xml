@@ -21,17 +21,11 @@
                 How often to check for updates, in minutes.
             </description>
         </key>
-        <key name="unread-unstarred-rule" type="(iii)">
-            <default>(1,4,1)</default>
+        <key name="read-rule" type="(iii)">
+            <default>(6,1,1)</default>
         </key>
-        <key name="read-unstarred-rule" type="(iii)">
-            <default>(7,3,3)</default>
-        </key>
-        <key name="unread-starred-rule" type="(iii)">
-            <default>(0,0,0)</default>
-        </key>
-        <key name="read-starred-rule" type="(iii)">
-            <default>(0,0,0)</default>
+        <key name="unread-rule" type="(iii)">
+            <default>(0,-1,0)</default>
         </key>
         <key name="download-attachments" type="b">
             <default>true</default>

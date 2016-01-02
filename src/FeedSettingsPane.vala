@@ -86,10 +86,11 @@ class FeedSettingsPane : VBox {
     public void sync(Feed f) {
         current_feed = f;
         rule_enable_button.set_active(f.override_rules);
-        uu_entry.sync(f.unread_unstarred_rule);
-        ru_entry.sync(f.read_unstarred_rule);
-        us_entry.sync(f.unread_starred_rule);
-        rs_entry.sync(f.read_starred_rule);
+        // TODO: Replace these
+        //uu_entry.sync(f.unread_unstarred_rule);
+        //ru_entry.sync(f.read_unstarred_rule);
+        //us_entry.sync(f.unread_starred_rule);
+        //rs_entry.sync(f.read_starred_rule);
         uu_entry.set_sensitive(rule_enable_button.get_active());
         ru_entry.set_sensitive(rule_enable_button.get_active());
         us_entry.set_sensitive(rule_enable_button.get_active());
@@ -103,10 +104,11 @@ class FeedSettingsPane : VBox {
 
     public void save() {
         current_feed.override_rules = rule_enable_button.get_active();
-        current_feed.unread_unstarred_rule = uu_entry.get_value();
-        current_feed.read_unstarred_rule = ru_entry.get_value();
-        current_feed.unread_starred_rule = us_entry.get_value();
-        current_feed.read_starred_rule = rs_entry.get_value();   
+        // TODO: Replace these
+        //current_feed.unread_unstarred_rule = uu_entry.get_value();
+        //current_feed.read_unstarred_rule = ru_entry.get_value();
+        //current_feed.unread_starred_rule = us_entry.get_value();
+        //current_feed.read_starred_rule = rs_entry.get_value();   
         current_feed.override_location = dl_enable_button.get_active();
         current_feed.get_location = dl_always_ask.get_active();
         current_feed.default_location = dl_location_button.get_filename();

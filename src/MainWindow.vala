@@ -211,6 +211,7 @@ class MainWindow : Gtk.ApplicationWindow
         WebKit.Settings view_settings = new WebKit.Settings();
         view_settings.enable_javascript = true;
         view_settings.enable_developer_extras = true;
+        view_settings.enable_smooth_scrolling = true;
         grid_view.set_settings(view_settings);
         column_view_display.set_settings(view_settings);
         stream_view.set_settings(view_settings);
