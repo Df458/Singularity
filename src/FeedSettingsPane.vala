@@ -16,11 +16,10 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// modules: webkit2gtk-4.0 libsoup-2.4 granite libxml-2.0 sqlheavy-0.1 glib-2.0 gee-0.8
-
 using Gtk;
 
-class FeedSettingsPane : VBox {
+class FeedSettingsPane : VBox
+{
     ButtonBox confirm_buttons;
     CheckButton rule_enable_button;
     RuleEntry uu_entry;
@@ -34,7 +33,8 @@ class FeedSettingsPane : VBox {
 
     public signal void done();
 
-    public FeedSettingsPane() {
+    public FeedSettingsPane()
+    {
         spacing = 6;
         margin = 18;
         confirm_buttons = new HButtonBox();
@@ -83,7 +83,8 @@ class FeedSettingsPane : VBox {
         this.show_all();
     }
 
-    public void sync(Feed f) {
+    public void sync(Feed f)
+    {
         current_feed = f;
         rule_enable_button.set_active(f.override_rules);
         // TODO: Replace these
@@ -102,7 +103,8 @@ class FeedSettingsPane : VBox {
         dl_location_button.set_current_folder(f.default_location);
     }
 
-    public void save() {
+    public void save()
+    {
         current_feed.override_rules = rule_enable_button.get_active();
         // TODO: Replace these
         //current_feed.unread_unstarred_rule = uu_entry.get_value();

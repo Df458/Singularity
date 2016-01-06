@@ -18,35 +18,19 @@
 
 using Gtk;
 
-class SettingsPane : Grid
+class SettingsPane : SettingsGrid
 {
-    // Labels
-    private Label start_update_label;
-    private Label auto_update_label;
-    private Label update_time_label;
-    private Label download_to_label;
-    private Label custom_link_label;
-    private Label read_label;
-    private Label unread_label;
-
-    // Update Controls
-    private Box    update_label_box;
-    private Box    update_control_box;
     private Switch start_update_switch;
     ComboBoxText   auto_update_combo;
     SpinButton     auto_update_time_entry;
 
     // Link and Attachment Controls
-    private Box       link_label_box;
-    private Box       link_control_box;
     private Box       download_box;
     private FileChooserButton download_to_button;
     private CheckButton       always_ask_check;
     private Entry             link_command_entry;
 
     // Rule Controls
-    private Box          rule_label_box;
-    private Box          rule_control_box;
     private Box          unread_box;
     private Box          read_box;
     private SpinButton   unread_spin;
@@ -55,10 +39,6 @@ class SettingsPane : Grid
     private ComboBoxText read_incr_combo;
     private ComboBoxText unread_action_combo;
     private ComboBoxText read_action_combo;
-    //RuleEntry uu_entry;
-    //RuleEntry ru_entry;
-    //RuleEntry us_entry;
-    //RuleEntry rs_entry;
 
     ButtonBox confirm_buttons;
     Button confirm_button;
@@ -77,106 +57,27 @@ class SettingsPane : Grid
         init_content();
         connect_signals();
 
-        /*confirm_buttons = new HButtonBox();
-        Gtk.Button cancel_button = new Gtk.Button.with_label("Cancel");
-        cancel_button.clicked.connect(() => {done();});
-        Gtk.Button confirm_button = new Gtk.Button.with_label("Confirm");
-        confirm_button.clicked.connect(save);
-        confirm_buttons.add(cancel_button);
-        confirm_buttons.add(confirm_button);
-
-        start_update_switch = new Switch();
-        auto_update_switch = new Switch();
-        auto_update_switch.state_set.connect((state) => {
-            auto_update_time_entry.set_sensitive(state);
-            return false;
-        });
-        auto_update_time_entry = new SpinButton.with_range(1, 10000, 1);
-        auto_update_time_entry.snap_to_ticks = true;
-
-        uu_entry = new RuleEntry("unread and unstarred entries", false, false);
-        ru_entry = new RuleEntry("read and unstarred entries", true, false);
-        us_entry = new RuleEntry("unread and starred entries", false, true);
-        rs_entry = new RuleEntry("read and starred entries", true, true);
-
-        Box start_update_box = new Box(Orientation.HORIZONTAL, 0);
-        start_update_box.pack_start(new Label("Update subscriptions on startup: "), false, false);
-        start_update_box.pack_start(start_update_switch, false, false);
-        Box auto_update_box = new Box(Orientation.HORIZONTAL, 0);
-        auto_update_box.pack_start(new Label("Auto-update subscriptions: "), false, false);
-        auto_update_box.pack_start(auto_update_switch, false, false);
-        auto_update_box.pack_start(new Label(" every "), false, false);
-        auto_update_box.pack_start(auto_update_time_entry);
-        auto_update_box.pack_start(new Label(" minutes."), false, false);
-
-        Box dl_box = new Box(Orientation.HORIZONTAL, 0);
-        dl_box.pack_start(new Label("Download attachments to: "), false, false);
-        dl_box.pack_start(dl_location_button, false, false);
-        Box link_box = new Box(Orientation.HORIZONTAL, 0);
-        link_box.pack_start(new Label("Command to open links: "), false, false);
-        link_box.pack_start(link_open_entry, false, false);
-
-        pack_start(auto_update_box, false, false);
-        pack_start(start_update_box, false, false);
-        pack_start(new Gtk.Separator(Orientation.HORIZONTAL), false, false);
-        pack_start(uu_entry, false, false);
-        pack_start(ru_entry, false, false);
-        pack_start(us_entry, false, false);
-        pack_start(rs_entry, false, false);
-        pack_start(new Gtk.Separator(Orientation.HORIZONTAL), false, false);
-        pack_start(dl_box, false, false);
-        pack_start(dl_always_ask, false, false);
-        pack_start(link_box, false, false);
-        pack_end(confirm_buttons, false, false);*/
         this.show_all();
     }
 
     public void init_structure()
     {
-        update_label_box   = new Box(Orientation.VERTICAL,   6);
-        update_control_box = new Box(Orientation.VERTICAL,   6);
-        link_label_box     = new Box(Orientation.VERTICAL,   6);
-        link_control_box   = new Box(Orientation.VERTICAL,   6);
         download_box       = new Box(Orientation.HORIZONTAL, 6);
         confirm_buttons    = new ButtonBox(Orientation.HORIZONTAL);
-        rule_label_box     = new Box(Orientation.VERTICAL, 6);
-        rule_control_box   = new Box(Orientation.VERTICAL, 6);
         unread_box         = new Box(Orientation.HORIZONTAL, 0);
         read_box           = new Box(Orientation.HORIZONTAL, 0);
 
-        update_label_box.set_homogeneous(true);
-        update_control_box.set_homogeneous(true);
-        link_label_box.set_homogeneous(true);
-        link_control_box.set_homogeneous(true);
-        rule_label_box.set_homogeneous(true);
-        rule_control_box.set_homogeneous(true);
         confirm_buttons.set_spacing(6);
         confirm_buttons.set_layout(ButtonBoxStyle.START);
 
         read_box.get_style_context().add_class(STYLE_CLASS_LINKED);
         unread_box.get_style_context().add_class(STYLE_CLASS_LINKED);
 
-        this.attach(update_label_box,   0, 0);
-        this.attach(update_control_box, 1, 0);
-        this.attach(link_label_box,     0, 1);
-        this.attach(link_control_box,   1, 1);
-        this.attach(rule_label_box,     0, 2);
-        this.attach(rule_control_box,   1, 2);
         this.attach(confirm_buttons,    0, 3, 2, 1);
-        link_control_box.add(download_box);
-        rule_control_box.add(read_box);
-        rule_control_box.add(unread_box);
     }
 
     public void init_content()
     {
-        start_update_label = new Label("Update on Startup");
-        auto_update_label  = new Label("Auto-update");
-        update_time_label  = new Label("Update Time (minutes)");
-        download_to_label  = new Label("Download To");
-        custom_link_label  = new Label("Custom Link Command");
-        read_label         = new Label("Read Items");
-        unread_label       = new Label("Unread Items");
         link_command_entry = new Entry();
 
         confirm_button = new Button.with_label("Confirm");
@@ -194,14 +95,6 @@ class SettingsPane : Grid
         unread_incr_combo      = new ComboBoxText();
         read_action_combo      = new ComboBoxText();
         unread_action_combo    = new ComboBoxText();
-
-        start_update_label.halign = Align.END;
-        auto_update_label.halign  = Align.END;
-        update_time_label.halign  = Align.END;
-        download_to_label.halign  = Align.END;
-        custom_link_label.halign  = Align.END;
-        read_label.halign         = Align.END;
-        unread_label.halign       = Align.END;
 
         start_update_switch.halign     = Align.START;
 
@@ -226,25 +119,21 @@ class SettingsPane : Grid
 
         reset_button.get_style_context().add_class("destructive-action");
 
-        update_label_box.add(start_update_label);
-        update_label_box.add(auto_update_label);
-        update_label_box.add(update_time_label);
-        link_label_box.add(download_to_label);
-        link_label_box.add(custom_link_label);
-        rule_label_box.add(read_label);
-        rule_label_box.add(unread_label);
-        update_control_box.add(start_update_switch);
-        update_control_box.add(auto_update_combo);
-        update_control_box.add(auto_update_time_entry);
         download_box.add(download_to_button);
         download_box.add(always_ask_check);
-        link_control_box.add(link_command_entry);
+        this.add("Update on Startup", start_update_switch, 0);
+        this.add("Auto-update", auto_update_combo, 0);
+        this.add("Update Time (minutes)", auto_update_time_entry, 0);
+        this.add("Download to", download_box, 1);
+        this.add("Custom Link Command", link_command_entry, 1);
         read_box.add(read_spin);
         read_box.add(read_incr_combo);
         read_box.add(read_action_combo);
+        this.add("Read Items", read_box, 2);
         unread_box.add(unread_spin);
         unread_box.add(unread_incr_combo);
         unread_box.add(unread_action_combo);
+        this.add("Unread Items", unread_box, 2);
         confirm_buttons.add(confirm_button);
         confirm_buttons.add(cancel_button);
         confirm_buttons.add(reset_button);
@@ -257,7 +146,7 @@ class SettingsPane : Grid
         {
             int id = auto_update_combo.active;
             auto_update_time_entry.set_sensitive(id == 5);
-            update_time_label.set_sensitive(id == 5);
+            this.get_label_for_child(auto_update_time_entry).set_sensitive(id == 5);
             switch(id) {
                 case 1:
                     auto_update_time_entry.value = 5;
@@ -322,7 +211,7 @@ class SettingsPane : Grid
             }
         start_update_switch.set_active(app.start_update);
         auto_update_time_entry.set_value(app.timeout_value / 60);
-        update_time_label.set_sensitive(app.auto_update);
+        this.get_label_for_child(auto_update_time_entry).set_sensitive(app.auto_update);
         auto_update_time_entry.set_sensitive(app.auto_update);
         read_spin.set_value(app.read_rule[0]);
         unread_spin.set_value(app.unread_rule[0]);

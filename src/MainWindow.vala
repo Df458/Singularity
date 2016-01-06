@@ -366,6 +366,7 @@ class MainWindow : Gtk.ApplicationWindow
         settings.done.connect(() =>
         {
             view_stack.set_visible_child_name(current_view);
+            preferences_action.set_enabled(true);
         });
 
         feed_settings.done.connect(() =>
@@ -438,6 +439,7 @@ class MainWindow : Gtk.ApplicationWindow
         {
             settings.sync();
             view_stack.set_visible_child_name("settings");
+            preferences_action.set_enabled(false);
         });
         this.add_action(preferences_action);
         mkread_action = new GLib.SimpleAction("mark-read", null);
