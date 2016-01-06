@@ -24,7 +24,6 @@ class MainWindow : Gtk.ApplicationWindow
 {
     private Box   main_box;
     private Paned main_paned;
-    private Gee.ArrayList<SourceList.Item> feed_items;
     private Singularity app;
     private string current_view = "grid";
     private bool   toggle_lock = false; // Prevents extra button toggle changes when selecting a view
@@ -40,11 +39,13 @@ class MainWindow : Gtk.ApplicationWindow
     private SimpleAction preferences_action;
     private SimpleAction mkread_action;
     private SimpleAction about_action;
+    private SimpleAction unsubscribe_action;
 
     // Search
     // TODO: Remove "Gtk." once Granite is removed
     private Gtk.SearchBar   item_search_bar;
     private SearchEntry item_search_entry;
+    private Gtk.Menu feed_menu;
 
     // Statusbar
     private ActionBar    status_bar;
@@ -94,7 +95,6 @@ class MainWindow : Gtk.ApplicationWindow
     public MainWindow(Singularity owner_app)
     {
         app = owner_app;
-        feed_items = new Gee.ArrayList<SourceList.Item>();
         window_position = WindowPosition.CENTER;
         set_default_size(1024, 768);
 
@@ -291,6 +291,7 @@ class MainWindow : Gtk.ApplicationWindow
         col_name = new Gtk.TreeViewColumn.with_attributes("Name", name_renderer, "text", FeedColumn.TITLE, null);
         feed_list.insert_column(col_name, -1);
         col_count = new Gtk.TreeViewColumn.with_attributes("Count", new CellRendererText(), "text", FeedColumn.UNREAD_COUNT, "visible", FeedColumn.SHOW_UNREAD_COUNT, null);
+        feed_list.set_events(Gdk.EventMask.BUTTON_PRESS_MASK);
         feed_list.insert_column(col_count, -1);
         feed_data.append(out category_collection, null);
         feed_data.set(category_collection, FeedColumn.TITLE, "Collections", FeedColumn.SHOW_UNREAD_COUNT, false, -1);
@@ -303,7 +304,8 @@ class MainWindow : Gtk.ApplicationWindow
         feed_data.append(out category_all, null);
         feed_data.set(category_all, FeedColumn.TITLE, "Subscriptions", FeedColumn.SHOW_UNREAD_COUNT, false, -1);
         feed_list.expand_all();
-        feed_list.cursor_changed.connect(() => {
+        feed_list.cursor_changed.connect(() =>
+        {
             TreePath path;
             feed_list.get_cursor(out path, null);
             TreeIter iter;
@@ -423,6 +425,23 @@ class MainWindow : Gtk.ApplicationWindow
             } else
                 stream_view_button.active = true;
         });
+
+        feed_list.button_press_event.connect((event) =>
+        {
+            TreePath? path;
+            TreeIter? iter;
+            feed_list.get_cursor(out path, null);
+            feed_data.get_iter(out iter, path);
+            if(event.button == 3 && path != null && iter != all_item && iter != unread_item && iter != starred_item && iter != category_all && iter != category_collection) {
+                feed_list.popup_menu();
+            }
+            return false;
+        });
+        feed_list.popup_menu.connect(() =>
+        {
+            feed_menu.popup(null, null, null, 0, Gtk.get_current_event_time());
+            return false;
+        });
     }
 
     private void add_actions()
@@ -463,6 +482,33 @@ class MainWindow : Gtk.ApplicationWindow
                 "copyright", ("Copyright © 2014-2016 Hugues Ross"));
         });
         this.add_action(about_action);
+
+        SimpleActionGroup feed_group = new SimpleActionGroup();
+        unsubscribe_action = new GLib.SimpleAction("unsubscribe", null);
+        unsubscribe_action.activate.connect(() =>
+        {
+            TreeIter iter;
+            TreePath path;
+            TreeViewColumn column;
+            feed_list.get_cursor(out path, out column);
+            feed_data.get_iter(out iter, path);
+
+            string name;
+            int id;
+            feed_data.get(iter, 1, out name, 4, out id);
+
+            MessageDialog confirm = new MessageDialog(this, DialogFlags.MODAL, MessageType.QUESTION, ButtonsType.YES_NO, "Are you sure you want to unsubscribe from %s?", name);
+            confirm.response.connect((response) => {
+                if(response == Gtk.ResponseType.YES) {
+                    app.removeFeed(id);
+                    feed_data.remove(ref iter);
+                }
+                confirm.destroy();
+            });
+            confirm.show_all();
+        });
+        feed_group.add_action(unsubscribe_action);
+        feed_list.insert_action_group("feed", feed_group);
     }
 
     private void init_menus()
@@ -473,6 +519,12 @@ class MainWindow : Gtk.ApplicationWindow
         menu.append_item(new GLib.MenuItem("Mark All as Read", "win.mark-read"));
         menu.append_item(new GLib.MenuItem("About", "win.about"));
         menu_button.set_menu_model(menu);
+
+        GLib.Menu feed_model = new GLib.Menu();
+        feed_model.append_item(new GLib.MenuItem("Unsubscribe", "feed.unsubscribe"));
+        feed_menu = new Gtk.Menu.from_model(feed_model);
+
+        feed_menu.attach_to_widget(feed_list, null);
     }
 
     private void resize_columns(int size)
@@ -499,7 +551,7 @@ class MainWindow : Gtk.ApplicationWindow
     public void add_feeds(Gee.ArrayList<Feed> feeds)
     {
         for(int i = 0; i < feeds.size; ++i) {
-            add_feed(feeds[i], i);
+            add_feed(feeds[i], feeds[i].id);
         }
     }
 

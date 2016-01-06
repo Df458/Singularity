@@ -16,11 +16,10 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// modules: webkit2gtk-4.0 libsoup-2.4 granite libxml-2.0 sqlheavy-0.1 glib-2.0 gee-0.8
-
 using SQLHeavy;
 
-public class DatabaseManager {
+public class DatabaseManager
+{
     private Database db;
     private bool _open = false;
     public int next_id = 0;
@@ -66,7 +65,7 @@ public class DatabaseManager {
         return feed_list;
     }
 	
-    public async void loadFeedItems(Feed feed, int item_count = -1, int starting_id = -1)
+    public async void loadFeedItems(Feed feed, int item_count = -1)
     {
         try {
             Query load_query = new Query(db, "SELECT * FROM entries WHERE `feed_id` = :id ORDER BY savedate DESC LIMIT :count");

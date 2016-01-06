@@ -20,7 +20,7 @@ using Gee;
 
 class Singularity : Gtk.Application
 {
-    private ArrayList<Feed> feeds;
+    private Gee.HashMap<int, Feed> feeds;
     private DatabaseManager db_man;
     private MainWindow main_window;
     private MainLoop ml;
@@ -48,6 +48,7 @@ class Singularity : Gtk.Application
         Object(application_id: "org.df458.singularity");
         Granite.Services.Paths.initialize("singularity", Environment.get_user_data_dir());
         Granite.Services.Paths.ensure_directory_exists(Granite.Services.Paths.user_data_folder);
+        feeds = new HashMap<int, Feed>();
         app_settings = new Settings("org.df458.singularity");
         download_attachments = app_settings.get_boolean("download-attachments");
         default_location = app_settings.get_string("default-download-location");
@@ -79,14 +80,24 @@ class Singularity : Gtk.Application
         db_man = new DatabaseManager.from_path(db_path);
         db_man.removeOld.begin();
         db_man.loadFeeds.begin((obj, res) =>{
-            feeds = db_man.loadFeeds.end(res);
+            ArrayList<Feed> feed_list = db_man.loadFeeds.end(res);
+            foreach(Feed f in feed_list) {
+                feeds.set(f.id, f);
+            }
             if(main_window != null)
-                main_window.add_feeds(feeds);
+                main_window.add_feeds(feed_list);
             if(start_update)
                 update();
             else {
-                foreach(Feed f in feeds) {
-                    db_man.loadFeedItems.begin(f, -1, -1, (obj, res) => {
+                bool should_continue = true;
+                MapIterator<int, Feed> iter = feeds.map_iterator();
+                do {
+                    if(!iter.valid) {
+                        should_continue = iter.next();
+                        continue;
+                    }
+                    Feed f = iter.get_value();
+                    db_man.loadFeedItems.begin(f, -1, (obj, res) => {
                         updateFeedItems(f);
                     });
                     int unread_count = main_window.get_unread_count();
@@ -98,7 +109,13 @@ class Singularity : Gtk.Application
                             stderr.printf("Error displaying notification: %s.\n", e.message);
                         }
                     }
-                }
+                    should_continue = iter.next();
+                } while(should_continue);
+                /*for(MapIterator<int, Feed> iter = feeds.map_iterator(); should_continue && (iter.valid || iter.has_next()); should_continue = iter.next()) {
+                    if(!iter.valid) {
+                        continue;
+                    }
+                }*/
             }
         });
         if(!nogui) {
@@ -138,7 +155,11 @@ class Singularity : Gtk.Application
     {
         view_list.clear();
         string html_str = "<html><head><style>" + css_dat + "</style></head><body><br/>";
-        foreach(Feed f in feeds) {
+        bool should_continue = true;
+        for(MapIterator<int, Feed> iter = feeds.map_iterator(); should_continue && (iter.valid || iter.has_next()); should_continue = iter.next()) {
+            if(!iter.valid)
+                continue;
+            Feed f = iter.get_value();
             html_str += f.constructUnreadHtml(db_man);
         }
         html_str += js_str + "</body></html>";
@@ -156,9 +177,13 @@ class Singularity : Gtk.Application
     {
         view_list.clear();
         string html_str = "<html><head><style>" + css_dat + "</style></head><body>";
-        foreach(Feed f in feeds) {
+        bool should_continue = true;
+        for(MapIterator<int, Feed> iter = feeds.map_iterator(); should_continue && (iter.valid || iter.has_next()); should_continue = iter.next()) {
+            if(!iter.valid)
+                continue;
+            Feed f = iter.get_value();
             html_str += f.constructHtml(db_man);
-            main_window.updateFeedItem(f, feeds.index_of(f));
+            main_window.updateFeedItem(f, f.id);
         }
         html_str += js_str + "</body></html>";
         return html_str;
@@ -168,7 +193,11 @@ class Singularity : Gtk.Application
     {
         view_list.clear();
         string html_str = "<html><head><style>" + css_dat + "</style></head><body><br/>";
-        foreach(Feed f in feeds) {
+        bool should_continue = true;
+        for(MapIterator<int, Feed> iter = feeds.map_iterator(); should_continue && (iter.valid || iter.has_next()); should_continue = iter.next()) {
+            if(!iter.valid)
+                continue;
+            Feed f = iter.get_value();
             html_str += f.constructStarredHtml(db_man);
         }
         html_str += js_str + "</body></html>";
@@ -190,9 +219,9 @@ class Singularity : Gtk.Application
             if(f.status == 3)
                 return;
             db_man.saveFeed.begin(f, true);
-            feeds.add(f);
-            main_window.add_feed(f, feeds.index_of(f));
-            main_window.updateFeedItem(f, feeds.index_of(f));
+            feeds.set(f.id, f);
+            main_window.add_feed(f, f.id);
+            main_window.updateFeedItem(f, f.id);
             delete doc;
         });
     }
@@ -204,9 +233,9 @@ class Singularity : Gtk.Application
 
     public void removeFeed(int feed_index)
     {
-        Feed f = feeds[feed_index];
+        Feed f;
+        feeds.unset(feed_index, out f);
         db_man.removeFeed.begin(f);
-        feeds.remove(f);
     }
 
     public void update_settings()
@@ -264,7 +293,7 @@ class Singularity : Gtk.Application
     public void updateFeedItems(Feed f)
     {
         if(!nogui)
-            main_window.updateFeedItem(f, feeds.index_of(f));
+            main_window.updateFeedItem(f, f.id);
     }
 
     public void interpretUriEncodedAction(string action)
@@ -317,9 +346,7 @@ class Singularity : Gtk.Application
         att.scanf("%d_", &id);
         action = att.substring(id.to_string().length + 1);
         Feed tocheck = null;
-        foreach(Feed f in feeds)
-            if(f.id == id)
-                tocheck = f;
+        tocheck = feeds.get(id);
         if(tocheck != null && tocheck.override_location) {
             getl = tocheck.get_location;
             default_loc = tocheck.default_location;
@@ -378,8 +405,15 @@ class Singularity : Gtk.Application
     {
         if(verbose)
             stderr.printf("Running updates on %d feeds...\n", feeds.size);
-        foreach(Feed f in feeds) {
-            db_man.loadFeedItems.begin(f, -1, -1, (obj, res) => {
+        bool should_continue = true;
+        MapIterator<int, Feed> iter = feeds.map_iterator();
+        do {
+            if(!iter.valid) {
+                should_continue = iter.next();
+                continue;
+            }
+            Feed f = iter.get_value();
+            db_man.loadFeedItems.begin(f, -1, (obj, res) => {
                 load_counter++;
                 f.updateFromWeb.begin(db_man, (obj, res) => {
                     load_counter--;
@@ -403,7 +437,8 @@ class Singularity : Gtk.Application
                     }
                 });
             });
-        }
+            should_continue = iter.next();
+        } while(should_continue);
         if(feeds.size == 0)
             done_load = true;
         update_running = auto_update;
