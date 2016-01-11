@@ -16,9 +16,8 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// modules: webkit2gtk-4.0 libsoup-2.4 granite libxml-2.0 sqlheavy-0.1 glib-2.0 gee-0.8
-
-async Xml.Doc* getXmlData(string url) {
+async Xml.Doc* getXmlData(string url)
+{
     SourceFunc callback = getXmlData.callback;
     Soup.Session session = new Soup.Session();
     session.use_thread_context = true;
@@ -43,7 +42,8 @@ async Xml.Doc* getXmlData(string url) {
     return xml_doc;
 }
 
-string getNodeContents(Xml.Node* node, bool atom = false) {
+string getNodeContents(Xml.Node* node, bool atom = false)
+{
     string output = "";
     if(node == null || node->children == null){
         if(verbose)
@@ -72,7 +72,8 @@ string getNodeContents(Xml.Node* node, bool atom = false) {
     return output;
 }
 
-int getMonth(string month_abbr) {
+int getMonth(string month_abbr)
+{
     switch(month_abbr) {
 	case "Jan":
 	    return 1;
@@ -102,7 +103,8 @@ int getMonth(string month_abbr) {
     return -1;
 }
 
-string dumpXml(Xml.Node* node) {
+string dumpXml(Xml.Node* node)
+{
     string xml_str = "";
 
     if(node->type == Xml.ElementType.TEXT_NODE || node->type == Xml.ElementType.CDATA_SECTION_NODE)

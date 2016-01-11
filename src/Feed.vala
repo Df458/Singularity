@@ -16,11 +16,10 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// modules: webkit2gtk-4.0 libsoup-2.4 granite libxml-2.0 sqlheavy-0.1 glib-2.0 gee-0.8
-
 //:TODO: 05.09.14 08:11:23, Hugues Ross
 // Add a full implementation of the various feed standards
-public class Feed {
+public class Feed
+{
     private int _id;
     private Gee.ArrayList<Item> _items;
     private Gee.ArrayList<Item> _items_unread;
@@ -64,7 +63,8 @@ public class Feed {
     public bool get_location = true;
     public string default_location;
     
-    public Feed.from_db(SQLHeavy.QueryResult result) {
+    public Feed.from_db(SQLHeavy.QueryResult result)
+    {
         _last_guids = new Gee.ArrayList<string>();
         _last_guids_post = new Gee.ArrayList<string>();
         _items = new Gee.ArrayList<Item>();
@@ -93,7 +93,8 @@ public class Feed {
         }
     }
 
-    bool parseRules(string? rulestr) {
+    bool parseRules(string? rulestr)
+    {
         if(rulestr == null || rulestr == "")
            return false; 
 
@@ -102,7 +103,8 @@ public class Feed {
         return true;
     }
 
-    public Feed.from_xml(Xml.Node* node, string url, int new_id = -1) {
+    public Feed.from_xml(Xml.Node* node, string url, int new_id = -1)
+    {
         _last_guids = new Gee.ArrayList<string>();
         _last_guids_post = new Gee.ArrayList<string>();
         _id = new_id;
@@ -229,7 +231,8 @@ public class Feed {
             title = "Untitled Feed";
     }
 
-    public async void updateFromWeb(DatabaseManager man) {
+    public async void updateFromWeb(DatabaseManager man)
+    {
         //_last_guid_post = _last_guid;
         _last_time_post = _last_time;
         status = 1;
@@ -298,18 +301,21 @@ public class Feed {
         }
     }
 
-    public Item get(int id) {
+    public Item get(int id)
+    {
         return _items[id];
     }
 
-    public string get_guids() {
+    public string get_guids()
+    {
         string guid = "";
         foreach(string s in _last_guids)
             guid += s + "\n";
         return guid;
     }
     
-    public bool add_item(Item new_item, bool hold = false) {
+    public bool add_item(Item new_item, bool hold = false)
+    {
         if(hold) {
             _last_guids_post.add(new_item.guid);
         }
@@ -357,11 +363,13 @@ public class Feed {
         return true;
     }
     
-    public Item get_item(int id = 0) {
+    public Item get_item(int id = 0)
+    {
         return _items[id];
     }
 
-    public string constructHtml(DatabaseManager man) {
+    public string constructHtml(DatabaseManager man)
+    {
         string html_string = "<div class=\"feed\">";
         foreach(Item i in _items) {
             html_string += i.constructHtml();
@@ -370,7 +378,8 @@ public class Feed {
         return html_string;
     }
 
-    public string constructUnreadHtml(DatabaseManager man) {
+    public string constructUnreadHtml(DatabaseManager man)
+    {
         string html_string = "<div class=\"feed\">";
         for(int i = _items_unread.size - 1; i >= 0; --i) {
             html_string += _items_unread[i].constructHtml();
@@ -381,7 +390,8 @@ public class Feed {
         return html_string;
     }
 
-    public string constructStarredHtml(DatabaseManager man) {
+    public string constructStarredHtml(DatabaseManager man)
+    {
         string html_string = "<div class=\"feed\">";
         foreach(Item i in _items_starred) {
             html_string += i.constructHtml();
@@ -392,11 +402,13 @@ public class Feed {
         return html_string;
     }
 
-    public void removeUnreadItem(Item i) {
+    public void removeUnreadItem(Item i)
+    {
         _items_unread.remove(i);
     }
 
-    public void toggleStar(Item i) {
+    public void toggleStar(Item i)
+    {
         if(_items.contains(i)) {
             i.starred = !i.starred;
             if(i.starred)

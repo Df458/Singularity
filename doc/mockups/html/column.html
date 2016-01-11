@@ -1,14 +1,20 @@
 <html>
+<head>
+    <link rel="stylesheet" href="mock.css"/>
+</head>
 <body>
     <article class="column">
         <header class="column">
-            <h1 class="column title">Post Title</h1>
+            <img class="column star" id="active" src="../../../data/star.svg"/>
+            <h1 class="column title"><a href="http://example.com">Post Title</a></h1>
             <section class="column" id="posted">
                 Posted by <span class="column author">Author</span> on <time class="column date" datetime="2016-01-01 12:00">Jan 1, 2015</time>.
             </section>
             <hr class="column" id="header-separator">
         </header>
-        Article description
+        <section class="column content">
+            Article description
+        </section>
         <footer class="column">
             <h3 class="column footer-heading">Attachments</h3>
             <section class="column" id="attach-list">

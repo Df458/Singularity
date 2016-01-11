@@ -18,7 +18,6 @@
 
 using Gtk;
 using Gdk;
-using Granite.Widgets;
 
 class MainWindow : Gtk.ApplicationWindow
 {
@@ -35,6 +34,7 @@ class MainWindow : Gtk.ApplicationWindow
     private ToggleButton item_search_toggle;
 
     // Actions
+    private SimpleAction import_action;
     private SimpleAction refresh_action;
     private SimpleAction preferences_action;
     private SimpleAction mkread_action;
@@ -42,8 +42,7 @@ class MainWindow : Gtk.ApplicationWindow
     private SimpleAction unsubscribe_action;
 
     // Search
-    // TODO: Remove "Gtk." once Granite is removed
-    private Gtk.SearchBar   item_search_bar;
+    private SearchBar   item_search_bar;
     private SearchEntry item_search_entry;
     private Gtk.Menu feed_menu;
 
@@ -108,27 +107,9 @@ class MainWindow : Gtk.ApplicationWindow
         this.show_all();
 
         /*
-        //Button rm_button = new Button.from_icon_name("remove", IconSize.MENU);
-        //rm_button.set_tooltip_text("Unsubscribe from this feed");
         //Button settings_button = new Button.from_icon_name("gtk-preferences", IconSize.MENU);
         //settings_button.set_tooltip_text("Feed settings");
-        //rm_button.set_sensitive(false);
         //settings_button.set_sensitive(false);
-        //rm_button.clicked.connect((ev) => {
-            ////var f = feed_list.selected;
-            ////MessageDialog confirm = new MessageDialog(this, DialogFlags.MODAL, MessageType.QUESTION, ButtonsType.YES_NO, "Are you sure you want to unsubscribe from %s?", f.name);
-            ////confirm.response.connect((response) => {
-                ////if(response == Gtk.ResponseType.YES) {
-                    ////app.removeFeed(feed_items.index_of(f));
-                    ////category_all.remove(f);
-                    ////feed_items.remove(f);
-                    ////updateSubtitle();
-                ////}
-                ////confirm.destroy();
-            ////});
-            ////confirm.show_all();
-            //warning("rm_button click callback is a stub");
-        //});
         //settings_button.clicked.connect((ev) => {
             ////feed_settings.sync(app.getFeed(feed_items.index_of(feed_list.selected)));
             ////set_content(feed_settings);
@@ -139,8 +120,6 @@ class MainWindow : Gtk.ApplicationWindow
         //welcome_view.activated.connect( () => {
             //set_content(add_pane);
         //});
-        //content_pane.pack2(welcome_view, true, true);
-        //current_view = welcome_view;
         */
     }
 
@@ -446,6 +425,23 @@ class MainWindow : Gtk.ApplicationWindow
 
     private void add_actions()
     {
+        import_action = new GLib.SimpleAction("import", null);
+        import_action.activate.connect(() =>
+        {
+            FileChooserDialog dialog = new FileChooserDialog("Select a file to import", this, FileChooserAction.OPEN);
+            dialog.add_button("Import", ResponseType.OK);
+            dialog.add_button("Cancel", ResponseType.CANCEL);
+            dialog.response.connect((r) =>
+            {
+                dialog.close();
+                if(r == ResponseType.OK) {
+                    File file = dialog.get_file();
+                    app.import(file);
+                }
+            });
+            dialog.run();
+        });
+        this.add_action(import_action);
         refresh_action = new GLib.SimpleAction("refresh-feeds", null);
         refresh_action.set_enabled(false);
         refresh_action.activate.connect(() =>
@@ -514,6 +510,7 @@ class MainWindow : Gtk.ApplicationWindow
     private void init_menus()
     {
         GLib.Menu menu = new GLib.Menu();
+        menu.append_item(new GLib.MenuItem("Import Feeds\u2026", "win.import"));
         menu.append_item(new GLib.MenuItem("Refresh", "win.refresh-feeds"));
         menu.append_item(new GLib.MenuItem("Preferences", "win.app-preferences"));
         menu.append_item(new GLib.MenuItem("Mark All as Read", "win.mark-read"));

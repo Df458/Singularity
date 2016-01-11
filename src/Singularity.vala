@@ -23,6 +23,7 @@ class Singularity : Gtk.Application
     private Gee.HashMap<int, Feed> feeds;
     private DatabaseManager db_man;
     private MainWindow main_window;
+    private OPML opml;
     private MainLoop ml;
     string css_dat = "";
     private ArrayList<Item> view_list;
@@ -46,9 +47,11 @@ class Singularity : Gtk.Application
     public Singularity()
     {
         Object(application_id: "org.df458.singularity");
+        // TODO: Replace this at some point to remove granite as a dependency
         Granite.Services.Paths.initialize("singularity", Environment.get_user_data_dir());
         Granite.Services.Paths.ensure_directory_exists(Granite.Services.Paths.user_data_folder);
         feeds = new HashMap<int, Feed>();
+        opml = new OPML();
         app_settings = new Settings("org.df458.singularity");
         download_attachments = app_settings.get_boolean("download-attachments");
         default_location = app_settings.get_string("default-download-location");
@@ -204,6 +207,16 @@ class Singularity : Gtk.Application
         return html_str;
     }
 
+    public void import(File file)
+    {
+        Xml.Doc* doc = Xml.Parser.parse_file(file.get_path());
+        if(doc == null)
+            return; // TODO: We should put an error here
+        opml.import(doc->children);
+        delete doc; // FIXME: Some stray docs may be floating around from older xml code. Kill them.
+    }
+
+    // TODO: Separate this from subscription so that it just returns a new feed
     public void createFeed(string url)
     {
         if(verbose)
