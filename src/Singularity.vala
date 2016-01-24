@@ -20,7 +20,7 @@ using Gee;
 
 class Singularity : Gtk.Application
 {
-    private Gee.HashMap<int, Feed> feeds;
+    private HashMap<int, Feed> feeds;
     private DatabaseManager db_man;
     private MainWindow main_window;
     private OPML opml;
@@ -214,6 +214,19 @@ class Singularity : Gtk.Application
             return; // TODO: We should put an error here
         opml.import(doc->children);
         delete doc; // FIXME: Some stray docs may be floating around from older xml code. Kill them.
+    }
+
+    public void export(File file)
+    {
+        // TODO: Make this a tree eventually
+        ArrayList<Feed> feed_list = new ArrayList<Feed>();
+        bool should_continue = true;
+        for(MapIterator<int, Feed> iter = feeds.map_iterator(); should_continue && (iter.valid || iter.has_next()); should_continue = iter.next()) {
+            if(!iter.valid)
+                continue;
+            feed_list.add(iter.get_value());
+        }
+        opml.export(file, feed_list);
     }
 
     // TODO: Separate this from subscription so that it just returns a new feed

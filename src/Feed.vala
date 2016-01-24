@@ -38,7 +38,7 @@ public class Feed
     public int id   { get { return _id; } } //Database entry id
     public string title       { get; set; } //Feed title
     public string link        { get; set; } //Feed link
-    public string origin_link        { get; set; } //Feed origin
+    public string origin_link { get; set; } //Feed origin
     public string description { get; set; } //Feed description
     public string image_uri { get; set; }
     public string image_title { get; set; }

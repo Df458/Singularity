@@ -35,6 +35,7 @@ class MainWindow : Gtk.ApplicationWindow
 
     // Actions
     private SimpleAction import_action;
+    private SimpleAction export_action;
     private SimpleAction refresh_action;
     private SimpleAction preferences_action;
     private SimpleAction mkread_action;
@@ -442,6 +443,23 @@ class MainWindow : Gtk.ApplicationWindow
             dialog.run();
         });
         this.add_action(import_action);
+        export_action = new GLib.SimpleAction("export", null);
+        export_action.activate.connect(() =>
+        {
+            FileChooserDialog dialog = new FileChooserDialog("Export to\u2026", this, FileChooserAction.SAVE);
+            dialog.add_button("Export", ResponseType.OK);
+            dialog.add_button("Cancel", ResponseType.CANCEL);
+            dialog.response.connect((r) =>
+            {
+                dialog.close();
+                if(r == ResponseType.OK) {
+                    File file = dialog.get_file();
+                    app.export(file);
+                }
+            });
+            dialog.run();
+        });
+        this.add_action(export_action);
         refresh_action = new GLib.SimpleAction("refresh-feeds", null);
         refresh_action.set_enabled(false);
         refresh_action.activate.connect(() =>
@@ -511,6 +529,7 @@ class MainWindow : Gtk.ApplicationWindow
     {
         GLib.Menu menu = new GLib.Menu();
         menu.append_item(new GLib.MenuItem("Import Feeds\u2026", "win.import"));
+        menu.append_item(new GLib.MenuItem("Export Feeds\u2026", "win.export"));
         menu.append_item(new GLib.MenuItem("Refresh", "win.refresh-feeds"));
         menu.append_item(new GLib.MenuItem("Preferences", "win.app-preferences"));
         menu.append_item(new GLib.MenuItem("Mark All as Read", "win.mark-read"));

@@ -30,15 +30,19 @@ class OPML
             return feeds;
         }
 
+        stderr.printf("Entering body...\n");
         for(node = node->children; node != null; node = node->next) {
             if(node->type == Xml.ElementType.ELEMENT_NODE) {
                 if(node->name == "outline") {
-                    if(node->has_prop("type") != null && node->has_prop("type")->children->content == "rss" && node->has_prop("xmlUrl") != null) {
+                    stderr.printf("Found outline node...\n");
+                    if(node->has_prop("xmlUrl") != null) {
                         app.createFeed(node->has_prop("xmlUrl")->children->content);
+                        stderr.printf("Creating feed...\n");
                     }
                     for(Xml.Node* dat = node->children; dat != null; dat = dat->next) {
-                        if(dat->has_prop("type") != null && dat->has_prop("type")->children->content == "rss" && dat->has_prop("xmlUrl") != null) {
+                        if(dat->has_prop("xmlUrl") != null) {
                             app.createFeed(dat->has_prop("xmlUrl")->children->content);
+                            stderr.printf("Creating feed...\n");
                         }
                     }
                 }
@@ -47,8 +51,27 @@ class OPML
         return feeds;
     }
 
-    public bool export(File to_export)
+    public bool export(File to_export, ArrayList<Feed> feeds)
     {
+        Xml.TextWriter writer = new Xml.TextWriter.filename(to_export.get_uri());
+        writer.set_indent(true);
+
+        // TODO: Nest things by collection
+        writer.start_document();
+        writer.start_element("opml");
+        writer.write_attribute("version", "1.1");
+        writer.start_element("body");
+        // TODO: Add content type
+        foreach(Feed f in feeds) {
+            writer.start_element("outline");
+            writer.write_attribute("title",  f.title);
+            writer.write_attribute("text",   f.title);
+            writer.write_attribute("xmlUrl", f.origin_link);
+            writer.end_element();
+        }
+        writer.end_element();
+        writer.end_element();
+        writer.end_document();
         return false;
     }
 }
