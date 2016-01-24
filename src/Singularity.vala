@@ -230,26 +230,33 @@ class Singularity : Gtk.Application
     }
 
     // TODO: Separate this from subscription so that it just returns a new feed
-    public void createFeed(string url)
+    public void createFeed(string url, string? title = null)
     {
+        Feed f = new Feed(db_man.next_id);
+        db_man.next_id++;
+        f.origin_link = url;
+        if(title != null)
+            f.title = title;
+        db_man.addFeed(f);
         if(verbose)
             stdout.printf("Fetching feed data from %s...", url);
-        getXmlData.begin(url, (obj, res) => {
-            Xml.Doc* doc = getXmlData.end(res);
-            if(doc == null || doc->get_root_element() == null) {
-                stderr.printf("Error: doc is null\n");
-                return;
-            }
-            Feed f = new Feed.from_xml(doc->get_root_element(), url, db_man.next_id);
-            db_man.next_id++;
-            if(f.status == 3)
-                return;
-            db_man.saveFeed.begin(f, true);
+        //getXmlData.begin(url, (obj, res) => {
+            //Xml.Doc* doc = getXmlData.end(res);
+            //if(doc == null || doc->get_root_element() == null) {
+                //stderr.printf("Error: doc is null\n");
+                //return;
+            //}
+            //Feed f = new Feed.from_xml(doc->get_root_element(), url, db_man.next_id);
+        f.updateFromWeb.begin(db_man, () =>
+        {
+            //if(f.status == 3)
+                //return;
+            //db_man.saveFeed.begin(f);
             feeds.set(f.id, f);
             main_window.add_feed(f, f.id);
-            main_window.updateFeedItem(f, f.id);
-            delete doc;
+            //main_window.updateFeedItem(f, f.id);
         });
+        //});
     }
 
     public Feed getFeed(int feed_index)

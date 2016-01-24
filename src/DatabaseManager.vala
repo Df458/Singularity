@@ -80,10 +80,26 @@ public class DatabaseManager
         }
     }
 
+    // Adds a feed for the first time, with just a link and id
+    public void addFeed(Feed feed)
+    {
+        try {
+            Query save_query = new Query(db, "INSERT INTO feeds (id, title, origin) VALUES (:id, :title, :origin)");
+            save_query[":id"] = feed.id;
+            save_query[":title"] = feed.title;
+            save_query[":origin"] = feed.origin_link;
+            save_query.execute();
+        } catch(SQLHeavy.Error e) {
+            stderr.printf("Error saving feed data: %s\n", e.message);
+        }
+    }
+
+    // Updates a feed with new data
     public async void saveFeed(Feed feed, bool save_items = true)
     {
         try {
-            Query save_query = new Query(db, "INSERT INTO feeds (id, title, link, description, origin, last_guid, last_time) VALUES (:id, :title, :link, :description, :origin, :last_guid, :last_time)");
+            //Query save_query = new Query(db, "INSERT INTO feeds (id, title, link, description, origin, last_guid, last_time) VALUES (:id, :title, :link, :description, :origin, :last_guid, :last_time)");
+            Query save_query = new Query(db, "UPDATE feeds SET title = :title, link = :link, description = :description, origin = :origin, last_guid = :last_guid, last_time = :last_time WHERE id = :id");
             save_query[":id"] = feed.id;
             save_query[":title"] = feed.title;
             save_query[":link"] = feed.link;

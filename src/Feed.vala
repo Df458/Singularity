@@ -36,7 +36,7 @@ public class Feed
     public Gee.ArrayList<Item> items { get { return _items; } }
 
     public int id   { get { return _id; } } //Database entry id
-    public string title       { get; set; } //Feed title
+    public string title = "Untitled Feed"; //Feed title
     public string link        { get; set; } //Feed link
     public string origin_link { get; set; } //Feed origin
     public string description { get; set; } //Feed description
@@ -63,6 +63,18 @@ public class Feed
     public bool get_location = true;
     public string default_location;
     
+    public Feed(int new_id = -1)
+    {
+        _id = new_id;
+        _last_guids = new Gee.ArrayList<string>();
+        _last_guids_post = new Gee.ArrayList<string>();
+        _items = new Gee.ArrayList<Item>();
+        _items_unread = new Gee.ArrayList<Item>();
+        _items_starred = new Gee.ArrayList<Item>();
+        _items_holding = new Gee.ArrayList<Item>();
+        accept_empty = true;
+    }
+
     public Feed.from_db(SQLHeavy.QueryResult result)
     {
         _last_guids = new Gee.ArrayList<string>();
@@ -93,16 +105,6 @@ public class Feed
         }
     }
 
-    bool parseRules(string? rulestr)
-    {
-        if(rulestr == null || rulestr == "")
-           return false; 
-
-        // TODO: Update these later
-        //rulestr.scanf("%d %d %d\n%d %d %d\n%d %d %d\n%d %d %d", &unread_unstarred_rule[0], &unread_unstarred_rule[1], &unread_unstarred_rule[2], &unread_starred_rule[0], &unread_starred_rule[1], &unread_starred_rule[2], &read_unstarred_rule[0], &read_unstarred_rule[1], &read_unstarred_rule[2], &read_starred_rule[0], &read_starred_rule[1], &read_starred_rule[2]);
-        return true;
-    }
-
     public Feed.from_xml(Xml.Node* node, string url, int new_id = -1)
     {
         _last_guids = new Gee.ArrayList<string>();
@@ -126,35 +128,35 @@ public class Feed
         }
         if(node->name == "rss") {
             for(node = node->children; node != null; node = node->next) {
-            if(node->type == Xml.ElementType.ELEMENT_NODE) {
-                for(Xml.Node* dat = node->children; dat != null; dat = dat->next) {
-                if(dat->type == Xml.ElementType.ELEMENT_NODE) {
-                    switch(dat->name) {
-                    case "title":
-                        title = getNodeContents(dat);
-                    break;
+                if(node->type == Xml.ElementType.ELEMENT_NODE) {
+                    for(Xml.Node* dat = node->children; dat != null; dat = dat->next) {
+                        if(dat->type == Xml.ElementType.ELEMENT_NODE) {
+                            switch(dat->name) {
+                            case "title":
+                                title = getNodeContents(dat);
+                            break;
 
-                    case "link":
-                        link = getNodeContents(dat);
-                    break;
+                            case "link":
+                                link = getNodeContents(dat);
+                            break;
 
-                    case "description":
-                        description = getNodeContents(dat);
-                    break;
+                            case "description":
+                                description = getNodeContents(dat);
+                            break;
 
-                    case "item":
-                        if(!add_item(new Item.from_rss(dat))) {
-                        return;
+                            case "item":
+                                if(!add_item(new Item.from_rss(dat))) {
+                                    return;
+                                }
+                            break;
+                            
+                            default:
+                                //stderr.printf("Feed element <%s> is not currently supported.\n", dat->name);
+                            break;
+                            }
                         }
-                    break;
-                    
-                    default:
-                        //stderr.printf("Feed element <%s> is not currently supported.\n", dat->name);
-                    break;
                     }
                 }
-                }
-            }
             }
         } else if(node->name == "feed") {
             for(node = node->children; node != null; node = node->next) {
@@ -231,6 +233,16 @@ public class Feed
             title = "Untitled Feed";
     }
 
+    bool parseRules(string? rulestr)
+    {
+        if(rulestr == null || rulestr == "")
+           return false; 
+
+        // TODO: Update these later
+        //rulestr.scanf("%d %d %d\n%d %d %d\n%d %d %d\n%d %d %d", &unread_unstarred_rule[0], &unread_unstarred_rule[1], &unread_unstarred_rule[2], &unread_starred_rule[0], &unread_starred_rule[1], &unread_starred_rule[2], &read_unstarred_rule[0], &read_unstarred_rule[1], &read_unstarred_rule[2], &read_starred_rule[0], &read_starred_rule[1], &read_starred_rule[2]);
+        return true;
+    }
+
     public async void updateFromWeb(DatabaseManager man)
     {
         //_last_guid_post = _last_guid;
@@ -244,39 +256,143 @@ public class Feed
         while(node != null && node->name != "rss" && node->name != "RDF" && node->name != "feed")
             node = node->next;
         if(node == null) {
+            if(verbose)
+                stderr.printf("Error: No defining node was found\n");
             status = 3;
             //app.updateFeedIcons(this);
             return;
         }
-        if(node->name == "rss" || node->name == "RDF") {
-            node = node->name == "rss" ? node->children : node;
-            while(node != null && node->type != Xml.ElementType.ELEMENT_NODE)
-            node = node->next;
-            if(node == null) {
-                status = 3;
-                //app.updateFeedIcons(this);
-                return;
-            }
+        //if(node->name == "rss" || node->name == "RDF") {
+            //node = node->name == "rss" ? node->children : node;
+            //while(node != null && node->type != Xml.ElementType.ELEMENT_NODE)
+                //node = node->next;
+            //if(node == null) {
+                //status = 3;
+                ////app.updateFeedIcons(this);
+                //return;
+            //}
 
-            for(Xml.Node* dat = node->children; dat != null; dat = dat->next) {
-            if(dat->type == Xml.ElementType.ELEMENT_NODE) {
-                if(dat->name == "item") {
-                if(!this.add_item(new Item.from_rss(dat), true)) {
+            //for(Xml.Node* dat = node->children; dat != null; dat = dat->next) {
+            //if(dat->type == Xml.ElementType.ELEMENT_NODE) {
+                //if(dat->name == "item") {
+                //if(!this.add_item(new Item.from_rss(dat), true)) {
                     //status = 0;
-                    //app.updateFeedIcons(this);
-                    //break;
+                    ////app.updateFeedIcons(this);
+                    ////break;
+                //}
+                //}
+            //}
+            //}
+        //} else if(node->name == "feed") {
+            //for(Xml.Node* dat = node->children; dat != null; dat = dat->next) {
+            //if(dat->type == Xml.ElementType.ELEMENT_NODE) {
+                //if(dat->name == "entry") {
+                //if(!this.add_item(new Item.from_atom(dat), true)) {
+                    //status = 0;
+                    ////app.updateFeedIcons(this);
+                    ////break;
+                //}
+                //}
+            //}
+            //}
+        //}
+
+        if(node->name == "rss") {
+            for(node = node->children; node != null; node = node->next) {
+                if(node->type == Xml.ElementType.ELEMENT_NODE) {
+                    for(Xml.Node* dat = node->children; dat != null; dat = dat->next) {
+                        if(dat->type == Xml.ElementType.ELEMENT_NODE) {
+                            switch(dat->name) {
+                            case "title":
+                                title = getNodeContents(dat);
+                            break;
+
+                            case "link":
+                                link = getNodeContents(dat);
+                            break;
+
+                            case "description":
+                                description = getNodeContents(dat);
+                            break;
+
+                            case "item":
+                                if(!add_item(new Item.from_rss(dat), true)) {
+                                    continue;
+                                }
+                            break;
+                            
+                            default:
+                                //stderr.printf("Feed element <%s> is not currently supported.\n", dat->name);
+                            break;
+                            }
+                        }
+                    }
                 }
-                }
-            }
             }
         } else if(node->name == "feed") {
-            for(Xml.Node* dat = node->children; dat != null; dat = dat->next) {
-            if(dat->type == Xml.ElementType.ELEMENT_NODE) {
-                if(dat->name == "entry") {
-                if(!this.add_item(new Item.from_atom(dat), true)) {
-                    //status = 0;
-                    //app.updateFeedIcons(this);
-                    //break;
+            for(node = node->children; node != null; node = node->next) {
+            if(node->type == Xml.ElementType.ELEMENT_NODE) {
+                switch(node->name) {
+                case "title":
+                    title = getNodeContents(node, true);
+                break;
+
+                case "link":
+                    if(node->has_prop("rel") != null && node->has_prop("rel")->children->content == "alternate")
+                    link = node->has_prop("href")->children->content;
+                break;
+
+                case "description":
+                    description = getNodeContents(node, true);
+                break;
+
+                case "entry":
+                    if(!add_item(new Item.from_atom(node), true)) {
+                        continue;
+                    }
+                break;
+                
+                default:
+                    //stderr.printf("Element <%s> is not currently supported.\n", node->name);
+                break;
+                }
+            }
+            }
+        } else if(node->name == "RDF") {
+            for(; node != null; node = node->next) {
+            if(node->type == Xml.ElementType.ELEMENT_NODE) {
+                for(Xml.Node* dat = node->children; dat != null; dat = dat->next) {
+                if(dat->type == Xml.ElementType.ELEMENT_NODE) {
+                    switch(dat->name) {
+                    case "channel":
+                        for(Xml.Node* cdat = dat->children; cdat != null; cdat = cdat->next)
+                        if(cdat->type == Xml.ElementType.ELEMENT_NODE) {
+                            switch(cdat->name) {
+                            case "title":
+                                title = getNodeContents(cdat);
+                            break;
+
+                            case "link":
+                                link = getNodeContents(cdat);
+                            break;
+
+                            case "description":
+                                description = getNodeContents(cdat);
+                            break;
+                            }
+                        }
+                    break;
+
+                    case "item":
+                        if(!add_item(new Item.from_rss(dat), true)) {
+                            continue;
+                        }
+                    break;
+                    
+                    default:
+                        //stderr.printf("Feed element <%s> is not currently supported.\n", dat->name);
+                    break;
+                    }
                 }
                 }
             }
@@ -295,7 +411,10 @@ public class Feed
                 stderr.printf("GUID: %s\n", i);
         }
         _last_time = _last_time_post;
+        stderr.printf("Saving feed info...\n");
+        man.saveFeed(this, false);
         if(_items_holding.size != 0) {
+            stderr.printf("Saving %d items...\n", _items_holding.size);
             yield man.saveFeedItems(this, _items_holding);
             _items_holding.clear();
         }
