@@ -36,6 +36,7 @@ public class Feed
     public Gee.ArrayList<Item> items { get { return _items; } }
 
     public int id   { get { return _id; } } //Database entry id
+    public int parent_id = -1;
     public string title = "Untitled Feed"; //Feed title
     public string link        { get; set; } //Feed link
     public string origin_link { get; set; } //Feed origin
@@ -85,19 +86,21 @@ public class Feed
         _items_holding = new Gee.ArrayList<Item>();
         try {
             _id = result.fetch_int(0);
-            title = result.fetch_string(1);
-            link = result.fetch_string(2);
-            description = result.fetch_string(3);
+            parent_id = result.fetch_int(1);
+            title = result.fetch_string(2);
+            link = result.fetch_string(3);
             origin_link = result.fetch_string(4);
-            var guid_list = result.fetch_string(5).split("\n");
+            description = result.fetch_string(5);
+            // TODO: Load icon here
+            var guid_list = result.fetch_string(6).split("\n");
             foreach(string s in guid_list)
                 _last_guids.add(s);
-            _last_time = new DateTime.from_unix_utc(result.fetch_int(6));
+            _last_time = new DateTime.from_unix_utc(result.fetch_int(7));
             // TODO: Re-enable once this is updated
-            //override_rules = parseRules(result.fetch_string(7));
-            override_location = result.fetch_int(8) == 1;
-            get_location = result.fetch_int(9) == 1;
-            default_location = result.fetch_string(10);
+            //override_rules = parseRules(result.fetch_string(8));
+            override_location = result.fetch_int(9) == 1;
+            get_location = result.fetch_int(10) == 1;
+            default_location = result.fetch_string(11);
         } catch(SQLHeavy.Error e) {
             if(verbose)
                 stderr.printf("Error loading feed data: %s\n", e.message);
@@ -262,40 +265,6 @@ public class Feed
             //app.updateFeedIcons(this);
             return;
         }
-        //if(node->name == "rss" || node->name == "RDF") {
-            //node = node->name == "rss" ? node->children : node;
-            //while(node != null && node->type != Xml.ElementType.ELEMENT_NODE)
-                //node = node->next;
-            //if(node == null) {
-                //status = 3;
-                ////app.updateFeedIcons(this);
-                //return;
-            //}
-
-            //for(Xml.Node* dat = node->children; dat != null; dat = dat->next) {
-            //if(dat->type == Xml.ElementType.ELEMENT_NODE) {
-                //if(dat->name == "item") {
-                //if(!this.add_item(new Item.from_rss(dat), true)) {
-                    //status = 0;
-                    ////app.updateFeedIcons(this);
-                    ////break;
-                //}
-                //}
-            //}
-            //}
-        //} else if(node->name == "feed") {
-            //for(Xml.Node* dat = node->children; dat != null; dat = dat->next) {
-            //if(dat->type == Xml.ElementType.ELEMENT_NODE) {
-                //if(dat->name == "entry") {
-                //if(!this.add_item(new Item.from_atom(dat), true)) {
-                    //status = 0;
-                    ////app.updateFeedIcons(this);
-                    ////break;
-                //}
-                //}
-            //}
-            //}
-        //}
 
         if(node->name == "rss") {
             for(node = node->children; node != null; node = node->next) {
@@ -412,7 +381,7 @@ public class Feed
         }
         _last_time = _last_time_post;
         stderr.printf("Saving feed info...\n");
-        man.saveFeed(this, false);
+        yield man.saveFeed(this, false);
         if(_items_holding.size != 0) {
             stderr.printf("Saving %d items...\n", _items_holding.size);
             yield man.saveFeedItems(this, _items_holding);

@@ -9,10 +9,14 @@ all:
 clean:
 	rm -f singularity
 
-install:
-	cp -f singularity /usr/local/bin
+schema-install:
 	mkdir -p /usr/local/share/singularity
-	cp -f data/default.css /usr/local/share/singularity
-	cp -f data/*.png /usr/local/share/singularity
+	mkdir -p /usr/local/share/singularity/schemas
+	cp -f data/schemas/*.sql /usr/local/share/singularity/schemas
 	cp -f data/org.df458.singularity.gschema.xml /usr/share/glib-2.0/schemas
 	glib-compile-schemas /usr/share/glib-2.0/schemas
+
+install: schema-install
+	cp -f singularity /usr/local/bin
+	cp -f data/default.css /usr/local/share/singularity
+	cp -f data/*.png /usr/local/share/singularity

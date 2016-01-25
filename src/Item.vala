@@ -42,19 +42,22 @@ public class Item
     public Item.from_db(SQLHeavy.QueryResult result)
     {
         try {
-            title = result.fetch_string(1);
-            link = result.fetch_string(2);
-            description = result.fetch_string(3);
-            author = result.fetch_string(4);
-            enclosure_url = result.fetch_string(7);
-            _guid = result.fetch_string(8);
-            _time_posted = new DateTime.from_unix_utc(result.fetch_int(9));
-            if(result.fetch_int(11) == 1) {
+            _guid = result.fetch_string(1);
+            title = result.fetch_string(2);
+            link = result.fetch_string(3);
+            description = result.fetch_string(4);
+            content = result.fetch_string(5);
+            author = result.fetch_string(6);
+            _time_posted = new DateTime.from_unix_utc(result.fetch_int(7));
+            // TODO: Load source here
+            // TODO: Load comments url here
+            enclosure_url = result.fetch_string(10); // TODO: Support multiple enclosures
+            // TODO: Load tags here
+            _time_added = new DateTime.from_unix_utc(result.fetch_int(12));
+            if(result.fetch_int(13) == 1) {
                 unread = true;
             }
-            _time_added = new DateTime.from_unix_utc(result.fetch_int(12));
-            content = result.fetch_string(13);
-            if(result.fetch_int(13) == 1) {
+            if(result.fetch_int(14) == 1) {
                 starred = true;
             }
             _empty = false;

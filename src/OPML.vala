@@ -36,13 +36,14 @@ class OPML
                 if(node->name == "outline") {
                     stderr.printf("Found outline node...\n");
                     if(node->has_prop("xmlUrl") != null) {
-                        app.createFeed(node->has_prop("xmlUrl")->children->content);
                         stderr.printf("Creating feed...\n");
+                        app.createFeed(node->has_prop("xmlUrl")->children->content);
                     }
+                    stderr.printf("Iterating Children...\n");
                     for(Xml.Node* dat = node->children; dat != null; dat = dat->next) {
                         if(dat->has_prop("xmlUrl") != null) {
-                            app.createFeed(dat->has_prop("xmlUrl")->children->content);
                             stderr.printf("Creating feed...\n");
+                            app.createFeed(dat->has_prop("xmlUrl")->children->content);
                         }
                     }
                 }

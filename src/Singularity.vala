@@ -304,7 +304,7 @@ class Singularity : Gtk.Application
             Gtk.main();
         else {
             ml = new MainLoop();
-            TimeoutSource time = new TimeoutSource(300000);
+            TimeoutSource time = new TimeoutSource(900000);
             time.set_callback(() => {
                 stderr.printf("Operation is taking too long. Exiting...\n");
                 ml.quit();
@@ -426,7 +426,6 @@ class Singularity : Gtk.Application
 
     public void exit()
     {
-        db_man.clearExpunged();
     }
 
     public void addToView(Item i)
