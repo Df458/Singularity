@@ -77,7 +77,7 @@ public class DatabaseManager
             load_query[":count"] = item_count;
             
             for ( QueryResult result = yield load_query.execute_async(); !result.finished; result.next() ) {
-            feed.add_item(new Item.from_db(result));
+                feed.add_item(new Item.from_db(result));
             }
         } catch(SQLHeavy.Error e) {
             stderr.printf("Error loading item data: %s\n", e.message);

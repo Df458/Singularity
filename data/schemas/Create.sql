@@ -1,0 +1,31 @@
+CREATE TABLE feeds (
+    "id" INTEGER,
+    "parent_id" INTEGER,
+    "title" TEXT,
+    "link" TEXT,
+    "origin" TEXT,
+    "description" TEXT,
+    "icon" TEXT,
+    "last_load_guids" TEXT,
+    "last_load_time" INTEGER,
+    "rules" TEXT,
+    "override_download" INTEGER,
+    "ask_download_location" INTEGER,
+    "default_location" TEXT);
+CREATE TABLE items (
+    "parent_id" INTEGER,
+    "guid" TEXT,
+    "title" TEXT,
+    "link" TEXT,
+    "description" TEXT,
+    "content" TEXT,
+    "author" TEXT,
+    "pubdate" INTEGER,
+    "source" TEXT,
+    "comments_url" TEXT,
+    "attachments" TEXT,
+    "tags" TEXT,
+    "savedate" INTEGER,
+    "unread" INTEGER,
+    "starred" INTEGER);
+PRAGMA user_version = 1;

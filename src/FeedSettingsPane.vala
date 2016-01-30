@@ -20,16 +20,16 @@ using Gtk;
 
 class FeedSettingsPane : VBox
 {
-    ButtonBox confirm_buttons;
-    CheckButton rule_enable_button;
-    RuleEntry uu_entry;
-    RuleEntry ru_entry;
-    RuleEntry us_entry;
-    RuleEntry rs_entry;
-    CheckButton dl_enable_button;
-    FileChooserButton dl_location_button;
-    CheckButton dl_always_ask;
-    Feed current_feed;
+    ButtonBox          confirm_buttons;
+    CheckButton        rule_enable_button;
+    RuleEntry          uu_entry;
+    RuleEntry          ru_entry;
+    RuleEntry          us_entry;
+    RuleEntry          rs_entry;
+    CheckButton        dl_enable_button;
+    FileChooserButton  dl_location_button;
+    CheckButton        dl_always_ask;
+    Feed               current_feed;
 
     public signal void done();
 
