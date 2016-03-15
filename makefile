@@ -1,17 +1,20 @@
 include config.mk
 
+PKGLIBS=glib-2.0 libxml-2.0 webkit2gtk-4.0 sqlheavy-0.1 gee-0.8 granite libnotify
+CFLAGS=-g `$(PKGCONFIG) --cflags $(PKGLIBS)`
+CLIBS=`$(PKGCONFIG) --libs $(PKGLIBS)` -ldflib
 FLAGS=-C -d . --thread
-LIBS=--pkg webkit2gtk-4.0 --pkg libsoup-2.4 --pkg granite --pkg libxml-2.0 --pkg sqlheavy-0.1 --pkg glib-2.0 --pkg libnotify --pkg posix --pkg dflib -X -ldflib
+LIBS=--pkg webkit2gtk-4.0 --pkg libsoup-2.4 --pkg granite --pkg libxml-2.0 --pkg sqlheavy-0.1 --pkg glib-2.0 --pkg libnotify --pkg posix --pkg dflib
 
 APPV := $(wildcard $(SRCPATH)/app/*.vala)
 LIBV := $(wildcard $(SRCPATH)/lib/*.vala)
 TESTV := $(wildcard $(SRCPATH)/tests/*.vala)
-APPP := $(patsubst $(SRCPATH)/%.vala, $(OBJPATH)/%.vapi, $(APPV))
-LIBP := $(patsubst $(SRCPATH)/%.vala, $(OBJPATH)/%.vapi, $(LIBV))
-TESTP := $(patsubst $(SRCPATH)/%.vala,$(OBJPATH)/%.vapi, $(TESTV))
-APPI := $(patsubst $(SRCPATH)/%.vala, --use-fast-vapi=$(OBJPATH)/%.vapi, $(APPV))
-LIBI := $(patsubst $(SRCPATH)/%.vala, --use-fast-vapi=$(OBJPATH)/%.vapi, $(LIBV))
-TESTI := $(patsubst $(SRCPATH)/%.vala, --use-fast-vapi=$(OBJPATH)/%.vapi, $(TESTV))
+# APPP := $(patsubst $(SRCPATH)/%.vala, $(OBJPATH)/%.vapi, $(APPV))
+# LIBP := $(patsubst $(SRCPATH)/%.vala, $(OBJPATH)/%.vapi, $(LIBV))
+# TESTP := $(patsubst $(SRCPATH)/%.vala,$(OBJPATH)/%.vapi, $(TESTV))
+# APPI := $(patsubst $(SRCPATH)/%.vala, --use-fast-vapi=$(OBJPATH)/%.vapi, $(APPV))
+# LIBI := $(patsubst $(SRCPATH)/%.vala, --use-fast-vapi=$(OBJPATH)/%.vapi, $(LIBV))
+# TESTI := $(patsubst $(SRCPATH)/%.vala, --use-fast-vapi=$(OBJPATH)/%.vapi, $(TESTV))
 APPC := $(patsubst $(SRCPATH)/%.vala, $(GENPATH)/%.c, $(APPV))
 LIBC := $(patsubst $(SRCPATH)/%.vala, $(GENPATH)/%.c, $(LIBV))
 TESTC := $(patsubst $(SRCPATH)/%.vala, $(GENPATH)/%.c, $(TESTV))
@@ -32,25 +35,29 @@ $(shell mkdir -p $(VAPIPATH))
 LIBNAME=lib$(APPNAME).a
 TESTNAME=$(APPNAME)-test
 
-$(OBJPATH)/%.vapi: $(SRCPATH)/%.vala
-	valac $< --fast-vapi=$@
-
-$(GENPATH)/%.c: $(SRCPATH)/%.vala $(APPP)
-	valac $< $(APPI) $(FLAGS) $(LIBS)
-
+# $(OBJPATH)/%.vapi: $(SRCPATH)/%.vala
+# 	valac $< --fast-vapi=$@
+#
+# $(GENPATH)/%.c: $(SRCPATH)/%.vala $(APPP)
+# 	valac $< $(APPI) $(FLAGS) $(LIBS)
+#
 $(OBJPATH)/%.o: $(GENPATH)/%.c
-	# valac $< $(FLAGS) $(LIBS)
+	$(CC) -c $< -o $@ $(CFLAGS)
 
 all: $(LIBNAME) $(APPNAME) $(TESTNAME)
 .PHONY: all
 
-$(APPNAME): $(LIBNAME) $(APPO)
-	# $(VALAC) $(APPV) -o $(APPNAME) $(FLAGS) $(LIBS)
+$(APPC): $(APPV)
+	$(VALAC) $(APPV) $(FLAGS) $(LIBS)
+	mv -t $(GENPATH)/app $(patsubst $(SRCPATH)/%.vala, $(SRCPATH)/%.c, $(APPV))
 
-$(LIBNAME): #$(LIBO)
+$(APPNAME): $(LIBNAME) $(APPO)
+	$(CC) -o $(APPNAME) $(APPO) $(CFLAGS) $(CLIBS)
+
+$(LIBNAME): #$(LIBV)
 	# $(VALAC) $(LIBV) -o $(LIBNAME) $(FLAGS) $(LIBS)
 
-$(TESTNAME): $(LIBNAME) $(TESTO)
+$(TESTNAME): $(LIBNAME) #$(TESTV)
 	# $(VALAC) $(TESTV) -o $(TESTNAME) $(FLAGS) $(LIBS)
 
 .PHONY: test

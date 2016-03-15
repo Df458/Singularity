@@ -1,5 +1,6 @@
 CC=gcc
 VALAC=valac
+PKGCONFIG=pkg-config
 
 APPNAME=singularity
 
