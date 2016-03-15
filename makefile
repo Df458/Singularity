@@ -9,12 +9,6 @@ LIBS=--pkg webkit2gtk-4.0 --pkg libsoup-2.4 --pkg granite --pkg libxml-2.0 --pkg
 APPV := $(wildcard $(SRCPATH)/app/*.vala)
 LIBV := $(wildcard $(SRCPATH)/lib/*.vala)
 TESTV := $(wildcard $(SRCPATH)/tests/*.vala)
-# APPP := $(patsubst $(SRCPATH)/%.vala, $(OBJPATH)/%.vapi, $(APPV))
-# LIBP := $(patsubst $(SRCPATH)/%.vala, $(OBJPATH)/%.vapi, $(LIBV))
-# TESTP := $(patsubst $(SRCPATH)/%.vala,$(OBJPATH)/%.vapi, $(TESTV))
-# APPI := $(patsubst $(SRCPATH)/%.vala, --use-fast-vapi=$(OBJPATH)/%.vapi, $(APPV))
-# LIBI := $(patsubst $(SRCPATH)/%.vala, --use-fast-vapi=$(OBJPATH)/%.vapi, $(LIBV))
-# TESTI := $(patsubst $(SRCPATH)/%.vala, --use-fast-vapi=$(OBJPATH)/%.vapi, $(TESTV))
 APPC := $(patsubst $(SRCPATH)/%.vala, $(GENPATH)/%.c, $(APPV))
 LIBC := $(patsubst $(SRCPATH)/%.vala, $(GENPATH)/%.c, $(LIBV))
 TESTC := $(patsubst $(SRCPATH)/%.vala, $(GENPATH)/%.c, $(TESTV))
@@ -35,27 +29,25 @@ $(shell mkdir -p $(VAPIPATH))
 LIBNAME=lib$(APPNAME).a
 TESTNAME=$(APPNAME)-test
 
-# $(OBJPATH)/%.vapi: $(SRCPATH)/%.vala
-# 	valac $< --fast-vapi=$@
-#
-# $(GENPATH)/%.c: $(SRCPATH)/%.vala $(APPP)
-# 	valac $< $(APPI) $(FLAGS) $(LIBS)
-#
 $(OBJPATH)/%.o: $(GENPATH)/%.c
 	$(CC) -c $< -o $@ $(CFLAGS)
 
 all: $(LIBNAME) $(APPNAME) $(TESTNAME)
 .PHONY: all
 
-$(APPC): $(APPV)
-	$(VALAC) $(APPV) $(FLAGS) $(LIBS)
+# $(LIBC) $(VAPIPATH)/$(APPNAME).vapi: $(LIBV)
+
+# $(APPC): $(APPV) $(VAPIPATH)/$(APPNAME).vapi
+
+$(APPNAME): $(LIBNAME) $(APPV)
+	$(VALAC) $(APPV) $(FLAGS) $(LIBS) --vapidir=$(VAPIPATH) --pkg $(APPNAME)
 	mv -t $(GENPATH)/app $(patsubst $(SRCPATH)/%.vala, $(SRCPATH)/%.c, $(APPV))
+	$(CC) -o $(APPNAME) $(APPO) $(LIBNAME) $(CFLAGS) $(CLIBS)
 
-$(APPNAME): $(LIBNAME) $(APPO)
-	$(CC) -o $(APPNAME) $(APPO) $(CFLAGS) $(CLIBS)
-
-$(LIBNAME): #$(LIBV)
-	# $(VALAC) $(LIBV) -o $(LIBNAME) $(FLAGS) $(LIBS)
+$(LIBNAME): $(LIBV)
+	$(VALAC) $(LIBV) --vapi=$(VAPIPATH)/$(APPNAME).vapi $(FLAGS) $(LIBS)
+	mv -t $(GENPATH)/lib $(patsubst $(SRCPATH)/%.vala, $(SRCPATH)/%.c, $(LIBV))
+	ar -rs $(LIBNAME) $(LIBO)
 
 $(TESTNAME): $(LIBNAME) #$(TESTV)
 	# $(VALAC) $(TESTV) -o $(TESTNAME) $(FLAGS) $(LIBS)
@@ -67,6 +59,7 @@ test: $(TESTNAME)
 .PHONY: clean
 clean:
 	rm -f $(APPNAME)
+	rm -rf $(GENPATH) $(OBJPATH) $(VAPIPATH)
 
 .PHONY: schema-install
 schema-install:
