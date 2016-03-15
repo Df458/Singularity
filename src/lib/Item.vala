@@ -255,7 +255,8 @@ public class Item
 
     public string constructHtml(int id = 0)
     {
-        string html_string = "<article class=\"singularity-item\"><header class=\"item-head\" viewed=\"" + (unread ? "false" : "true") +"\"><h3><a href=" + link + ">" + title + "</a></h3>" + "<img class='starButton" + (starred ? "D" : "") +  "' src=\"data:image/png;base64," + star_icon_base64 + "\"/>\n";
+        // FIXME: Add some kind of resource provider
+        string html_string = "<article class=\"singularity-item\"><header class=\"item-head\" viewed=\"" + (unread ? "false" : "true") +"\"><h3><a href=" + link + ">" + title + "</a></h3>" + "<img class='starButton" + (starred ? "D" : "") +  "' src=\"data:image/png;base64," /*+ star_icon_base64*/ + "\"/>\n";
         string authtimestr = "";
         if(author != null && author.strip() != "")
             authtimestr += " by " + author;

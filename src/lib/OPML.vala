@@ -1,7 +1,7 @@
 using Gee;
 
 namespace Singularity {
-class OPML
+public class OPML
 {
     public OPML()
     {

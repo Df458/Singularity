@@ -1,6 +1,6 @@
 namespace Singularity{
 // TODO: Implement this
-class GridViewBuilder : ViewBuilder, GLib.Object
+public class GridViewBuilder : ViewBuilder, GLib.Object
 {
     public string head;
     public static const string builder_class = "grid";
