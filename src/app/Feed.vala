@@ -16,6 +16,7 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+namespace Singularity {
 //:TODO: 05.09.14 08:11:23, Hugues Ross
 // Add a full implementation of the various feed standards
 public class Feed
@@ -102,8 +103,9 @@ public class Feed
             get_location = result.fetch_int(10) == 1;
             default_location = result.fetch_string(11);
         } catch(SQLHeavy.Error e) {
-            if(verbose)
-                stderr.printf("Error loading feed data: %s\n", e.message);
+            // TODO: verbose
+            /* if(verbose) */
+            /*     stderr.printf("Error loading feed data: %s\n", e.message); */
             return;
         }
     }
@@ -124,8 +126,9 @@ public class Feed
             node = node->next;
         }
         if(node == null) {
-            if(verbose)
-                stderr.printf("Error: No defining node was found\n");
+            // TODO: verbose
+            /* if(verbose) */
+            /*     stderr.printf("Error: No defining node was found\n"); */
             status = 3;
             return;
         }
@@ -259,8 +262,9 @@ public class Feed
         while(node != null && node->name != "rss" && node->name != "RDF" && node->name != "feed")
             node = node->next;
         if(node == null) {
-            if(verbose)
-                stderr.printf("Error: No defining node was found\n");
+            // TODO: verbose
+            /* if(verbose) */
+            /*     stderr.printf("Error: No defining node was found\n"); */
             status = 3;
             //app.updateFeedIcons(this);
             return;
@@ -369,8 +373,9 @@ public class Feed
         }
         if(status != 3)
             status = 2;
+        // FIXME: Remove interdependency
         //app.updateFeedIcons(this);
-        app.updateFeedItems(this);
+        /* app.updateFeedItems(this); */
         
         //_last_guid = _last_guid_post;
         if(_last_guids_post.size > 0) {
@@ -505,4 +510,5 @@ public class Feed
                 _items_starred.remove(i);
         }
     }
+}
 }

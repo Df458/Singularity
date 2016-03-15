@@ -18,8 +18,12 @@
 
 using Gtk;
 
+namespace Singularity {
+
 class SettingsPane : SettingsGrid
 {
+    private weak SingularityApp app;
+
     private Switch start_update_switch;
     ComboBoxText   auto_update_combo;
     SpinButton     auto_update_time_entry;
@@ -47,8 +51,10 @@ class SettingsPane : SettingsGrid
 
     public signal void done();
 
-    public SettingsPane()
+    public SettingsPane(SingularityApp owner_app)
     {
+        app = owner_app;
+
         row_spacing = 18;
         column_spacing = 12;
         halign = Align.CENTER;
@@ -260,4 +266,5 @@ class SettingsPane : SettingsGrid
         unread_incr_combo.active     = -1;
         unread_action_combo.active   = 0;
     }
+}
 }

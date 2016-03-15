@@ -19,6 +19,7 @@
 using Gtk;
 using Gdk;
 
+namespace Singularity {
 enum ViewType
 {
     GRID,
@@ -30,7 +31,7 @@ class MainWindow : Gtk.ApplicationWindow
 {
     private Box   main_box;
     private Paned main_paned;
-    private Singularity app;
+    private SingularityApp app;
     private string current_view = "grid";
     private bool   toggle_lock = false; // Prevents extra button toggle changes when selecting a view
 
@@ -99,7 +100,7 @@ class MainWindow : Gtk.ApplicationWindow
         STARRED_COUNT
     }
 
-    public MainWindow(Singularity owner_app)
+    public MainWindow(SingularityApp owner_app)
     {
         app = owner_app;
         window_position = WindowPosition.CENTER;
@@ -173,7 +174,7 @@ class MainWindow : Gtk.ApplicationWindow
         grid_view           = new WebKit.WebView();
         column_view_display = new WebKit.WebView();
         stream_view         = new WebKit.WebView();
-        settings            = new SettingsPane();
+        settings            = new SettingsPane(app);
         feed_settings       = new FeedSettingsPane();
         add_pane            = new AddPane();
 
@@ -643,4 +644,5 @@ class MainWindow : Gtk.ApplicationWindow
         feed_data.get(unread_item, 2, out count);
         return count;
     }
+}
 }

@@ -21,8 +21,9 @@ async Xml.Doc* getXmlData(string url)
     SourceFunc callback = getXmlData.callback;
     Soup.Session session = new Soup.Session();
     session.use_thread_context = true;
-    if(verbose)
-        stderr.printf("Adding %s Started...\n", url);
+            // TODO: verbose
+    /* if(verbose) */
+    /*     stderr.printf("Adding %s Started...\n", url); */
     Soup.Message message = new Soup.Message("GET", url);
     string data = "";
     session.queue_message(message, (session_out, message_out) => {
@@ -37,8 +38,9 @@ async Xml.Doc* getXmlData(string url)
         data = data.split("<!DOCTYPE html")[0];
         xml_doc = Xml.Parser.parse_doc(data);
     }
-    if(verbose)
-        stderr.printf("Adding %s Succeeded...\n", url);
+            // TODO: verbose
+    /* if(verbose) */
+    /*     stderr.printf("Adding %s Succeeded...\n", url); */
     return xml_doc;
 }
 
@@ -46,8 +48,9 @@ string getNodeContents(Xml.Node* node, bool atom = false)
 {
     string output = "";
     if(node == null || node->children == null){
-        if(verbose)
-            stderr.printf("Unexpected null pointer. Ignoring...\n");
+            // TODO: verbose
+        /* if(verbose) */
+        /*     stderr.printf("Unexpected null pointer. Ignoring...\n"); */
         return output;
     }
     if(atom && node->has_prop("type") != null && node->has_prop("type")->children->content != "text") {

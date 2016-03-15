@@ -1,6 +1,6 @@
-namespace singularity
+namespace Singularity
 {
-class GlobalSettings
+public class GlobalSettings
 {
     // Properties
     public bool    background    { get { return m_background; } }

@@ -16,6 +16,7 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+namespace Singularity {
 public class Item
 {
     private string _guid = "";
@@ -62,8 +63,9 @@ public class Item
             }
             _empty = false;
         } catch(SQLHeavy.Error e) {
-            if(verbose)
-                stderr.printf("Error loading feed data: %s\n", e.message);
+            // TODO: verbose
+            /* if(verbose) */
+            /*     stderr.printf("Error loading feed data: %s\n", e.message); */
             return;
         }
     }
@@ -269,7 +271,9 @@ public class Item
             html_string += "<br /><a href=download-attachment" + feed.id.to_string() + "_" + enclosure_url + ">Attachment</a>";
         }
         html_string += "</article>";
-        app.addToView(this);
+        // FIXME: Fix interdependency
+        /* app.addToView(this); */
         return html_string;
     }
+}
 }

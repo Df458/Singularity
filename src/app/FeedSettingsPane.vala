@@ -18,6 +18,7 @@
 
 using Gtk;
 
+namespace Singularity {
 class FeedSettingsPane : VBox
 {
     ButtonBox          confirm_buttons;
@@ -114,7 +115,9 @@ class FeedSettingsPane : VBox
         current_feed.override_location = dl_enable_button.get_active();
         current_feed.get_location = dl_always_ask.get_active();
         current_feed.default_location = dl_location_button.get_filename();
-        app.update_feed_settings(current_feed);
+        // FIXME: Fix interdependency
+        /* app.update_feed_settings(current_feed); */
         done();
     }
+}
 }

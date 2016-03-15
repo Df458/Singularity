@@ -1,9 +1,9 @@
 include config.mk
 
 PKGLIBS=glib-2.0 libxml-2.0 webkit2gtk-4.0 sqlheavy-0.1 gee-0.8 granite libnotify
-CFLAGS=-g `$(PKGCONFIG) --cflags $(PKGLIBS)`
+CFLAGS=-g -I generated/lib -Wno-incompatible-pointer-types `$(PKGCONFIG) --cflags $(PKGLIBS)`
 CLIBS=`$(PKGCONFIG) --libs $(PKGLIBS)` -ldflib
-FLAGS=-C -d . --thread
+FLAGS=-d . --thread
 LIBS=--pkg webkit2gtk-4.0 --pkg libsoup-2.4 --pkg granite --pkg libxml-2.0 --pkg sqlheavy-0.1 --pkg glib-2.0 --pkg libnotify --pkg posix --pkg dflib
 
 APPV := $(wildcard $(SRCPATH)/app/*.vala)
@@ -12,9 +12,9 @@ TESTV := $(wildcard $(SRCPATH)/tests/*.vala)
 APPC := $(patsubst $(SRCPATH)/%.vala, $(GENPATH)/%.c, $(APPV))
 LIBC := $(patsubst $(SRCPATH)/%.vala, $(GENPATH)/%.c, $(LIBV))
 TESTC := $(patsubst $(SRCPATH)/%.vala, $(GENPATH)/%.c, $(TESTV))
-APPO := $(patsubst $(SRCPATH)/%.vala, $(OBJPATH)/%.o, $(APPV))
-LIBO := $(patsubst $(SRCPATH)/%.vala, $(OBJPATH)/%.o, $(LIBV))
-TESTO := $(patsubst $(SRCPATH)/%.vala, $(OBJPATH)/%.o, $(TESTV))
+APPO := $(patsubst $(SRCPATH)/%.vala, $(OBJPATH)/%.vala.o, $(APPV))
+LIBO := $(patsubst $(SRCPATH)/%.vala, $(OBJPATH)/%.vala.o, $(LIBV))
+TESTO := $(patsubst $(SRCPATH)/%.vala, $(OBJPATH)/%.vala.o, $(TESTV))
 
 $(shell mkdir -p $(OBJPATH))
 $(shell mkdir -p $(OBJPATH)/app)
@@ -29,7 +29,7 @@ $(shell mkdir -p $(VAPIPATH))
 LIBNAME=lib$(APPNAME).a
 TESTNAME=$(APPNAME)-test
 
-$(OBJPATH)/%.o: $(GENPATH)/%.c
+$(OBJPATH)/app/%.vala.o: $(GENPATH)/app/%.c
 	$(CC) -c $< -o $@ $(CFLAGS)
 
 all: $(LIBNAME) $(APPNAME) $(TESTNAME)
@@ -39,14 +39,23 @@ all: $(LIBNAME) $(APPNAME) $(TESTNAME)
 
 # $(APPC): $(APPV) $(VAPIPATH)/$(APPNAME).vapi
 
-$(APPNAME): $(LIBNAME) $(APPV)
-	$(VALAC) $(APPV) $(FLAGS) $(LIBS) --vapidir=$(VAPIPATH) --pkg $(APPNAME)
-	mv -t $(GENPATH)/app $(patsubst $(SRCPATH)/%.vala, $(SRCPATH)/%.c, $(APPV))
+# $(APPO): $(APPC)
+# 	$(CC) -c $< -o $@ $(CFLAGS)
+
+$(APPNAME): $(LIBNAME) appsrc $(APPO)
+	# $(CC) -c
+	# mv -t $(OBJPATH)/app ./*.vala.o
 	$(CC) -o $(APPNAME) $(APPO) $(LIBNAME) $(CFLAGS) $(CLIBS)
 
+.PHONY: appsrc
+appsrc: $(APPV)
+	$(VALAC) -C $(APPV) $(FLAGS) $(LIBS) --vapidir=$(VAPIPATH) --pkg $(APPNAME)
+	mv -t $(GENPATH)/app $(SRCPATH)/app/*.c
+
 $(LIBNAME): $(LIBV)
-	$(VALAC) $(LIBV) --vapi=$(VAPIPATH)/$(APPNAME).vapi $(FLAGS) $(LIBS)
-	mv -t $(GENPATH)/lib $(patsubst $(SRCPATH)/%.vala, $(SRCPATH)/%.c, $(LIBV))
+	$(VALAC) -c $(LIBV) --vapi=$(VAPIPATH)/$(APPNAME).vapi --header=$(GENPATH)/lib/$(APPNAME).h $(FLAGS) $(LIBS)
+	# mv -t $(GENPATH)/lib $(patsubst $(SRCPATH)/%.vala, $(SRCPATH)/%.c, $(LIBV))
+	mv -t $(OBJPATH)/lib ./*.vala.o
 	ar -rs $(LIBNAME) $(LIBO)
 
 $(TESTNAME): $(LIBNAME) #$(TESTV)
@@ -59,6 +68,7 @@ test: $(TESTNAME)
 .PHONY: clean
 clean:
 	rm -f $(APPNAME)
+	rm -f $(LIBNAME)
 	rm -rf $(GENPATH) $(OBJPATH) $(VAPIPATH)
 
 .PHONY: schema-install

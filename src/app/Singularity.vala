@@ -18,7 +18,9 @@
 
 using Gee;
 
-class Singularity : Gtk.Application
+namespace Singularity {
+
+class SingularityApp : Gtk.Application
 {
     private HashMap<int, Feed> feeds;
     private DatabaseManager db_man;
@@ -32,6 +34,7 @@ class Singularity : Gtk.Application
     string css_dat = "";
     private ArrayList<Item> view_list;
     private Settings app_settings;
+    private GlobalSettings settings;
     bool done_load = false;
     int load_counter = 0;
     public bool auto_update = true;
@@ -48,9 +51,10 @@ class Singularity : Gtk.Application
     public int[] unread_rule = {0, 0, 0};
     public int[] read_rule   = {0, 0, 0};
 
-    public Singularity()
+    public SingularityApp(GlobalSettings new_settings)
     {
         Object(application_id: "org.df458.singularity");
+        settings = new_settings;
         // TODO: Replace this at some point to remove granite as a dependency
         Granite.Services.Paths.initialize("singularity", Environment.get_user_data_dir());
         Granite.Services.Paths.ensure_directory_exists(Granite.Services.Paths.user_data_folder);
@@ -65,7 +69,7 @@ class Singularity : Gtk.Application
             default_location = Environment.get_home_dir() + "/Downloads";
         auto_update = app_settings.get_boolean("auto-update");
         start_update = app_settings.get_boolean("start-update");
-        if(nogui) {
+        if(settings.background) {
             auto_update = false;
             start_update = true;
         }
@@ -84,7 +88,7 @@ class Singularity : Gtk.Application
         Notify.init("Singularity");
         update_complete_notification = new Notify.Notification("Update Complete", "You have new feeds", null);
 
-        db_man = new DatabaseManager.from_path(db_path);
+        db_man = new DatabaseManager(settings);
         db_man.removeOld.begin();
         db_man.loadFeeds.begin((obj, res) =>{
             ArrayList<Feed> feed_list = db_man.loadFeeds.end(res);
@@ -125,10 +129,10 @@ class Singularity : Gtk.Application
                 }*/
             }
         });
-        if(!nogui) {
-            File file = File.new_for_path(css_path);
+        if(!settings.background) {
+            File file = File.new_for_path(settings.user_css);
             if(!file.query_exists()) {
-                warning("Custom CSS path(" + css_path + ") not found. Reverting to default.");
+                warning("Custom CSS path(" + settings.user_css + ") not found. Reverting to default.");
                 file = File.new_for_path("/usr/local/share/singularity/default.css");
             }
             try {
@@ -149,8 +153,9 @@ class Singularity : Gtk.Application
             grid_builder = new GridViewBuilder(css_dat, star_icon_base64);
         }
 
-        if(new_sub != null && new_sub != "")
-            createFeed(new_sub);
+        // FIXME: Figure out this bit
+        /* if(new_sub != null && new_sub != "") */
+        /*     createFeed(new_sub); */
     }
 
     public string constructFeedHtml(int feed_id, ViewType view)
@@ -257,8 +262,9 @@ class Singularity : Gtk.Application
         if(title != null)
             f.title = title;
         db_man.addFeed(f);
-        if(verbose)
-            stdout.printf("Fetching feed data from %s...", url);
+            // TODO: verbose
+        /* if(verbose) */
+        /*     stdout.printf("Fetching feed data from %s...", url); */
         //getXmlData.begin(url, (obj, res) => {
             //Xml.Doc* doc = getXmlData.end(res);
             //if(doc == null || doc->get_root_element() == null) {
@@ -319,7 +325,7 @@ class Singularity : Gtk.Application
 
     public int runall()
     {
-        if(!nogui)
+        if(!settings.background)
             Gtk.main();
         else {
             ml = new MainLoop();
@@ -331,8 +337,9 @@ class Singularity : Gtk.Application
             });
             TimeoutSource counter = new TimeoutSource(5000);
             counter.set_callback(() => {
-                if(verbose)
-                    stderr.printf("Loading %d feeds...\n", load_counter);
+            // TODO: verbose
+                /* if(verbose) */
+                /*     stderr.printf("Loading %d feeds...\n", load_counter); */
                 return true;
             });
             time.attach(ml.get_context());
@@ -344,15 +351,16 @@ class Singularity : Gtk.Application
 
     public void updateFeedItems(Feed f)
     {
-        if(!nogui)
+        if(!settings.background)
             main_window.updateFeedItem(f, f.id);
     }
 
     public void interpretUriEncodedAction(string action)
     {
         string[] args = action.split("/");
-        if(verbose)
-            stderr.printf("calling function %s...\n", action);
+            // TODO: verbose
+        /* if(verbose) */
+        /*     stderr.printf("calling function %s...\n", action); */
         switch(args[0]) {
             case "read":
                 int pos = int.parse(args[1]);
@@ -454,8 +462,9 @@ class Singularity : Gtk.Application
 
     public bool update()
     {
-        if(verbose)
-            stderr.printf("Running updates on %d feeds...\n", feeds.size);
+            // TODO: verbose
+        /* if(verbose) */
+        /*     stderr.printf("Running updates on %d feeds...\n", feeds.size); */
         bool should_continue = true;
         MapIterator<int, Feed> iter = feeds.map_iterator();
         do {
@@ -471,7 +480,7 @@ class Singularity : Gtk.Application
                     if(load_counter <= 0) {
                         load_counter = 0;
                         done_load = true;
-                        if(!nogui) {
+                        if(!settings.background) {
                         // TODO: Readd this
                             //int unread_count = main_window.get_unread_count();
                             //if(unread_count != 0) {
@@ -500,4 +509,5 @@ class Singularity : Gtk.Application
         }
         return auto_update;
     }
+}
 }

@@ -35,7 +35,8 @@ class AddPane : VBox {
         });
         Gtk.Button confirm_button = new Gtk.Button.with_label("Confirm");
         confirm_button.clicked.connect(() => {
-            app.createFeed(url_input.get_text());
+                // FIXME: Fix interdependency
+            /* app.createFeed(url_input.get_text()); */
             url_input.set_text("");
             done();
         });

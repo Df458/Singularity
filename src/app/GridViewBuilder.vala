@@ -1,3 +1,4 @@
+namespace Singularity{
 // TODO: Implement this
 class GridViewBuilder : ViewBuilder, GLib.Object
 {
@@ -31,4 +32,5 @@ class GridViewBuilder : ViewBuilder, GLib.Object
 
         return builder.str;
     }
+}
 }

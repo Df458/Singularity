@@ -1,5 +1,6 @@
 using Gee;
 
+namespace Singularity {
 public class StreamViewBuilder : ViewBuilder, GLib.Object
 {
     public string head;
@@ -43,4 +44,5 @@ public class StreamViewBuilder : ViewBuilder, GLib.Object
 
         return builder.str;
     }
+}
 }

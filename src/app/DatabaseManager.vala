@@ -18,6 +18,8 @@
 
 using SQLHeavy;
 
+namespace Singularity {
+
 public class DatabaseManager
 {
     private static const string schema_dir = "/usr/local/share/singularity/schemas";
@@ -27,12 +29,12 @@ public class DatabaseManager
     
     public bool open { get { return _open; } }
     
-    public DatabaseManager.from_path(string location)
+    public DatabaseManager(GlobalSettings settings)
     {
-        if(verbose)
+        if(settings.verbose)
             stderr.printf("Creating database...\n");
         try {
-            db = new Database(location);
+            db = new Database(settings.database_path);
             if(db.schema_version == 0) {
                 initSchema();
             }
@@ -46,7 +48,7 @@ public class DatabaseManager
             return;
         }
         _open = true;
-        if(verbose)
+        if(settings.verbose)
             stderr.printf("Database successfully created. User version is %d.\n", db.user_version);
     }
     
@@ -124,8 +126,9 @@ public class DatabaseManager
     {
         try {
             Query update_query = new Query(db, "UPDATE feeds SET last_load_guids = :last_guid, last_load_time = :last_time WHERE id = :id");
-            if(verbose)
-                stdout.printf("Saving guids: %s\n", feed.get_guids());
+            // TODO: verbose
+            /* if(verbose) */
+            /*     stdout.printf("Saving guids: %s\n", feed.get_guids()); */
             update_query[":last_guid"] = feed.get_guids();
             update_query[":last_time"] = feed.last_time.to_unix();
             update_query[":id"] = feed.id;
@@ -145,10 +148,11 @@ public class DatabaseManager
             test_query[":id"] = feed_id;
             test_query[":guid"] = item.guid;
             QueryResult test_result = yield test_query.execute_async();
-            if(!test_result.finished && verbose) {
-                stderr.printf("Item <%s> already exists!\n", item.guid);
-                return;
-            }
+            // TODO: verbose
+            /* if(!test_result.finished && verbose) { */
+            /*     stderr.printf("Item <%s> already exists!\n", item.guid); */
+            /*     return; */
+            /* } */
 
             Query save_query = new Query(db, "INSERT INTO items (parent_id, title, link, description, author, guid, pubdate, unread, starred, savedate, attachments) VALUES (:id, :title, :link, :description, :author, :guid, :pubdate, :unread, :starred, :savedate, :attachments)");
             save_query[":id"] = feed_id;
@@ -186,14 +190,16 @@ public class DatabaseManager
     public async void removeFeed(Feed f)
     {
         try {
-            if(verbose)
-                stderr.printf("Removing feed...");
+            // TODO: verbose
+            /* if(verbose) */
+            /*     stderr.printf("Removing feed..."); */
             Query feed_rm_query = new Query(db, "DELETE FROM feeds WHERE `id` = :id");
             feed_rm_query[":id"] = f.id;
             yield feed_rm_query.execute_async();
             
-            if(verbose)
-                stderr.printf("Removing entries...");
+            // TODO: verbose
+            /* if(verbose) */
+            /*     stderr.printf("Removing entries..."); */
             Query item_rm_query = new Query(db, "DELETE FROM items WHERE `parent_id` = :id");
             item_rm_query[":id"] = f.id;
             yield item_rm_query.execute_async();
@@ -295,4 +301,5 @@ public class DatabaseManager
         db.user_version += 1;
         return true;
     }
+}
 }

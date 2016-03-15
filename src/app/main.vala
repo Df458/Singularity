@@ -15,61 +15,16 @@
 	You should have received a copy of the GNU General Public License
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
-/* using Gee; */
-
-/* Singularity app; */
-/*  */
-/* static string db_path; */
-/*  */
-/* static string css_path; */
-/*      */
-/* static bool verbose; */
-/*  */
-/* static bool nogui; */
-/*  */
-/* static string new_sub; */
-/*  */
-/* const OptionEntry[] options = */
-/* { */
-/*     { "database", 'd', 0, OptionArg.STRING, ref db_path, "database path", "DATABASE" }, */
-/*     { "css-path", 'c', 0, OptionArg.STRING, ref css_path, "css path", "STYLESHEET" }, */
-/*     { "no-gui", 'n', 0, OptionArg.NONE, ref nogui, "check for new entries, then exit without opening the main window" }, */
-/*     { "verbose", 'v', 0, OptionArg.NONE, ref verbose, "display extra information", null}, */
-/*     { "verbose", 'v', 0, OptionArg.NONE, ref verbose, "display extra information", null}, */
-/*     { null } */
-/* }; */
+using Singularity;
 
 public static int main (string[] args)
 {
-    /* db_path = Environment.get_user_data_dir() + "/singularity/feeds.db"; */
-    /* css_path = Environment.get_user_data_dir() + "/singularity/default.css"; */
-    /* OptionContext ctx = new OptionContext("- Singularity"); */
-    /*  */
-    /* ctx.add_main_entries(options, null); */
-    /* try { */
-    /*     ctx.parse(ref args); */
-    /* } catch(OptionError e) { */
-    /*     stderr.printf("Failed to parse args: %s\n", e.message); */
-    /*     return 1; */
-    /* } */
-    /*  */
-    /* if(args.length > 1) { */
-    /*     new_sub = args[1].replace("feed://", "http://"); */
-    /* } */
-    /*  */
-    /* if(!nogui) */
-    /*     Gtk.init(ref args); */
-    /*  */
-    /* app = new Singularity(); */
-    /* return app.runall(); */
-
     GlobalSettings settings = new GlobalSettings(args);
 
     if(!settings.is_valid)
         return 1;
 
-    Singularity app = new Singularity(args);
+    SingularityApp app = new SingularityApp(settings);
 
     return app.runall();
 }
