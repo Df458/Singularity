@@ -24,6 +24,10 @@ class Singularity : Gtk.Application
     private DatabaseManager db_man;
     private MainWindow main_window;
     private OPML opml;
+
+    private StreamViewBuilder  stream_builder;
+    private GridViewBuilder    grid_builder;
+
     private MainLoop ml;
     string css_dat = "";
     private ArrayList<Item> view_list;
@@ -131,7 +135,7 @@ class Singularity : Gtk.Application
                 DataInputStream stream = new DataInputStream(file.read());
                 string indat;
                 while((indat = stream.read_line()) != null)
-                css_dat += indat;
+                    css_dat += indat;
             } catch (Error e) {
                 error("%s", e.message);
             }
@@ -140,16 +144,31 @@ class Singularity : Gtk.Application
             view_list = new ArrayList<Item>();
             if(auto_update)
                 Timeout.add_seconds(timeout_value, update);
+
+            stream_builder = new StreamViewBuilder(css_dat, star_icon_base64);
+            grid_builder = new GridViewBuilder(css_dat, star_icon_base64);
         }
 
         if(new_sub != null && new_sub != "")
             createFeed(new_sub);
     }
 
-    public string constructFeedHtml(int feed_id)
+    public string constructFeedHtml(int feed_id, ViewType view)
     {
         view_list.clear();
-        string html_str = "<html><head><style>" + css_dat + "</style></head><body>" + feeds[feed_id].constructHtml(db_man) + js_str + "</body></html>";
+        //string html_str = "<html><head><style>" + css_dat + "</style></head><body>" + feeds[feed_id].constructHtml(db_man) + js_str + "</body></html>";
+        ViewBuilder? chosen_builder = null;
+        switch(view) {
+            case ViewType.STREAM:
+                chosen_builder = stream_builder;
+                break;
+            case ViewType.GRID:
+                chosen_builder = grid_builder;
+                break;
+        }
+        if(chosen_builder == null)
+            return "";
+        string html_str = chosen_builder.buildHTML(feeds[feed_id].items);
         main_window.updateFeedItem(feeds[feed_id], feed_id);
         return html_str;
     }

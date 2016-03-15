@@ -19,6 +19,13 @@
 using Gtk;
 using Gdk;
 
+enum ViewType
+{
+    GRID,
+    COLUMN,
+    STREAM
+}
+
 class MainWindow : Gtk.ApplicationWindow
 {
     private Box   main_box;
@@ -192,9 +199,13 @@ class MainWindow : Gtk.ApplicationWindow
         view_settings.enable_javascript = true;
         view_settings.enable_developer_extras = true;
         view_settings.enable_smooth_scrolling = true;
+        view_settings.allow_file_access_from_file_urls = true;
         grid_view.set_settings(view_settings);
         column_view_display.set_settings(view_settings);
         stream_view.set_settings(view_settings);
+        grid_view.get_context().get_security_manager().register_uri_scheme_as_cors_enabled("file");
+        column_view_display.get_context().get_security_manager().register_uri_scheme_as_cors_enabled("file");
+        stream_view.get_context().get_security_manager().register_uri_scheme_as_cors_enabled("file");
 //:TODO: 16.09.14 18:52:26, Hugues Ross
 // Add a custom right-click menu
         grid_view.load_html(app.constructFrontPage(), "");
@@ -240,6 +251,10 @@ class MainWindow : Gtk.ApplicationWindow
             if(nav_dec.get_navigation_action().get_request().uri.has_prefix("download-attachment")) {
                 app.downloadAttachment(nav_dec.get_navigation_action().get_request().uri.substring(19));
                 nav_dec.ignore();
+                return true;
+            }
+
+            if(nav_dec.get_navigation_action().get_request().uri.has_prefix("file")) {
                 return true;
             }
 
@@ -294,17 +309,25 @@ class MainWindow : Gtk.ApplicationWindow
             // TODO: Redo this
             if(iter == unread_item) {
                 grid_view.load_html(app.constructUnreadHtml(), "");
+                column_view_display.load_html(app.constructUnreadHtml(), "");
+                stream_view.load_html(app.constructUnreadHtml(), "");
             } else if(iter == all_item) {
                 grid_view.load_html(app.constructAllHtml(), "");
+                column_view_display.load_html(app.constructAllHtml(), "");
+                stream_view.load_html(app.constructAllHtml(), "");
             } else if(iter == starred_item) {
                 grid_view.load_html(app.constructStarredHtml(), "");
+                column_view_display.load_html(app.constructStarredHtml(), "");
+                stream_view.load_html(app.constructStarredHtml(), "");
             } else if(iter == category_all || iter == category_collection) {
                 return;
             }  else {
                 int id = 0;
                 string name = "";
                 feed_data.get(iter, FeedColumn.TITLE, out name, FeedColumn.FEED_ID, out id);
-                grid_view.load_html(app.constructFeedHtml(id), "");
+                grid_view.load_html(app.constructFeedHtml(id, ViewType.GRID), "");
+                column_view_display.load_html(app.constructFeedHtml(id, ViewType.COLUMN), "");
+                stream_view.load_html(app.constructFeedHtml(id, ViewType.STREAM), "");
             }
         });
     }
@@ -338,9 +361,9 @@ class MainWindow : Gtk.ApplicationWindow
             item_search_bar.search_mode_enabled = item_search_toggle.active;
         });
 
-        grid_view.context_menu.connect(() => { return true; });
-        column_view_display.context_menu.connect(() => { return true; });
-        stream_view.context_menu.connect(() => { return true; });
+        //grid_view.context_menu.connect(() => { return true; });
+        //column_view_display.context_menu.connect(() => { return true; });
+        //stream_view.context_menu.connect(() => { return true; });
         grid_view.decide_policy.connect((decision, type) => { return policy_decision(decision, type); });
         column_view_display.decide_policy.connect((decision, type) => { return policy_decision(decision, type); });
         stream_view.decide_policy.connect((decision, type) => { return policy_decision(decision, type); });

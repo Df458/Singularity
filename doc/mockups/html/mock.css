@@ -92,3 +92,44 @@ article.stream+article.stream {
     padding-top: 12px;
     padding-bottom: 12px;
 }
+
+/*---------------------------------------------------------------------------*/
+
+body.grid {
+    display: flex;
+    flex-wrap: wrap;
+    align-content: flex-start;
+}
+
+article.grid {
+    width: 180px;
+    height: 180px;
+    padding: 12px;
+    margin: 9px;
+    border: 1px solid;
+    border-radius: 6px;
+}
+
+.grid.star {
+    position: absolute;
+}
+
+.grid#preview {
+    height: 150px;
+    overflow: hidden;
+}
+
+.grid.title {
+    margin: 0;
+}
+
+.grid#taglist {
+    position: absolute;
+    font-size: 0.75em;
+    overflow: hidden;
+    opacity: 0.5;
+}
+
+article.grid-full {
+    position: fixed;
+}
