@@ -1,6 +1,6 @@
 /*
 	Singularity - A web newsfeed aggregator
-	Copyright (C) 2014  Hugues Ross <hugues.ross@gmail.com>
+	Copyright (C) 2016  Hugues Ross <hugues.ross@gmail.com>
 
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -18,12 +18,20 @@
 
 using Gee;
 
-namespace Singularity {
+static const string APP_ID = "org.df458.singularity";
+
+namespace Singularity
+{
 
 class SingularityApp : Gtk.Application
 {
+    // Public section ---------------------------------------------------------
+    public bool init_success { get { return m_init_success; } }
+
+
+
+
     private HashMap<int, Feed> feeds;
-    private DatabaseManager db_man;
     private MainWindow main_window;
     private OPML opml;
 
@@ -33,8 +41,6 @@ class SingularityApp : Gtk.Application
     private MainLoop ml;
     string css_dat = "";
     private ArrayList<Item> view_list;
-    private Settings app_settings;
-    private GlobalSettings settings;
     bool done_load = false;
     int load_counter = 0;
     public bool auto_update = true;
@@ -46,122 +52,113 @@ class SingularityApp : Gtk.Application
     public string default_location;
     public string link_command = "xdg-open %s";
     public bool download_attachments = true;
-    public Notify.Notification update_complete_notification;
+    //public Notify.Notification update_complete_notification;
     //Count, Increment(d,m,y), action(nothing,read(unread only),delete)
     public int[] unread_rule = {0, 0, 0};
     public int[] read_rule   = {0, 0, 0};
 
-    public SingularityApp(GlobalSettings new_settings)
+    public SingularityApp(SessionSettings settings)
     {
-        Object(application_id: "org.df458.singularity");
-        settings = new_settings;
-        // TODO: Replace this at some point to remove granite as a dependency
-        Granite.Services.Paths.initialize("singularity", Environment.get_user_data_dir());
-        Granite.Services.Paths.ensure_directory_exists(Granite.Services.Paths.user_data_folder);
-        feeds = new HashMap<int, Feed>();
-        opml = new OPML();
-        app_settings = new Settings("org.df458.singularity");
-        download_attachments = app_settings.get_boolean("download-attachments");
-        default_location = app_settings.get_string("default-download-location");
-        link_command = app_settings.get_string("link-command");
-        get_location = app_settings.get_boolean("ask-download-location");
-        if(default_location == "")
-            default_location = Environment.get_home_dir() + "/Downloads";
-        auto_update = app_settings.get_boolean("auto-update");
-        start_update = app_settings.get_boolean("start-update");
-        if(settings.background) {
-            auto_update = false;
-            start_update = true;
-        }
-        timeout_value = app_settings.get_uint("auto-update-freq") * 60;
-        var u_val = app_settings.get_value("unread-rule");
-        var u_iter = u_val.iterator();
-        u_iter.next("i", &unread_rule[0]);
-        u_iter.next("i", &unread_rule[1]);
-        u_iter.next("i", &unread_rule[2]);
-        var r_val = app_settings.get_value("read-rule");
-        var r_iter = r_val.iterator();
-        r_iter.next("i", &read_rule[0]);
-        r_iter.next("i", &read_rule[1]);
-        r_iter.next("i", &read_rule[2]);
+        Object(application_id: APP_ID);
 
-        Notify.init("Singularity");
-        update_complete_notification = new Notify.Notification("Update Complete", "You have new feeds", null);
+        m_global_settings = new Settings(APP_ID);
+        m_session_settings = settings;
 
-        db_man = new DatabaseManager(settings);
-        db_man.removeOld.begin();
-        db_man.loadFeeds.begin((obj, res) =>{
-            ArrayList<Feed> feed_list = db_man.loadFeeds.end(res);
-            foreach(Feed f in feed_list) {
-                feeds.set(f.id, f);
-            }
-            if(main_window != null)
-                main_window.add_feeds(feed_list);
-            if(start_update)
-                update();
-            else {
-                bool should_continue = true;
-                MapIterator<int, Feed> iter = feeds.map_iterator();
-                do {
-                    if(!iter.valid) {
-                        should_continue = iter.next();
-                        continue;
-                    }
-                    Feed f = iter.get_value();
-                    db_man.loadFeedItems.begin(f, -1, (obj, res) => {
-                        updateFeedItems(f);
-                    });
-                    int unread_count = main_window.get_unread_count();
-                    if(unread_count != 0) {
-                        try {
-                            update_complete_notification.update("Update Complete", "You have " + unread_count.to_string() + " unread item" + (unread_count > 1 ? "s." : "."), null);
-                            update_complete_notification.show();
-                        } catch(GLib.Error e) {
-                            stderr.printf("Error displaying notification: %s.\n", e.message);
-                        }
-                    }
-                    should_continue = iter.next();
-                } while(should_continue);
-                /*for(MapIterator<int, Feed> iter = feeds.map_iterator(); should_continue && (iter.valid || iter.has_next()); should_continue = iter.next()) {
-                    if(!iter.valid) {
-                        continue;
-                    }
-                }*/
-            }
-        });
-        if(!settings.background) {
-            File file = File.new_for_path(settings.user_css);
-            if(!file.query_exists()) {
-                warning("Custom CSS path(" + settings.user_css + ") not found. Reverting to default.");
-                file = File.new_for_path("/usr/local/share/singularity/default.css");
-            }
-            try {
-                DataInputStream stream = new DataInputStream(file.read());
-                string indat;
-                while((indat = stream.read_line()) != null)
-                    css_dat += indat;
-            } catch (Error e) {
-                error("%s", e.message);
-            }
+        this.startup.connect(start_run);
+        this.shutdown.connect(cleanup);
 
-            main_window = new MainWindow(this);
-            view_list = new ArrayList<Item>();
-            if(auto_update)
-                Timeout.add_seconds(timeout_value, update);
+        // feeds = new HashMap<int, Feed>();
+        // opml = new OPML();
+        //download_attachments = m_global_settings.get_boolean("download-attachments");
+        //default_location = m_global_settings.get_string("default-download-location");
+        //link_command = m_global_settings.get_string("link-command");
+        //get_location = m_global_settings.get_boolean("ask-download-location");
+        //if(default_location == "")
+        //    default_location = Environment.get_home_dir() + "/Downloads";
+        //auto_update = m_global_settings.get_boolean("auto-update");
+        //start_update = m_global_settings.get_boolean("start-update");
+        //if(settings.background) {
+        //    auto_update = false;
+        //    start_update = true;
+        //}
+        //timeout_value = m_global_settings.get_uint("auto-update-freq") * 60;
+        //var u_val = m_global_settings.get_value("unread-rule");
+        //var u_iter = u_val.iterator();
+        //u_iter.next("i", &unread_rule[0]);
+        //u_iter.next("i", &unread_rule[1]);
+        //u_iter.next("i", &unread_rule[2]);
+        //var r_val = m_global_settings.get_value("read-rule");
+        //var r_iter = r_val.iterator();
+        //r_iter.next("i", &read_rule[0]);
+        //r_iter.next("i", &read_rule[1]);
+        //r_iter.next("i", &read_rule[2]);
 
-            stream_builder = new StreamViewBuilder(css_dat, star_icon_base64);
-            grid_builder = new GridViewBuilder(css_dat, star_icon_base64);
-        }
+        //Notify.init("Singularity");
+        //update_complete_notification = new Notify.Notification("Update Complete", "You have new feeds", null);
 
-        // FIXME: Figure out this bit
-        /* if(new_sub != null && new_sub != "") */
-        /*     createFeed(new_sub); */
+        //m_database.loadFeeds.begin((obj, res) =>{
+        //    ArrayList<Feed> feed_list = m_database.loadFeeds.end(res);
+        //    foreach(Feed f in feed_list) {
+        //        feeds.set(f.id, f);
+        //    }
+        //    if(main_window != null)
+        //        main_window.add_feeds(feed_list);
+        //    if(start_update)
+        //        update();
+        //    else {
+        //        bool should_continue = true;
+        //        MapIterator<int, Feed> iter = feeds.map_iterator();
+        //        do {
+        //            if(!iter.valid) {
+        //                should_continue = iter.next();
+        //                continue;
+        //            }
+        //            Feed f = iter.get_value();
+        //            m_database.loadFeedItems.begin(f, -1, (obj, res) => {
+        //                updateFeedItems(f);
+        //            });
+        //            int unread_count = main_window.get_unread_count();
+        //            if(unread_count != 0) {
+        //                try {
+        //                    update_complete_notification.update("Update Complete", "You have " + unread_count.to_string() + " unread item" + (unread_count > 1 ? "s." : "."), null);
+        //                    update_complete_notification.show();
+        //                } catch(GLib.Error e) {
+        //                    stderr.printf("Error displaying notification: %s.\n", e.message);
+        //                }
+        //            }
+        //            should_continue = iter.next();
+        //        } while(should_continue);
+        //    }
+        //});
+        //if(!settings.background) {
+        //    File file = File.new_for_path(settings.user_css);
+        //    if(!file.query_exists()) {
+        //        warning("Custom CSS path(" + settings.user_css + ") not found. Reverting to default.");
+        //        file = File.new_for_path("/usr/local/share/singularity/default.css");
+        //    }
+        //    try {
+        //        DataInputStream stream = new DataInputStream(file.read());
+        //        string indat;
+        //        while((indat = stream.read_line()) != null)
+        //            css_dat += indat;
+        //    } catch (Error e) {
+        //        error("%s", e.message);
+        //    }
+
+        //    main_window = new MainWindow(this);
+        //    view_list = new ArrayList<Item>();
+        //    if(auto_update)
+        //        Timeout.add_seconds(timeout_value, update);
+
+        //    stream_builder = new StreamViewBuilder(css_dat, star_icon_base64);
+        //    grid_builder = new GridViewBuilder(css_dat, star_icon_base64);
+        //}
     }
 
     public string constructFeedHtml(int feed_id, ViewType view)
     {
         view_list.clear();
-        //string html_str = "<html><head><style>" + css_dat + "</style></head><body>" + feeds[feed_id].constructHtml(db_man) + js_str + "</body></html>";
+        //string html_str = "<html><head><style>" + css_dat + "</style></head><body>" + feeds[feed_id].constructHtml(m_database) + js_str + "</body></html>";
         ViewBuilder? chosen_builder = null;
         switch(view) {
             case ViewType.STREAM:
@@ -187,7 +184,7 @@ class SingularityApp : Gtk.Application
             if(!iter.valid)
                 continue;
             Feed f = iter.get_value();
-            html_str += f.constructUnreadHtml(db_man);
+            html_str += f.constructUnreadHtml(m_database);
         }
         html_str += js_str + "</body></html>";
         return html_str;
@@ -209,7 +206,7 @@ class SingularityApp : Gtk.Application
             if(!iter.valid)
                 continue;
             Feed f = iter.get_value();
-            html_str += f.constructHtml(db_man);
+            html_str += f.constructHtml(m_database);
             main_window.updateFeedItem(f, f.id);
         }
         html_str += js_str + "</body></html>";
@@ -225,7 +222,7 @@ class SingularityApp : Gtk.Application
             if(!iter.valid)
                 continue;
             Feed f = iter.get_value();
-            html_str += f.constructStarredHtml(db_man);
+            html_str += f.constructStarredHtml(m_database);
         }
         html_str += js_str + "</body></html>";
         return html_str;
@@ -256,12 +253,12 @@ class SingularityApp : Gtk.Application
     // TODO: Separate this from subscription so that it just returns a new feed
     public void createFeed(string url, string? title = null)
     {
-        Feed f = new Feed(db_man.next_id);
-        db_man.next_id++;
+        Feed f = new Feed(m_database.next_id);
+        m_database.next_id++;
         f.origin_link = url;
         if(title != null)
             f.title = title;
-        db_man.addFeed(f);
+        m_database.addFeed(f);
             // TODO: verbose
         /* if(verbose) */
         /*     stdout.printf("Fetching feed data from %s...", url); */
@@ -271,12 +268,12 @@ class SingularityApp : Gtk.Application
                 //stderr.printf("Error: doc is null\n");
                 //return;
             //}
-            //Feed f = new Feed.from_xml(doc->get_root_element(), url, db_man.next_id);
-        f.updateFromWeb.begin(db_man, () =>
+            //Feed f = new Feed.from_xml(doc->get_root_element(), url, m_database.next_id);
+        f.updateFromWeb.begin(m_database, () =>
         {
             //if(f.status == 3)
                 //return;
-            //db_man.saveFeed.begin(f);
+            //m_database.saveFeed.begin(f);
             feeds.set(f.id, f);
             main_window.add_feed(f, f.id);
             //main_window.updateFeedItem(f, f.id);
@@ -293,20 +290,20 @@ class SingularityApp : Gtk.Application
     {
         Feed f;
         feeds.unset(feed_index, out f);
-        db_man.removeFeed.begin(f);
+        m_database.removeFeed.begin(f);
     }
 
     public void update_settings()
     {
-        app_settings.set_boolean("auto-update", auto_update);
-        app_settings.set_boolean("start-update", start_update);
-        app_settings.set_uint("auto-update-freq", timeout_value / 60);
-        app_settings.set_value("unread-rule", new Variant("(iii)",unread_rule[0],unread_rule[1],unread_rule[2]));
-        app_settings.set_value("read-rule", new Variant("(iii)",read_rule[0],read_rule[1],read_rule[2]));
-        app_settings.set_boolean("download-attachments", download_attachments);
-        app_settings.set_boolean("ask-download-location", get_location);
-        app_settings.set_string("default-download-location", default_location);
-        app_settings.set_string("link-command", link_command);
+        m_global_settings.set_boolean("auto-update", auto_update);
+        m_global_settings.set_boolean("start-update", start_update);
+        m_global_settings.set_uint("auto-update-freq", timeout_value / 60);
+        m_global_settings.set_value("unread-rule", new Variant("(iii)",unread_rule[0],unread_rule[1],unread_rule[2]));
+        m_global_settings.set_value("read-rule", new Variant("(iii)",read_rule[0],read_rule[1],read_rule[2]));
+        m_global_settings.set_boolean("download-attachments", download_attachments);
+        m_global_settings.set_boolean("ask-download-location", get_location);
+        m_global_settings.set_string("default-download-location", default_location);
+        m_global_settings.set_string("link-command", link_command);
         if(auto_update && !update_running) {
             update_running = true;
             update_next = timeout_value;
@@ -320,12 +317,12 @@ class SingularityApp : Gtk.Application
         //string outrule = "%d %d %d\n%d %d %d\n%d %d %d\n%d %d %d".printf(f.unread_unstarred_rule[0], f.unread_unstarred_rule[1], f.unread_unstarred_rule[2], f.unread_starred_rule[0], f.unread_starred_rule[1], f.unread_starred_rule[2], f.read_unstarred_rule[0], f.read_unstarred_rule[1], f.read_unstarred_rule[2], f.read_starred_rule[0], f.read_starred_rule[1], f.read_starred_rule[2]);
         //if(!f.override_rules)
             //outrule = "";
-        //db_man.updateFeedSettings.begin(f, outrule);
+        //m_database.updateFeedSettings.begin(f, outrule);
     }
 
     public int runall()
     {
-        if(!settings.background)
+        if(!m_session_settings.background)
             Gtk.main();
         else {
             ml = new MainLoop();
@@ -351,7 +348,7 @@ class SingularityApp : Gtk.Application
 
     public void updateFeedItems(Feed f)
     {
-        if(!settings.background)
+        if(!m_session_settings.background)
             main_window.updateFeedItem(f, f.id);
     }
 
@@ -371,7 +368,7 @@ class SingularityApp : Gtk.Application
                         to_mark.add(view_list[i]);
                     }
                 }
-                db_man.updateUnread.begin(new Feed(), to_mark, () => {
+                m_database.updateUnread.begin(new Feed(), to_mark, () => {
                     foreach(var item in to_mark) {
                         item.feed.removeUnreadItem(item);
                         updateFeedItems(item.feed);
@@ -391,7 +388,7 @@ class SingularityApp : Gtk.Application
                 int pos = int.parse(args[1]);
                 Feed f = view_list[pos].feed;
                 f.toggleStar(view_list[pos]);
-                db_man.updateStarred.begin(f, view_list[pos]);
+                m_database.updateStarred.begin(f, view_list[pos]);
             break;
         }
     }
@@ -440,7 +437,7 @@ class SingularityApp : Gtk.Application
                 to_mark.add(view_list[i]);
             }
         }
-        db_man.updateUnread.begin(new Feed(), to_mark, () => {
+        m_database.updateUnread.begin(new Feed(), to_mark, () => {
             stdout.printf("Removing items\n");
             foreach(var item in to_mark) {
                 item.feed.removeUnreadItem(item);
@@ -473,14 +470,14 @@ class SingularityApp : Gtk.Application
                 continue;
             }
             Feed f = iter.get_value();
-            db_man.loadFeedItems.begin(f, -1, (obj, res) => {
+            m_database.loadFeedItems.begin(f, -1, (obj, res) => {
                 load_counter++;
-                f.updateFromWeb.begin(db_man, (obj, res) => {
+                f.updateFromWeb.begin(m_database, (obj, res) => {
                     load_counter--;
                     if(load_counter <= 0) {
                         load_counter = 0;
                         done_load = true;
-                        if(!settings.background) {
+                        if(!m_session_settings.background) {
                         // TODO: Readd this
                             //int unread_count = main_window.get_unread_count();
                             //if(unread_count != 0) {
@@ -508,6 +505,53 @@ class SingularityApp : Gtk.Application
             return false;
         }
         return auto_update;
+    }
+
+
+
+    // Private section --------------------------------------------------------
+    private Settings m_global_settings;
+    private SessionSettings m_session_settings;
+    private DatabaseManager m_database;
+    private bool m_init_success = false;
+
+    private void start_run()
+    {
+        if(!prepare_data_directory())
+            return;
+
+        m_database = new DatabaseManager(m_session_settings);
+        m_database.removeOldItems.begin(new DateTime.now_utc().add_months(-1));
+
+        m_init_success = true;
+    }
+
+    private void activate_response()
+    {
+        // TODO: Create the window
+    }
+
+    private void cleanup()
+    {
+    }
+
+    // TODO: Refactor this function to be in its own path class
+    private bool prepare_data_directory()
+    {
+        string? default_data_path = Environment.get_user_data_dir() + "/singularity";
+        try {
+            File default_data_file = File.new_for_path(default_data_path);
+            if(!default_data_file.query_exists()) {
+                if(m_session_settings.verbose)
+                    stderr.printf("Default data location does not exist, and will be created.\n");
+                default_data_file.make_directory_with_parents();
+            }
+        } catch(Error e) {
+            stderr.printf("Error: Failed to initialize the directory at %s: %s\n", default_data_path, e.message);
+            return false;
+        }
+
+        return true;
     }
 }
 }

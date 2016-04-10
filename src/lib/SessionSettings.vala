@@ -1,6 +1,6 @@
 namespace Singularity
 {
-public class GlobalSettings
+public class SessionSettings
 {
     // Properties
     public bool    background    { get { return m_background; } }
@@ -10,9 +10,8 @@ public class GlobalSettings
     public string? user_css      { get { return m_user_css; } }
 
     // Constructors
-    public GlobalSettings(string[] args)
+    public SessionSettings(string[] args)
     {
-
         OptionEntry opt1 = { "database",  'd',  0,  OptionArg.STRING,  ref m_database,    "database path", "DATABASE" };
         OptionEntry opt2 = { "css-path",  'c',  0,  OptionArg.STRING,  ref m_user_css,    "css path",      "STYLESHEET" };
         OptionEntry opt3 = { "no-gui",    'n',  0,  OptionArg.NONE,    ref m_background,  "check for new entries, then exit without opening the main window" };
@@ -37,10 +36,10 @@ public class GlobalSettings
     }
 
     // Private data
-    string   m_database;
-    string?  m_user_css;
-    bool     m_verbose;
-    bool     m_background;
+    string   m_database = "";
+    string?  m_user_css = null;
+    bool     m_verbose = false;
+    bool     m_background = false;
     bool     m_valid_options = false;
 }
 }

@@ -1,6 +1,6 @@
 /*
 	Singularity - A web newsfeed aggregator
-	Copyright (C) 2014  Hugues Ross <hugues.ross@gmail.com>
+	Copyright (C) 2016  Hugues Ross <hugues.ross@gmail.com>
 
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -19,12 +19,15 @@ using Singularity;
 
 public static int main (string[] args)
 {
-    GlobalSettings settings = new GlobalSettings(args);
+    SessionSettings settings = new SessionSettings(args);
 
     if(!settings.is_valid)
         return 1;
 
     SingularityApp app = new SingularityApp(settings);
 
-    return app.runall();
+    if(!app.init_success)
+        return 1;
+
+    return 0;
 }

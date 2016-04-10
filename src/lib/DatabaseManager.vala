@@ -1,6 +1,6 @@
 /*
 	Singularity - A web newsfeed aggregator
-	Copyright (C) 2014  Hugues Ross <hugues.ross@gmail.com>
+	Copyright (C) 2016  Hugues Ross <hugues.ross@gmail.com>
 
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -18,7 +18,8 @@
 
 using SQLHeavy;
 
-namespace Singularity {
+namespace Singularity
+{
 
 public class DatabaseManager
 {
@@ -29,13 +30,13 @@ public class DatabaseManager
     
     public bool open { get { return _open; } }
     
-    public DatabaseManager(GlobalSettings settings)
+    public DatabaseManager(SessionSettings settings)
     {
-        if(settings.verbose)
-            stderr.printf("Creating database...\n");
         try {
             db = new Database(settings.database_path);
             if(db.schema_version == 0) {
+                if(settings.verbose)
+                    stderr.printf("Creating database...\n");
                 initSchema();
             }
 
@@ -44,7 +45,7 @@ public class DatabaseManager
                 updated = updateSchema();
             } while(updated);
         } catch(SQLHeavy.Error e) {
-            stderr.printf("Error creating database: %s\n", e.message);
+            stderr.printf("Error creating the database: %s\n", e.message);
             return;
         }
         _open = true;
@@ -247,10 +248,9 @@ public class DatabaseManager
         }
     }
 
-    public async void removeOld()
+    public async void removeOldItems(DateTime cutoff)
     {
         try {
-            DateTime cutoff = new DateTime.now_utc().add_months(-1);
             Query rm_query = new Query(db, "DELETE FROM items WHERE savedate < :cutoff");
             rm_query[":cutoff"] = cutoff.to_unix();
             yield rm_query.execute_async();

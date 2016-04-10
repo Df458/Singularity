@@ -8,7 +8,7 @@ LIBS=--pkg webkit2gtk-4.0 --pkg libsoup-2.4 --pkg granite --pkg libxml-2.0 --pkg
 
 APPV := $(wildcard $(SRCPATH)/app/*.vala)
 LIBV := $(wildcard $(SRCPATH)/lib/*.vala)
-TESTV := $(wildcard $(SRCPATH)/tests/*.vala)
+TESTV := $(wildcard $(SRCPATH)/test/*.vala)
 APPC := $(patsubst $(SRCPATH)/%.vala, $(GENPATH)/%.c, $(APPV))
 LIBC := $(patsubst $(SRCPATH)/%.vala, $(GENPATH)/%.c, $(LIBV))
 TESTC := $(patsubst $(SRCPATH)/%.vala, $(GENPATH)/%.c, $(TESTV))
@@ -27,10 +27,13 @@ $(shell mkdir -p $(GENPATH)/test)
 $(shell mkdir -p $(VAPIPATH))
 
 LIBNAME=lib$(APPNAME).a
-TESTNAME=$(APPNAME)-test
+TESTNAME=$(APPNAME)-test-0
 
 $(OBJPATH)/app/%.vala.o: $(GENPATH)/app/%.c
-	$(CC) -c $< -o $@ $(CFLAGS)
+	$(CC) -c $< -o $@ $(CFLAGS) -pie -fPIE
+
+$(OBJPATH)/test/%.vala.o: $(GENPATH)/test/%.c
+	$(CC) -c $< -o $@ $(CFLAGS) `$(PKGCONFIG) --cflags valadate-1.0` -pie -fPIE
 
 all: $(LIBNAME) $(APPNAME) $(TESTNAME)
 .PHONY: all
@@ -47,23 +50,30 @@ $(APPNAME): $(LIBNAME) appsrc $(APPO)
 	# mv -t $(OBJPATH)/app ./*.vala.o
 	$(CC) -o $(APPNAME) $(APPO) $(LIBNAME) $(CFLAGS) $(CLIBS)
 
+$(LIBNAME): $(LIBV)
+	$(VALAC) -c $(LIBV) --vapi=$(VAPIPATH)/$(APPNAME).vapi --header=$(GENPATH)/lib/$(APPNAME).h $(FLAGS) $(LIBS) -X -pie -X -fPIE
+	mv -t $(OBJPATH)/lib ./*.vala.o
+	ar -rs $(LIBNAME) $(LIBO)
+
+$(TESTNAME): $(LIBNAME) testsrc $(TESTO)
+	$(CC) -o $(TESTNAME) $(TESTO) $(LIBNAME) $(CFLAGS) $(CLIBS) `$(PKGCONFIG) --cflags --libs valadate-1.0` -pie -fPIE
+# $(TESTNAME): $(LIBNAME)
+# 	valac --library $(TESTNAME) --gir $(TESTNAME)-0.gir --pkg valadate-1.0 $(LIBS) --vapidir=$(VAPIPATH) --pkg $(APPNAME) -X -pie -X -fPIE $(TESTV) -X -I$(GENPATH)/lib -X $(LIBNAME)
+
 .PHONY: appsrc
 appsrc: $(APPV)
 	$(VALAC) -C $(APPV) $(FLAGS) $(LIBS) --vapidir=$(VAPIPATH) --pkg $(APPNAME)
 	mv -t $(GENPATH)/app $(SRCPATH)/app/*.c
 
-$(LIBNAME): $(LIBV)
-	$(VALAC) -c $(LIBV) --vapi=$(VAPIPATH)/$(APPNAME).vapi --header=$(GENPATH)/lib/$(APPNAME).h $(FLAGS) $(LIBS)
-	# mv -t $(GENPATH)/lib $(patsubst $(SRCPATH)/%.vala, $(SRCPATH)/%.c, $(LIBV))
-	mv -t $(OBJPATH)/lib ./*.vala.o
-	ar -rs $(LIBNAME) $(LIBO)
-
-$(TESTNAME): $(LIBNAME) #$(TESTV)
-	# $(VALAC) $(TESTV) -o $(TESTNAME) $(FLAGS) $(LIBS)
+.PHONY: testsrc
+testsrc: $(TESTV)
+	$(VALAC) -C $(TESTV) $(FLAGS) $(LIBS) --vapidir=$(VAPIPATH) --library $(TESTNAME) --gir $(TESTNAME).gir --pkg valadate-1.0 --pkg $(APPNAME)
+	# valac --library $(TESTNAME) --gir $(TESTNAME)-0.gir --pkg valadate-1.0 $(LIBS) --vapidir=$(VAPIPATH) --pkg $(APPNAME) -X -pie -X -fPIE $(TESTV) -X -I$(GENPATH)/lib -X $(LIBNAME)
+	mv -t $(GENPATH)/test $(SRCPATH)/test/*.c
 
 .PHONY: test
 test: $(TESTNAME)
-	gtester -k -o $(TESTAPP).log $(TESTAPP)
+	./$(TESTNAME) --tap
 
 .PHONY: clean
 clean:

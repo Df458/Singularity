@@ -1,4 +1,5 @@
-namespace Singularity{
+namespace Singularity
+{
 // TODO: Implement this
 public class GridViewBuilder : ViewBuilder, GLib.Object
 {
