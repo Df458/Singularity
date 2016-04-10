@@ -62,7 +62,7 @@ public class DatabaseManager
             for(QueryResult result = yield load_query.execute_async(); !result.finished; result.next() ) {
                 if(result.fetch_int(0) >= next_id)
                     next_id = result.fetch_int(0) + 1;
-                Feed f = new Feed.from_db(result);
+                Feed f = new Feed.from_record(result, db);
                 feed_list.add(f);
             }
         } catch(SQLHeavy.Error e) {
@@ -72,142 +72,132 @@ public class DatabaseManager
         return feed_list;
     }
 	
-    public async void loadFeedItems(Feed feed, int item_count = -1)
-    {
-        try {
-            Query load_query = new Query(db, "SELECT * FROM items WHERE `parent_id` = :id ORDER BY savedate DESC LIMIT :count");
-            load_query[":id"] = feed.id;
-            load_query[":count"] = item_count;
-            
-            for ( QueryResult result = yield load_query.execute_async(); !result.finished; result.next() ) {
-                feed.add_item(new Item.from_db(result));
-            }
-        } catch(SQLHeavy.Error e) {
-            stderr.printf("Error loading item data: %s\n", e.message);
-        }
-    }
+    /* public async void loadFeedItems(Feed feed, int item_count = -1) */
+    /* { */
+    /*     try { */
+    /*         Query load_query = new Query(db, "SELECT * FROM items WHERE `parent_id` = :id ORDER BY savedate DESC LIMIT :count"); */
+    /*         load_query[":id"] = feed.id; */
+    /*         load_query[":count"] = item_count; */
+    /*          */
+    /*         for ( QueryResult result = yield load_query.execute_async(); !result.finished; result.next() ) { */
+    /*             feed.add_item(new Item.from_db(result)); */
+    /*         } */
+    /*     } catch(SQLHeavy.Error e) { */
+    /*         stderr.printf("Error loading item data: %s\n", e.message); */
+    /*     } */
+    /* } */
 
     // Adds a feed for the first time, with just a link and id
-    public void addFeed(Feed feed)
-    {
-        try {
-            Query save_query = new Query(db, "INSERT INTO feeds (id, parent_id, title, origin) VALUES (:id, -1, :title, :origin)");
-            save_query[":id"] = feed.id;
-            save_query[":title"] = feed.title;
-            save_query[":origin"] = feed.origin_link;
-            save_query.execute();
-        } catch(SQLHeavy.Error e) {
-            stderr.printf("Error saving feed data: %s\n", e.message);
-        }
-    }
+    /* public void addFeed(Feed feed) */
+    /* { */
+    /*     try { */
+    /*         Query save_query = new Query(db, "INSERT INTO feeds (id, parent_id, title, origin) VALUES (:id, -1, :title, :origin)"); */
+    /*         save_query[":id"] = feed.id; */
+    /*         save_query[":title"] = feed.title; */
+    /*         save_query[":origin"] = feed.origin_link; */
+    /*         save_query.execute(); */
+    /*     } catch(SQLHeavy.Error e) { */
+    /*         stderr.printf("Error saving feed data: %s\n", e.message); */
+    /*     } */
+    /* } */
 
     // Updates a feed with new data
-    public async void saveFeed(Feed feed, bool save_items = true)
-    {
-        try {
-            Query save_query = new Query(db, "UPDATE feeds SET parent_id = :parent_id, title = :title, link = :link, description = :description, origin = :origin, last_load_guids = :last_guids, last_load_time = :last_time WHERE id = :id");
-            save_query[":id"] = feed.id;
-            save_query[":parent_id"] = feed.parent_id;
-            save_query[":title"] = feed.title;
-            save_query[":link"] = feed.link;
-            save_query[":description"] = feed.description;
-            save_query[":origin"] = feed.origin_link;
-            save_query[":last_guids"] = feed.get_guids();
-            save_query[":last_time"] = feed.last_time.to_unix();
-            yield save_query.execute_async();
-        } catch(SQLHeavy.Error e) {
-            stderr.printf("Error saving feed data: %s\n", e.message);
-        }
-        if(save_items) {
-            yield saveFeedItems(feed, feed.items);
-        }
-    }
+    /* public async void saveFeed(Feed feed, bool save_items = true) */
+    /* { */
+    /*     try { */
+    /*         Query save_query = new Query(db, "UPDATE feeds SET parent_id = :parent_id, title = :title, link = :link, description = :description, origin = :origin, last_load_guids = :last_guids, last_load_time = :last_time WHERE id = :id"); */
+    /*         save_query[":id"] = feed.id; */
+    /*         save_query[":parent_id"] = feed.parent_id; */
+    /*         save_query[":title"] = feed.title; */
+    /*         save_query[":link"] = feed.link; */
+    /*         save_query[":description"] = feed.description; */
+    /*         save_query[":origin"] = feed.origin_link; */
+    /*         save_query[":last_guids"] = feed.get_guids(); */
+    /*         save_query[":last_time"] = feed.last_time.to_unix(); */
+    /*         yield save_query.execute_async(); */
+    /*     } catch(SQLHeavy.Error e) { */
+    /*         stderr.printf("Error saving feed data: %s\n", e.message); */
+    /*     } */
+    /*     if(save_items) { */
+    /*         yield saveFeedItems(feed, feed.items); */
+    /*     } */
+    /* } */
 
-    public async void saveFeedItems(Feed feed, Gee.ArrayList<Item> items)
-    {
-        try {
-            Query update_query = new Query(db, "UPDATE feeds SET last_load_guids = :last_guid, last_load_time = :last_time WHERE id = :id");
-            // TODO: verbose
-            /* if(verbose) */
-            /*     stdout.printf("Saving guids: %s\n", feed.get_guids()); */
-            update_query[":last_guid"] = feed.get_guids();
-            update_query[":last_time"] = feed.last_time.to_unix();
-            update_query[":id"] = feed.id;
-            yield update_query.execute_async();
-        } catch(SQLHeavy.Error e) {
-            stderr.printf("Error updating feed: %s", e.message);
-        }
-        foreach(Item i in items) {
-            yield saveItem(i, feed.id);
-        }
-    }
+    /* public async void saveFeedItems(Feed feed, Gee.ArrayList<Item> items) */
+    /* { */
+    /*     try { */
+    /*         Query update_query = new Query(db, "UPDATE feeds SET last_load_guids = :last_guid, last_load_time = :last_time WHERE id = :id"); */
+    /*         // TODO: verbose */
+    /*         update_query[":last_guid"] = feed.get_guids(); */
+    /*         update_query[":last_time"] = feed.last_time.to_unix(); */
+    /*         update_query[":id"] = feed.id; */
+    /*         yield update_query.execute_async(); */
+    /*     } catch(SQLHeavy.Error e) { */
+    /*         stderr.printf("Error updating feed: %s", e.message); */
+    /*     } */
+    /*     foreach(Item i in items) { */
+    /*         yield saveItem(i, feed.id); */
+    /*     } */
+    /* } */
 
-    public async void saveItem(Item item, int feed_id)
-    {
-        try {
-            Query test_query = new Query(db, "SELECT * FROM items WHERE `parent_id` = :id AND `guid` = :guid");
-            test_query[":id"] = feed_id;
-            test_query[":guid"] = item.guid;
-            QueryResult test_result = yield test_query.execute_async();
-            // TODO: verbose
-            /* if(!test_result.finished && verbose) { */
-            /*     stderr.printf("Item <%s> already exists!\n", item.guid); */
-            /*     return; */
-            /* } */
+    /* public async void saveItem(Item item, int feed_id) */
+    /* { */
+    /*     try { */
+    /*         Query test_query = new Query(db, "SELECT * FROM items WHERE `parent_id` = :id AND `guid` = :guid"); */
+    /*         test_query[":id"] = feed_id; */
+    /*         test_query[":guid"] = item.guid; */
+    /*         QueryResult test_result = yield test_query.execute_async(); */
+    /*         // TODO: verbose */
+    /*  */
+    /*         Query save_query = new Query(db, "INSERT INTO items (parent_id, title, link, description, author, guid, pubdate, unread, starred, savedate, attachments) VALUES (:id, :title, :link, :description, :author, :guid, :pubdate, :unread, :starred, :savedate, :attachments)"); */
+    /*         save_query[":id"] = feed_id; */
+    /*         save_query[":title"] = item.title; */
+    /*         save_query[":link"] = item.link; */
+    /*         save_query[":description"] = item.description; */
+    /*         save_query[":author"] = item.author; */
+    /*         save_query[":guid"] = item.guid; */
+    /*         save_query[":pubdate"] = item.time_posted.to_unix(); */
+    /*         save_query[":unread"] = item.unread ? 1 : 0; */
+    /*         save_query[":starred"] = item.starred ? 1 : 0; */
+    /*         save_query[":savedate"] = item.time_added.to_unix(); */
+    /*         save_query[":attachments"] = item.enclosure_url; */
+    /*         yield save_query.execute_async(); */
+    /*     } catch(SQLHeavy.Error e) { */
+    /*         stderr.printf("Error saving feed data: %s\n", e.message); */
+    /*     } */
+    /* } */
 
-            Query save_query = new Query(db, "INSERT INTO items (parent_id, title, link, description, author, guid, pubdate, unread, starred, savedate, attachments) VALUES (:id, :title, :link, :description, :author, :guid, :pubdate, :unread, :starred, :savedate, :attachments)");
-            save_query[":id"] = feed_id;
-            save_query[":title"] = item.title;
-            save_query[":link"] = item.link;
-            save_query[":description"] = item.description;
-            save_query[":author"] = item.author;
-            save_query[":guid"] = item.guid;
-            save_query[":pubdate"] = item.time_posted.to_unix();
-            save_query[":unread"] = item.unread ? 1 : 0;
-            save_query[":starred"] = item.starred ? 1 : 0;
-            save_query[":savedate"] = item.time_added.to_unix();
-            save_query[":attachments"] = item.enclosure_url;
-            yield save_query.execute_async();
-        } catch(SQLHeavy.Error e) {
-            stderr.printf("Error saving feed data: %s\n", e.message);
-        }
-    }
+    /* public async void updateFeedSettings(Feed f, string rules) */
+    /* { */
+    /*     try { */
+    /*         Query save_query = new Query(db, "UPDATE feeds SET rules = :rules, override_download = :override, ask_download_location = :getloc, default_location = :loc WHERE id = :id"); */
+    /*         save_query[":id"] = f.id; */
+    /*         save_query[":rules"] = rules; */
+    /*         save_query[":override"] = f.override_location ? 1 : 0; */
+    /*         save_query[":getloc"] = f.get_location ? 1 : 0; */
+    /*         save_query[":loc"] = f.default_location; */
+    /*         yield save_query.execute_async(); */
+    /*     } catch(SQLHeavy.Error e) { */
+    /*         stderr.printf("Error saving feed data: %s\n", e.message); */
+    /*     } */
+    /* } */
 
-    public async void updateFeedSettings(Feed f, string rules)
-    {
-        try {
-            Query save_query = new Query(db, "UPDATE feeds SET rules = :rules, override_download = :override, ask_download_location = :getloc, default_location = :loc WHERE id = :id");
-            save_query[":id"] = f.id;
-            save_query[":rules"] = rules;
-            save_query[":override"] = f.override_location ? 1 : 0;
-            save_query[":getloc"] = f.get_location ? 1 : 0;
-            save_query[":loc"] = f.default_location;
-            yield save_query.execute_async();
-        } catch(SQLHeavy.Error e) {
-            stderr.printf("Error saving feed data: %s\n", e.message);
-        }
-    }
-
-    public async void removeFeed(Feed f)
-    {
-        try {
-            // TODO: verbose
-            /* if(verbose) */
-            /*     stderr.printf("Removing feed..."); */
-            Query feed_rm_query = new Query(db, "DELETE FROM feeds WHERE `id` = :id");
-            feed_rm_query[":id"] = f.id;
-            yield feed_rm_query.execute_async();
-            
-            // TODO: verbose
-            /* if(verbose) */
-            /*     stderr.printf("Removing entries..."); */
-            Query item_rm_query = new Query(db, "DELETE FROM items WHERE `parent_id` = :id");
-            item_rm_query[":id"] = f.id;
-            yield item_rm_query.execute_async();
-        } catch(SQLHeavy.Error e) {
-            stderr.printf("Error deleting feed: %s\n", e.message);
-        }
-    }
+    /* public async void removeFeed(Feed f) */
+    /* { */
+    /*     try { */
+    /*         // TODO: verbose */
+    /*         Query feed_rm_query = new Query(db, "DELETE FROM feeds WHERE `id` = :id"); */
+    /*         feed_rm_query[":id"] = f.id; */
+    /*         yield feed_rm_query.execute_async(); */
+    /*          */
+    /*         // TODO: verbose */
+    /*         Query item_rm_query = new Query(db, "DELETE FROM items WHERE `parent_id` = :id"); */
+    /*         item_rm_query[":id"] = f.id; */
+    /*         yield item_rm_query.execute_async(); */
+    /*     } catch(SQLHeavy.Error e) { */
+    /*         stderr.printf("Error deleting feed: %s\n", e.message); */
+    /*     } */
+    /* } */
 
     public async void updateUnread(Feed feed, Gee.ArrayList<Item> items)
     {

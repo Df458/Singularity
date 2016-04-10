@@ -70,9 +70,9 @@ public class OPML
         // TODO: Add content type
         foreach(Feed f in feeds) {
             writer.start_element("outline");
-            writer.write_attribute("title",  f.title);
-            writer.write_attribute("text",   f.title);
-            writer.write_attribute("xmlUrl", f.origin_link);
+            /* writer.write_attribute("title",  f.title); */
+            /* writer.write_attribute("text",   f.title); */
+            /* writer.write_attribute("xmlUrl", f.origin_link); */
             writer.end_element();
         }
         writer.end_element();

@@ -155,40 +155,40 @@ class SingularityApp : Gtk.Application
         //}
     }
 
-    public string constructFeedHtml(int feed_id, ViewType view)
-    {
-        view_list.clear();
-        //string html_str = "<html><head><style>" + css_dat + "</style></head><body>" + feeds[feed_id].constructHtml(m_database) + js_str + "</body></html>";
-        ViewBuilder? chosen_builder = null;
-        switch(view) {
-            case ViewType.STREAM:
-                chosen_builder = stream_builder;
-                break;
-            case ViewType.GRID:
-                chosen_builder = grid_builder;
-                break;
-        }
-        if(chosen_builder == null)
-            return "";
-        string html_str = chosen_builder.buildHTML(feeds[feed_id].items);
-        main_window.updateFeedItem(feeds[feed_id], feed_id);
-        return html_str;
-    }
+    /* public string constructFeedHtml(int feed_id, ViewType view) */
+    /* { */
+    /*     view_list.clear(); */
+    /*     //string html_str = "<html><head><style>" + css_dat + "</style></head><body>" + feeds[feed_id].constructHtml(m_database) + js_str + "</body></html>"; */
+    /*     ViewBuilder? chosen_builder = null; */
+    /*     switch(view) { */
+    /*         case ViewType.STREAM: */
+    /*             chosen_builder = stream_builder; */
+    /*             break; */
+    /*         case ViewType.GRID: */
+    /*             chosen_builder = grid_builder; */
+    /*             break; */
+    /*     } */
+    /*     if(chosen_builder == null) */
+    /*         return ""; */
+    /*     string html_str = chosen_builder.buildHTML(feeds[feed_id].items); */
+    /*     main_window.updateFeedItem(feeds[feed_id], feed_id); */
+    /*     return html_str; */
+    /* } */
 
-    public string constructUnreadHtml()
-    {
-        view_list.clear();
-        string html_str = "<html><head><style>" + css_dat + "</style></head><body><br/>";
-        bool should_continue = true;
-        for(MapIterator<int, Feed> iter = feeds.map_iterator(); should_continue && (iter.valid || iter.has_next()); should_continue = iter.next()) {
-            if(!iter.valid)
-                continue;
-            Feed f = iter.get_value();
-            html_str += f.constructUnreadHtml(m_database);
-        }
-        html_str += js_str + "</body></html>";
-        return html_str;
-    }
+    /* public string constructUnreadHtml() */
+    /* { */
+    /*     view_list.clear(); */
+    /*     string html_str = "<html><head><style>" + css_dat + "</style></head><body><br/>"; */
+    /*     bool should_continue = true; */
+    /*     for(MapIterator<int, Feed> iter = feeds.map_iterator(); should_continue && (iter.valid || iter.has_next()); should_continue = iter.next()) { */
+    /*         if(!iter.valid) */
+    /*             continue; */
+    /*         Feed f = iter.get_value(); */
+    /*         html_str += f.constructUnreadHtml(m_database); */
+    /*     } */
+    /*     html_str += js_str + "</body></html>"; */
+    /*     return html_str; */
+    /* } */
 
     public string constructFrontPage()
     {
@@ -197,36 +197,36 @@ class SingularityApp : Gtk.Application
         return html_str;
     }
 
-    public string constructAllHtml()
-    {
-        view_list.clear();
-        string html_str = "<html><head><style>" + css_dat + "</style></head><body>";
-        bool should_continue = true;
-        for(MapIterator<int, Feed> iter = feeds.map_iterator(); should_continue && (iter.valid || iter.has_next()); should_continue = iter.next()) {
-            if(!iter.valid)
-                continue;
-            Feed f = iter.get_value();
-            html_str += f.constructHtml(m_database);
-            main_window.updateFeedItem(f, f.id);
-        }
-        html_str += js_str + "</body></html>";
-        return html_str;
-    }
+    /* public string constructAllHtml() */
+    /* { */
+    /*     view_list.clear(); */
+    /*     string html_str = "<html><head><style>" + css_dat + "</style></head><body>"; */
+    /*     bool should_continue = true; */
+    /*     for(MapIterator<int, Feed> iter = feeds.map_iterator(); should_continue && (iter.valid || iter.has_next()); should_continue = iter.next()) { */
+    /*         if(!iter.valid) */
+    /*             continue; */
+    /*         Feed f = iter.get_value(); */
+    /*         html_str += f.constructHtml(m_database); */
+    /*         main_window.updateFeedItem(f, f.id); */
+    /*     } */
+    /*     html_str += js_str + "</body></html>"; */
+    /*     return html_str; */
+    /* } */
 
-    public string constructStarredHtml()
-    {
-        view_list.clear();
-        string html_str = "<html><head><style>" + css_dat + "</style></head><body><br/>";
-        bool should_continue = true;
-        for(MapIterator<int, Feed> iter = feeds.map_iterator(); should_continue && (iter.valid || iter.has_next()); should_continue = iter.next()) {
-            if(!iter.valid)
-                continue;
-            Feed f = iter.get_value();
-            html_str += f.constructStarredHtml(m_database);
-        }
-        html_str += js_str + "</body></html>";
-        return html_str;
-    }
+    /* public string constructStarredHtml() */
+    /* { */
+    /*     view_list.clear(); */
+    /*     string html_str = "<html><head><style>" + css_dat + "</style></head><body><br/>"; */
+    /*     bool should_continue = true; */
+    /*     for(MapIterator<int, Feed> iter = feeds.map_iterator(); should_continue && (iter.valid || iter.has_next()); should_continue = iter.next()) { */
+    /*         if(!iter.valid) */
+    /*             continue; */
+    /*         Feed f = iter.get_value(); */
+    /*         html_str += f.constructStarredHtml(m_database); */
+    /*     } */
+    /*     html_str += js_str + "</body></html>"; */
+    /*     return html_str; */
+    /* } */
 
     public void import(File file)
     {
@@ -251,47 +251,45 @@ class SingularityApp : Gtk.Application
     }
 
     // TODO: Separate this from subscription so that it just returns a new feed
-    public void createFeed(string url, string? title = null)
-    {
-        Feed f = new Feed(m_database.next_id);
-        m_database.next_id++;
-        f.origin_link = url;
-        if(title != null)
-            f.title = title;
-        m_database.addFeed(f);
-            // TODO: verbose
-        /* if(verbose) */
-        /*     stdout.printf("Fetching feed data from %s...", url); */
-        //getXmlData.begin(url, (obj, res) => {
-            //Xml.Doc* doc = getXmlData.end(res);
-            //if(doc == null || doc->get_root_element() == null) {
-                //stderr.printf("Error: doc is null\n");
-                //return;
-            //}
-            //Feed f = new Feed.from_xml(doc->get_root_element(), url, m_database.next_id);
-        f.updateFromWeb.begin(m_database, () =>
-        {
-            //if(f.status == 3)
-                //return;
-            //m_database.saveFeed.begin(f);
-            feeds.set(f.id, f);
-            main_window.add_feed(f, f.id);
-            //main_window.updateFeedItem(f, f.id);
-        });
-        //});
-    }
+    /* public void createFeed(string url, string? title = null) */
+    /* { */
+    /*     Feed f = new Feed(m_database.next_id); */
+    /*     m_database.next_id++; */
+    /*     f.origin_link = url; */
+    /*     if(title != null) */
+    /*         f.title = title; */
+    /*     m_database.addFeed(f); */
+    /*         // TODO: verbose */
+    /*     //getXmlData.begin(url, (obj, res) => { */
+    /*         //Xml.Doc* doc = getXmlData.end(res); */
+    /*         //if(doc == null || doc->get_root_element() == null) { */
+    /*             //stderr.printf("Error: doc is null\n"); */
+    /*             //return; */
+    /*         //} */
+    /*         //Feed f = new Feed.from_xml(doc->get_root_element(), url, m_database.next_id); */
+    /*     f.updateFromWeb.begin(m_database, () => */
+    /*     { */
+    /*         //if(f.status == 3) */
+    /*             //return; */
+    /*         //m_database.saveFeed.begin(f); */
+    /*         feeds.set(f.id, f); */
+    /*         main_window.add_feed(f, f.id); */
+    /*         //main_window.updateFeedItem(f, f.id); */
+    /*     }); */
+    /*     //}); */
+    /* } */
 
     public Feed getFeed(int feed_index)
     {
         return feeds[feed_index];
     }
 
-    public void removeFeed(int feed_index)
-    {
-        Feed f;
-        feeds.unset(feed_index, out f);
-        m_database.removeFeed.begin(f);
-    }
+    /* public void removeFeed(int feed_index) */
+    /* { */
+    /*     Feed f; */
+    /*     feeds.unset(feed_index, out f); */
+    /*     m_database.removeFeed.begin(f); */
+    /* } */
 
     public void update_settings()
     {
@@ -346,107 +344,105 @@ class SingularityApp : Gtk.Application
         return 0;
     }
 
-    public void updateFeedItems(Feed f)
-    {
-        if(!m_session_settings.background)
-            main_window.updateFeedItem(f, f.id);
-    }
+    /* public void updateFeedItems(Feed f) */
+    /* { */
+    /*     if(!m_session_settings.background) */
+    /*         main_window.updateFeedItem(f, f.id); */
+    /* } */
 
-    public void interpretUriEncodedAction(string action)
-    {
-        string[] args = action.split("/");
-            // TODO: verbose
-        /* if(verbose) */
-        /*     stderr.printf("calling function %s...\n", action); */
-        switch(args[0]) {
-            case "read":
-                int pos = int.parse(args[1]);
-                Gee.ArrayList<Item> to_mark = new Gee.ArrayList<Item>();
-                for(int i = 0; i <= pos; ++i) {
-                    if(view_list[i].unread == true) {
-                        view_list[i].unread = false;
-                        to_mark.add(view_list[i]);
-                    }
-                }
-                m_database.updateUnread.begin(new Feed(), to_mark, () => {
-                    foreach(var item in to_mark) {
-                        item.feed.removeUnreadItem(item);
-                        updateFeedItems(item.feed);
-                    }
-                });
-            break;
+/*     public void interpretUriEncodedAction(string action) */
+/*     { */
+/*         string[] args = action.split("/"); */
+/*             // TODO: verbose */
+/*         switch(args[0]) { */
+/*             case "read": */
+/*                 int pos = int.parse(args[1]); */
+/*                 Gee.ArrayList<Item> to_mark = new Gee.ArrayList<Item>(); */
+/*                 for(int i = 0; i <= pos; ++i) { */
+/*                     if(view_list[i].unread == true) { */
+/*                         view_list[i].unread = false; */
+/*                         to_mark.add(view_list[i]); */
+/*                     } */
+/*                 } */
+/*                 m_database.updateUnread.begin(new Feed(), to_mark, () => { */
+/*                     foreach(var item in to_mark) { */
+/*                         item.feed.removeUnreadItem(item); */
+/*                         updateFeedItems(item.feed); */
+/*                     } */
+/*                 }); */
+/*             break; */
+/*  */
+/*             case "toggleRead": */
+/* //:TODO: 29.12.14 14:30:40, df458 */
+/* // Finish this when the time to add a button for this feature arrives */
+/* // For now, it shouldn't save this change, so nothing permanent should happen */
+/* // if it gets activated by accident :) */
+/*                 int pos = int.parse(args[1]); */
+/*                 view_list[pos].unread = !view_list[pos].unread; */
+/*             break; */
+/*             case "toggleStarred": */
+/*                 int pos = int.parse(args[1]); */
+/*                 Feed f = view_list[pos].feed; */
+/*                 f.toggleStar(view_list[pos]); */
+/*                 m_database.updateStarred.begin(f, view_list[pos]); */
+/*             break; */
+/*         } */
+/*     } */
 
-            case "toggleRead":
-//:TODO: 29.12.14 14:30:40, df458
-// Finish this when the time to add a button for this feature arrives
-// For now, it shouldn't save this change, so nothing permanent should happen
-// if it gets activated by accident :)
-                int pos = int.parse(args[1]);
-                view_list[pos].unread = !view_list[pos].unread;
-            break;
-            case "toggleStarred":
-                int pos = int.parse(args[1]);
-                Feed f = view_list[pos].feed;
-                f.toggleStar(view_list[pos]);
-                m_database.updateStarred.begin(f, view_list[pos]);
-            break;
-        }
-    }
+    /* public void downloadAttachment(string att) */
+    /* { */
+    /*     bool getl = get_location; */
+    /*     string default_loc = default_location; */
+    /*  */
+    /*     int id = -1; */
+    /*     string action = ""; */
+    /*     att.scanf("%d_", &id); */
+    /*     action = att.substring(id.to_string().length + 1); */
+    /*     Feed tocheck = null; */
+    /*     tocheck = feeds.get(id); */
+    /*     if(tocheck != null && tocheck.override_location) { */
+    /*         getl = tocheck.get_location; */
+    /*         default_loc = tocheck.default_location; */
+    /*     } */
+    /*     try { */
+    /*         if(!download_attachments) */
+    /*             GLib.Process.spawn_command_line_async("xdg-open " + action); */
+    /*         else { */
+    /*             if(getl) { */
+    /*                 Gtk.FileChooserDialog dialog = new Gtk.FileChooserDialog("Download attachment", main_window, Gtk.FileChooserAction.SELECT_FOLDER, "Cancel", Gtk.ResponseType.CANCEL, "Download here", Gtk.ResponseType.ACCEPT); */
+    /*                 dialog.set_current_folder(default_loc); */
+    /*                 if(dialog.run() == Gtk.ResponseType.ACCEPT) { */
+    /*                     GLib.Process.spawn_command_line_async("wget -b -o'/tmp/singularity-wget-log' -P '" + dialog.get_filename() +  "' '" + action + "'"); */
+    /*                 } */
+    /*                 dialog.close(); */
+    /*             } else */
+    /*                 GLib.Process.spawn_command_line_async("wget -b -P '" + default_loc +  "' '" + action + "'"); */
+    /*         } */
+    /*     } catch(GLib.SpawnError e) { */
+    /*         stderr.printf("Failed to spawn %s: %s\n", (download_attachments ? "wget" : "xdg-open"), e.message); */
+    /*     } */
+    /* } */
 
-    public void downloadAttachment(string att)
-    {
-        bool getl = get_location;
-        string default_loc = default_location;
-
-        int id = -1;
-        string action = "";
-        att.scanf("%d_", &id);
-        action = att.substring(id.to_string().length + 1);
-        Feed tocheck = null;
-        tocheck = feeds.get(id);
-        if(tocheck != null && tocheck.override_location) {
-            getl = tocheck.get_location;
-            default_loc = tocheck.default_location;
-        }
-        try {
-            if(!download_attachments)
-                GLib.Process.spawn_command_line_async("xdg-open " + action);
-            else {
-                if(getl) {
-                    Gtk.FileChooserDialog dialog = new Gtk.FileChooserDialog("Download attachment", main_window, Gtk.FileChooserAction.SELECT_FOLDER, "Cancel", Gtk.ResponseType.CANCEL, "Download here", Gtk.ResponseType.ACCEPT);
-                    dialog.set_current_folder(default_loc);
-                    if(dialog.run() == Gtk.ResponseType.ACCEPT) {
-                        GLib.Process.spawn_command_line_async("wget -b -o'/tmp/singularity-wget-log' -P '" + dialog.get_filename() +  "' '" + action + "'");
-                    }
-                    dialog.close();
-                } else
-                    GLib.Process.spawn_command_line_async("wget -b -P '" + default_loc +  "' '" + action + "'");
-            }
-        } catch(GLib.SpawnError e) {
-            stderr.printf("Failed to spawn %s: %s\n", (download_attachments ? "wget" : "xdg-open"), e.message);
-        }
-    }
-
-    public void markAllAsRead()
-    {
-        stdout.printf("Clearing %d items:\n", view_list.size);
-        Gee.ArrayList<Item> to_mark = new Gee.ArrayList<Item>();
-        for(int i = 0; i < view_list.size; ++i) {
-            if(view_list[i].unread == true) {
-                view_list[i].unread = false;
-                to_mark.add(view_list[i]);
-            }
-        }
-        m_database.updateUnread.begin(new Feed(), to_mark, () => {
-            stdout.printf("Removing items\n");
-            foreach(var item in to_mark) {
-                item.feed.removeUnreadItem(item);
-                updateFeedItems(item.feed);
-            }
-            stdout.printf("Items removed\n");
-        });
-        stdout.printf("done. Waiting...\n");
-    }
+    /* public void markAllAsRead() */
+    /* { */
+    /*     stdout.printf("Clearing %d items:\n", view_list.size); */
+    /*     Gee.ArrayList<Item> to_mark = new Gee.ArrayList<Item>(); */
+    /*     for(int i = 0; i < view_list.size; ++i) { */
+    /*         if(view_list[i].unread == true) { */
+    /*             view_list[i].unread = false; */
+    /*             to_mark.add(view_list[i]); */
+    /*         } */
+    /*     } */
+    /*     m_database.updateUnread.begin(new Feed(), to_mark, () => { */
+    /*         stdout.printf("Removing items\n"); */
+    /*         foreach(var item in to_mark) { */
+    /*             item.feed.removeUnreadItem(item); */
+    /*             updateFeedItems(item.feed); */
+    /*         } */
+    /*         stdout.printf("Items removed\n"); */
+    /*     }); */
+    /*     stdout.printf("done. Waiting...\n"); */
+    /* } */
 
     public void exit()
     {
@@ -470,30 +466,30 @@ class SingularityApp : Gtk.Application
                 continue;
             }
             Feed f = iter.get_value();
-            m_database.loadFeedItems.begin(f, -1, (obj, res) => {
-                load_counter++;
-                f.updateFromWeb.begin(m_database, (obj, res) => {
-                    load_counter--;
-                    if(load_counter <= 0) {
-                        load_counter = 0;
-                        done_load = true;
-                        if(!m_session_settings.background) {
-                        // TODO: Readd this
-                            //int unread_count = main_window.get_unread_count();
-                            //if(unread_count != 0) {
-                                //try {
-                                    //update_complete_notification.update("Update Complete", "You have " + unread_count.to_string() + " unread item" + (unread_count > 1 ? "s." : "."), null);
-                                    //update_complete_notification.show();
-                                //} catch(GLib.Error e) {
-                                    //stderr.printf("Error displaying notification: %s.\n", e.message);
-                                //}
-                            //}
-                        } else {
-                            ml.quit();
-                        }
-                    }
-                });
-            });
+            /* m_database.loadFeedItems.begin(f, -1, (obj, res) => { */
+            /*     load_counter++; */
+            /*     f.updateFromWeb.begin(m_database, (obj, res) => { */
+            /*         load_counter--; */
+            /*         if(load_counter <= 0) { */
+            /*             load_counter = 0; */
+            /*             done_load = true; */
+            /*             if(!m_session_settings.background) { */
+            /*             // TODO: Readd this */
+            /*                 //int unread_count = main_window.get_unread_count(); */
+            /*                 //if(unread_count != 0) { */
+            /*                     //try { */
+            /*                         //update_complete_notification.update("Update Complete", "You have " + unread_count.to_string() + " unread item" + (unread_count > 1 ? "s." : "."), null); */
+            /*                         //update_complete_notification.show(); */
+            /*                     //} catch(GLib.Error e) { */
+            /*                         //stderr.printf("Error displaying notification: %s.\n", e.message); */
+            /*                     //} */
+            /*                 //} */
+            /*             } else { */
+            /*                 ml.quit(); */
+            /*             } */
+            /*         } */
+            /*     }); */
+            /* }); */
             should_continue = iter.next();
         } while(should_continue);
         if(feeds.size == 0)

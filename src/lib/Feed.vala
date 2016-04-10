@@ -22,32 +22,61 @@ namespace Singularity
 // Add a full implementation of the various feed standards
 public class Feed : DataEntry
 {
-    public Feed()
+    public Feed(SQLHeavy.Database db)
     {
-        warn("stub!");
+        base();
+        _db = db;
     }
 
-    public Feed.from_record(SQLHeavy.Record r)
+    public Feed.from_record(SQLHeavy.Record r, SQLHeavy.Database db)
     {
         base.from_record(r);
-        warn("stub!");
+        _db = db;
     }
 
-    public bool insert()
+    public override bool insert()
     {
-        warn("stub!");
+        try {
+            SQLHeavy.Query q = new SQLHeavy.Query(_db, insert_statement);
+            q.execute();
+        } catch(SQLHeavy.Error e) {
+            warning("Failed to write new feed: %s", e.message);
+            return false;
+        }
+        return true;
     }
 
-    public bool update()
+    public override bool update()
     {
-        warn("stub!");
+        try {
+            SQLHeavy.Query q = new SQLHeavy.Query(_db, update_statement);
+            q[":id"] = id;
+            q.execute();
+        } catch(SQLHeavy.Error e) {
+            warning("Failed to write feed: %s", e.message);
+            return false;
+        }
+        return true;
     }
 
-    public bool remove()
+    public override bool remove()
     {
-        warn("stub!");
+        try {
+            SQLHeavy.Query q = new SQLHeavy.Query(_db, remove_statement);
+            q[":id"] = id;
+            q.execute();
+        } catch(SQLHeavy.Error e) {
+            warning("Failed to remove feed: %s", e.message);
+            return false;
+        }
+        return true;
     }
-/*     private int _id; */
+
+    private weak SQLHeavy.Database _db;
+
+    private static const string insert_statement = "INSERT INTO feeds () VALUES ()";
+    private static const string update_statement = "UPDATE feeds WHERE `id` = :id";
+    private static const string remove_statement = "DELETE FROM feeds WHERE `id` = :id";
 /*     private Gee.ArrayList<Item> _items; */
 /*     private Gee.ArrayList<Item> _items_unread; */
 /*     private Gee.ArrayList<Item> _items_starred; */
@@ -59,10 +88,7 @@ public class Feed : DataEntry
 /*     private DateTime _last_time = new DateTime.from_unix_utc(0); */
 /*     private DateTime _last_time_post = new DateTime.from_unix_utc(0); */
 /*     private bool accept_empty = false; */
-/*      */
 /*     public Gee.ArrayList<Item> items { get { return _items; } } */
-/*  */
-/*     public int id   { get { return _id; } } //Database entry id */
 /*     public int parent_id = -1; */
 /*     public string title = "Untitled Feed"; //Feed title */
 /*     public string link        { get; set; } //Feed link */
@@ -130,9 +156,6 @@ public class Feed : DataEntry
 /*             default_location = result.fetch_string(11); */
 /*         } catch(SQLHeavy.Error e) { */
 /*             // TODO: verbose */
-/*             /* if(verbose) */ */
-/*             /*     stderr.printf("Error loading feed data: %s\n", e.message); */ */
-/*             return; */
 /*         } */
 /*     } */
 /*  */
@@ -153,8 +176,6 @@ public class Feed : DataEntry
 /*         } */
 /*         if(node == null) { */
 /*             // TODO: verbose */
-/*             /* if(verbose) */ */
-/*             /*     stderr.printf("Error: No defining node was found\n"); */ */
 /*             status = 3; */
 /*             return; */
 /*         } */
@@ -289,8 +310,6 @@ public class Feed : DataEntry
 /*             node = node->next; */
 /*         if(node == null) { */
 /*             // TODO: verbose */
-/*             /* if(verbose) */ */
-/*             /*     stderr.printf("Error: No defining node was found\n"); */ */
 /*             status = 3; */
 /*             //app.updateFeedIcons(this); */
 /*             return; */
@@ -401,7 +420,6 @@ public class Feed : DataEntry
 /*             status = 2; */
 /*         // FIXME: Remove interdependency */
 /*         //app.updateFeedIcons(this); */
-/*         /* app.updateFeedItems(this); */ */
 /*          */
 /*         //_last_guid = _last_guid_post; */
 /*         if(_last_guids_post.size > 0) { */

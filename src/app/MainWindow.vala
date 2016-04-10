@@ -108,8 +108,8 @@ class MainWindow : Gtk.ApplicationWindow
 
         init_structure();
         init_content();
-        connect_signals();
-        add_actions();
+        /* connect_signals(); */
+        /* add_actions(); */
         init_menus();
 
         resize_columns(128);
@@ -212,7 +212,7 @@ class MainWindow : Gtk.ApplicationWindow
         grid_view.load_html(app.constructFrontPage(), "");
         column_view_display.load_html(app.constructFrontPage(), "");
         stream_view.load_html(app.constructFrontPage(), "");
-        init_feed_pane();
+        /* init_feed_pane(); */
         grid_view_button.active = true;
 
         item_search_bar.add(item_search_entry);
@@ -239,315 +239,315 @@ class MainWindow : Gtk.ApplicationWindow
         top_bar.pack_end(item_search_toggle);
     }
 
-    private bool policy_decision(WebKit.PolicyDecision decision, WebKit.PolicyDecisionType type)
-    {
-        if(type == WebKit.PolicyDecisionType.NAVIGATION_ACTION) {
-            WebKit.NavigationPolicyDecision nav_dec = (WebKit.NavigationPolicyDecision) decision;
-            if(nav_dec.get_navigation_action().get_request().uri.has_prefix("command://")) {
-                app.interpretUriEncodedAction(nav_dec.get_navigation_action().get_request().uri.substring(10));
-                nav_dec.ignore();
-                return true;
-            }
+    /* private bool policy_decision(WebKit.PolicyDecision decision, WebKit.PolicyDecisionType type) */
+    /* { */
+    /*     if(type == WebKit.PolicyDecisionType.NAVIGATION_ACTION) { */
+    /*         WebKit.NavigationPolicyDecision nav_dec = (WebKit.NavigationPolicyDecision) decision; */
+    /*         if(nav_dec.get_navigation_action().get_request().uri.has_prefix("command://")) { */
+    /*             app.interpretUriEncodedAction(nav_dec.get_navigation_action().get_request().uri.substring(10)); */
+    /*             nav_dec.ignore(); */
+    /*             return true; */
+    /*         } */
+    /*  */
+    /*         if(nav_dec.get_navigation_action().get_request().uri.has_prefix("download-attachment")) { */
+    /*             app.downloadAttachment(nav_dec.get_navigation_action().get_request().uri.substring(19)); */
+    /*             nav_dec.ignore(); */
+    /*             return true; */
+    /*         } */
+    /*  */
+    /*         if(nav_dec.get_navigation_action().get_request().uri.has_prefix("file")) { */
+    /*             return true; */
+    /*         } */
+    /*  */
+    /*         if(nav_dec.get_navigation_action().get_navigation_type() != WebKit.NavigationType.LINK_CLICKED) */
+    /*             return false; */
+    /*         try { */
+    /*             GLib.Process.spawn_command_line_async(app.link_command.printf(nav_dec.get_navigation_action().get_request().uri)); */
+    /*             nav_dec.ignore(); */
+    /*         } catch(Error e) { */
+    /*             stderr.printf(e.message); */
+    /*         } */
+    /*         return true; */
+    /*     } */
+    /*     return false; */
+    /* } */
 
-            if(nav_dec.get_navigation_action().get_request().uri.has_prefix("download-attachment")) {
-                app.downloadAttachment(nav_dec.get_navigation_action().get_request().uri.substring(19));
-                nav_dec.ignore();
-                return true;
-            }
+    /* private void init_feed_pane() */
+    /* { */
+    /*     // Spinner, Name, Unread Badge, Show Badge, Feed Id, Starred Count */
+    /*     feed_data = new TreeStore(6, typeof(bool), typeof(string), typeof(int), typeof(bool), typeof(int), typeof(int)); */
+    /*     feed_data.set_sort_column_id(FeedColumn.TITLE, Gtk.SortType.ASCENDING); */
+    /*     feed_list = new TreeView.with_model(feed_data); */
+    /*     feed_list.set_headers_visible(false); */
+    /*     CellRendererSpinner spin = new CellRendererSpinner(); */
+    /*     //Gtk.TreeViewColumn col_load = new Gtk.TreeViewColumn.with_attributes("Loading", spin, "active", FeedColumn.WORKING, null); */
+    /*     //feed_list.insert_column(col_load, -1); */
+    /*     CellRendererText name_renderer = new CellRendererText(); */
+    /*     name_renderer.ellipsize = Pango.EllipsizeMode.END; */
+    /*     col_name = new Gtk.TreeViewColumn.with_attributes("Name", name_renderer, "text", FeedColumn.TITLE, null); */
+    /*     feed_list.insert_column(col_name, -1); */
+    /*     col_count = new Gtk.TreeViewColumn.with_attributes("Count", new CellRendererText(), "text", FeedColumn.UNREAD_COUNT, "visible", FeedColumn.SHOW_UNREAD_COUNT, null); */
+    /*     feed_list.set_events(Gdk.EventMask.BUTTON_PRESS_MASK); */
+    /*     feed_list.insert_column(col_count, -1); */
+    /*     feed_data.append(out category_collection, null); */
+    /*     feed_data.set(category_collection, FeedColumn.TITLE, "Collections", FeedColumn.SHOW_UNREAD_COUNT, false, -1); */
+    /*     feed_data.append(out all_item, category_collection); */
+    /*     feed_data.set(all_item, FeedColumn.TITLE, "All Feeds", FeedColumn.SHOW_UNREAD_COUNT, false, -1); */
+    /*     feed_data.append(out unread_item, category_collection); */
+    /*     feed_data.set(unread_item, FeedColumn.TITLE, "Unread Feeds", FeedColumn.SHOW_UNREAD_COUNT, true, -1); */
+    /*     feed_data.append(out starred_item, category_collection); */
+    /*     feed_data.set(starred_item, FeedColumn.TITLE, "Starred Feeds", FeedColumn.SHOW_UNREAD_COUNT, true, -1); */
+    /*     feed_data.append(out category_all, null); */
+    /*     feed_data.set(category_all, FeedColumn.TITLE, "Subscriptions", FeedColumn.SHOW_UNREAD_COUNT, false, -1); */
+    /*     feed_list.expand_all(); */
+    /*     feed_list.cursor_changed.connect(() => */
+    /*     { */
+    /*         TreePath path; */
+    /*         feed_list.get_cursor(out path, null); */
+    /*         TreeIter iter; */
+    /*         feed_data.get_iter(out iter, path); */
+    /*         mkread_action.set_enabled(true); */
+    /*         // TODO: Redo this */
+    /*         if(iter == unread_item) { */
+    /*             grid_view.load_html(app.constructUnreadHtml(), ""); */
+    /*             column_view_display.load_html(app.constructUnreadHtml(), ""); */
+    /*             stream_view.load_html(app.constructUnreadHtml(), ""); */
+    /*         } else if(iter == all_item) { */
+    /*             grid_view.load_html(app.constructAllHtml(), ""); */
+    /*             column_view_display.load_html(app.constructAllHtml(), ""); */
+    /*             stream_view.load_html(app.constructAllHtml(), ""); */
+    /*         } else if(iter == starred_item) { */
+    /*             grid_view.load_html(app.constructStarredHtml(), ""); */
+    /*             column_view_display.load_html(app.constructStarredHtml(), ""); */
+    /*             stream_view.load_html(app.constructStarredHtml(), ""); */
+    /*         } else if(iter == category_all || iter == category_collection) { */
+    /*             return; */
+    /*         }  else { */
+    /*             int id = 0; */
+    /*             string name = ""; */
+    /*             feed_data.get(iter, FeedColumn.TITLE, out name, FeedColumn.FEED_ID, out id); */
+    /*             grid_view.load_html(app.constructFeedHtml(id, ViewType.GRID), ""); */
+    /*             column_view_display.load_html(app.constructFeedHtml(id, ViewType.COLUMN), ""); */
+    /*             stream_view.load_html(app.constructFeedHtml(id, ViewType.STREAM), ""); */
+    /*         } */
+    /*     }); */
+    /* } */
 
-            if(nav_dec.get_navigation_action().get_request().uri.has_prefix("file")) {
-                return true;
-            }
+    /* private void connect_signals() */
+    /* { */
+    /*     this.destroy.connect(() => */
+    /*     { */
+    /*         Gtk.main_quit(); */
+    /*     }); */
+    /*  */
+    /*     add_button.clicked.connect((ev) => */
+    /*     { */
+    /*         view_stack.set_visible_child_name("add"); */
+    /*     }); */
+    /*  */
+    /*     main_paned.notify.connect((spec, prop) => */
+    /*     { */
+    /*         if(prop.name == "position") { */
+    /*             resize_columns(main_paned.get_position()); */
+    /*         } */
+    /*     }); */
+    /*  */
+    /*     feed_list_scroll.size_allocate.connect(() => */
+    /*     { */
+    /*         resize_columns(main_paned.get_position()); */
+    /*     }); */
+    /*  */
+    /*     item_search_toggle.toggled.connect(() => */
+    /*     { */
+    /*         item_search_bar.search_mode_enabled = item_search_toggle.active; */
+    /*     }); */
+    /*  */
+    /*     //grid_view.context_menu.connect(() => { return true; }); */
+    /*     //column_view_display.context_menu.connect(() => { return true; }); */
+    /*     //stream_view.context_menu.connect(() => { return true; }); */
+    /*     grid_view.decide_policy.connect((decision, type) => { return policy_decision(decision, type); }); */
+    /*     column_view_display.decide_policy.connect((decision, type) => { return policy_decision(decision, type); }); */
+    /*     stream_view.decide_policy.connect((decision, type) => { return policy_decision(decision, type); }); */
+    /*  */
+    /*     settings.done.connect(() => */
+    /*     { */
+    /*         view_stack.set_visible_child_name(current_view); */
+    /*         preferences_action.set_enabled(true); */
+    /*     }); */
+    /*  */
+    /*     feed_settings.done.connect(() => */
+    /*     { */
+    /*         view_stack.set_visible_child_name(current_view); */
+    /*     }); */
+    /*      */
+    /*     add_pane.done.connect(() => */
+    /*     { */
+    /*         view_stack.set_visible_child_name(current_view); */
+    /*     }); */
+    /*  */
+    /*     grid_view_button.toggled.connect(() => */
+    /*     { */
+    /*         if(toggle_lock) */
+    /*             return; */
+    /*  */
+    /*         if(grid_view_button.active) { */
+    /*             toggle_lock = true; */
+    /*             column_view_button.active = false; */
+    /*             stream_view_button.active = false; */
+    /*             toggle_lock = false; */
+    /*             view_stack.set_visible_child_name("grid"); */
+    /*         } else */
+    /*             grid_view_button.active = true; */
+    /*     }); */
+    /*  */
+    /*     column_view_button.toggled.connect(() => */
+    /*     { */
+    /*         if(toggle_lock) */
+    /*             return; */
+    /*  */
+    /*         if(column_view_button.active) { */
+    /*             toggle_lock = true; */
+    /*             grid_view_button.active = false; */
+    /*             stream_view_button.active = false; */
+    /*             toggle_lock = false; */
+    /*             view_stack.set_visible_child_name("column"); */
+    /*         } else */
+    /*             column_view_button.active = true; */
+    /*     }); */
+    /*  */
+    /*     stream_view_button.toggled.connect(() => */
+    /*     { */
+    /*         if(toggle_lock) */
+    /*             return; */
+    /*  */
+    /*         if(stream_view_button.active) { */
+    /*             toggle_lock = true; */
+    /*             grid_view_button.active = false; */
+    /*             column_view_button.active = false; */
+    /*             toggle_lock = false; */
+    /*             view_stack.set_visible_child_name("stream"); */
+    /*         } else */
+    /*             stream_view_button.active = true; */
+    /*     }); */
+    /*  */
+    /*     feed_list.button_press_event.connect((event) => */
+    /*     { */
+    /*         TreePath? path; */
+    /*         TreeIter? iter; */
+    /*         feed_list.get_cursor(out path, null); */
+    /*         feed_data.get_iter(out iter, path); */
+    /*         if(event.button == 3 && path != null && iter != all_item && iter != unread_item && iter != starred_item && iter != category_all && iter != category_collection) { */
+    /*             feed_list.popup_menu(); */
+    /*         } */
+    /*         return false; */
+    /*     }); */
+    /*     feed_list.popup_menu.connect(() => */
+    /*     { */
+    /*         feed_menu.popup(null, null, null, 0, Gtk.get_current_event_time()); */
+    /*         return false; */
+    /*     }); */
+    /* } */
 
-            if(nav_dec.get_navigation_action().get_navigation_type() != WebKit.NavigationType.LINK_CLICKED)
-                return false;
-            try {
-                GLib.Process.spawn_command_line_async(app.link_command.printf(nav_dec.get_navigation_action().get_request().uri));
-                nav_dec.ignore();
-            } catch(Error e) {
-                stderr.printf(e.message);
-            }
-            return true;
-        }
-        return false;
-    }
-
-    private void init_feed_pane()
-    {
-        // Spinner, Name, Unread Badge, Show Badge, Feed Id, Starred Count
-        feed_data = new TreeStore(6, typeof(bool), typeof(string), typeof(int), typeof(bool), typeof(int), typeof(int));
-        feed_data.set_sort_column_id(FeedColumn.TITLE, Gtk.SortType.ASCENDING);
-        feed_list = new TreeView.with_model(feed_data);
-        feed_list.set_headers_visible(false);
-        CellRendererSpinner spin = new CellRendererSpinner();
-        //Gtk.TreeViewColumn col_load = new Gtk.TreeViewColumn.with_attributes("Loading", spin, "active", FeedColumn.WORKING, null);
-        //feed_list.insert_column(col_load, -1);
-        CellRendererText name_renderer = new CellRendererText();
-        name_renderer.ellipsize = Pango.EllipsizeMode.END;
-        col_name = new Gtk.TreeViewColumn.with_attributes("Name", name_renderer, "text", FeedColumn.TITLE, null);
-        feed_list.insert_column(col_name, -1);
-        col_count = new Gtk.TreeViewColumn.with_attributes("Count", new CellRendererText(), "text", FeedColumn.UNREAD_COUNT, "visible", FeedColumn.SHOW_UNREAD_COUNT, null);
-        feed_list.set_events(Gdk.EventMask.BUTTON_PRESS_MASK);
-        feed_list.insert_column(col_count, -1);
-        feed_data.append(out category_collection, null);
-        feed_data.set(category_collection, FeedColumn.TITLE, "Collections", FeedColumn.SHOW_UNREAD_COUNT, false, -1);
-        feed_data.append(out all_item, category_collection);
-        feed_data.set(all_item, FeedColumn.TITLE, "All Feeds", FeedColumn.SHOW_UNREAD_COUNT, false, -1);
-        feed_data.append(out unread_item, category_collection);
-        feed_data.set(unread_item, FeedColumn.TITLE, "Unread Feeds", FeedColumn.SHOW_UNREAD_COUNT, true, -1);
-        feed_data.append(out starred_item, category_collection);
-        feed_data.set(starred_item, FeedColumn.TITLE, "Starred Feeds", FeedColumn.SHOW_UNREAD_COUNT, true, -1);
-        feed_data.append(out category_all, null);
-        feed_data.set(category_all, FeedColumn.TITLE, "Subscriptions", FeedColumn.SHOW_UNREAD_COUNT, false, -1);
-        feed_list.expand_all();
-        feed_list.cursor_changed.connect(() =>
-        {
-            TreePath path;
-            feed_list.get_cursor(out path, null);
-            TreeIter iter;
-            feed_data.get_iter(out iter, path);
-            mkread_action.set_enabled(true);
-            // TODO: Redo this
-            if(iter == unread_item) {
-                grid_view.load_html(app.constructUnreadHtml(), "");
-                column_view_display.load_html(app.constructUnreadHtml(), "");
-                stream_view.load_html(app.constructUnreadHtml(), "");
-            } else if(iter == all_item) {
-                grid_view.load_html(app.constructAllHtml(), "");
-                column_view_display.load_html(app.constructAllHtml(), "");
-                stream_view.load_html(app.constructAllHtml(), "");
-            } else if(iter == starred_item) {
-                grid_view.load_html(app.constructStarredHtml(), "");
-                column_view_display.load_html(app.constructStarredHtml(), "");
-                stream_view.load_html(app.constructStarredHtml(), "");
-            } else if(iter == category_all || iter == category_collection) {
-                return;
-            }  else {
-                int id = 0;
-                string name = "";
-                feed_data.get(iter, FeedColumn.TITLE, out name, FeedColumn.FEED_ID, out id);
-                grid_view.load_html(app.constructFeedHtml(id, ViewType.GRID), "");
-                column_view_display.load_html(app.constructFeedHtml(id, ViewType.COLUMN), "");
-                stream_view.load_html(app.constructFeedHtml(id, ViewType.STREAM), "");
-            }
-        });
-    }
-
-    private void connect_signals()
-    {
-        this.destroy.connect(() =>
-        {
-            Gtk.main_quit();
-        });
-
-        add_button.clicked.connect((ev) =>
-        {
-            view_stack.set_visible_child_name("add");
-        });
-
-        main_paned.notify.connect((spec, prop) =>
-        {
-            if(prop.name == "position") {
-                resize_columns(main_paned.get_position());
-            }
-        });
-
-        feed_list_scroll.size_allocate.connect(() =>
-        {
-            resize_columns(main_paned.get_position());
-        });
-
-        item_search_toggle.toggled.connect(() =>
-        {
-            item_search_bar.search_mode_enabled = item_search_toggle.active;
-        });
-
-        //grid_view.context_menu.connect(() => { return true; });
-        //column_view_display.context_menu.connect(() => { return true; });
-        //stream_view.context_menu.connect(() => { return true; });
-        grid_view.decide_policy.connect((decision, type) => { return policy_decision(decision, type); });
-        column_view_display.decide_policy.connect((decision, type) => { return policy_decision(decision, type); });
-        stream_view.decide_policy.connect((decision, type) => { return policy_decision(decision, type); });
-
-        settings.done.connect(() =>
-        {
-            view_stack.set_visible_child_name(current_view);
-            preferences_action.set_enabled(true);
-        });
-
-        feed_settings.done.connect(() =>
-        {
-            view_stack.set_visible_child_name(current_view);
-        });
-        
-        add_pane.done.connect(() =>
-        {
-            view_stack.set_visible_child_name(current_view);
-        });
-
-        grid_view_button.toggled.connect(() =>
-        {
-            if(toggle_lock)
-                return;
-
-            if(grid_view_button.active) {
-                toggle_lock = true;
-                column_view_button.active = false;
-                stream_view_button.active = false;
-                toggle_lock = false;
-                view_stack.set_visible_child_name("grid");
-            } else
-                grid_view_button.active = true;
-        });
-
-        column_view_button.toggled.connect(() =>
-        {
-            if(toggle_lock)
-                return;
-
-            if(column_view_button.active) {
-                toggle_lock = true;
-                grid_view_button.active = false;
-                stream_view_button.active = false;
-                toggle_lock = false;
-                view_stack.set_visible_child_name("column");
-            } else
-                column_view_button.active = true;
-        });
-
-        stream_view_button.toggled.connect(() =>
-        {
-            if(toggle_lock)
-                return;
-
-            if(stream_view_button.active) {
-                toggle_lock = true;
-                grid_view_button.active = false;
-                column_view_button.active = false;
-                toggle_lock = false;
-                view_stack.set_visible_child_name("stream");
-            } else
-                stream_view_button.active = true;
-        });
-
-        feed_list.button_press_event.connect((event) =>
-        {
-            TreePath? path;
-            TreeIter? iter;
-            feed_list.get_cursor(out path, null);
-            feed_data.get_iter(out iter, path);
-            if(event.button == 3 && path != null && iter != all_item && iter != unread_item && iter != starred_item && iter != category_all && iter != category_collection) {
-                feed_list.popup_menu();
-            }
-            return false;
-        });
-        feed_list.popup_menu.connect(() =>
-        {
-            feed_menu.popup(null, null, null, 0, Gtk.get_current_event_time());
-            return false;
-        });
-    }
-
-    private void add_actions()
-    {
-        import_action = new GLib.SimpleAction("import", null);
-        import_action.activate.connect(() =>
-        {
-            FileChooserDialog dialog = new FileChooserDialog("Select a file to import", this, FileChooserAction.OPEN);
-            dialog.add_button("Import", ResponseType.OK);
-            dialog.add_button("Cancel", ResponseType.CANCEL);
-            dialog.response.connect((r) =>
-            {
-                dialog.close();
-                if(r == ResponseType.OK) {
-                    File file = dialog.get_file();
-                    app.import(file);
-                }
-            });
-            dialog.run();
-        });
-        this.add_action(import_action);
-        export_action = new GLib.SimpleAction("export", null);
-        export_action.activate.connect(() =>
-        {
-            FileChooserDialog dialog = new FileChooserDialog("Export to\u2026", this, FileChooserAction.SAVE);
-            dialog.add_button("Export", ResponseType.OK);
-            dialog.add_button("Cancel", ResponseType.CANCEL);
-            dialog.response.connect((r) =>
-            {
-                dialog.close();
-                if(r == ResponseType.OK) {
-                    File file = dialog.get_file();
-                    app.export(file);
-                }
-            });
-            dialog.run();
-        });
-        this.add_action(export_action);
-        refresh_action = new GLib.SimpleAction("refresh-feeds", null);
-        refresh_action.set_enabled(false);
-        refresh_action.activate.connect(() =>
-        {
-            app.update();
-        });
-        this.add_action(refresh_action);
-        preferences_action = new GLib.SimpleAction("app-preferences", null);
-        preferences_action.activate.connect(() =>
-        {
-            settings.sync();
-            view_stack.set_visible_child_name("settings");
-            preferences_action.set_enabled(false);
-        });
-        this.add_action(preferences_action);
-        mkread_action = new GLib.SimpleAction("mark-read", null);
-        mkread_action.set_enabled(false);
-        mkread_action.activate.connect(() =>
-        {
-            app.markAllAsRead();
-        });
-        this.add_action(mkread_action);
-        about_action = new GLib.SimpleAction("about", null);
-        about_action.activate.connect(() =>
-        {
-            Gtk.show_about_dialog(this,
-                "program-name", ("Singularity"),
-                "authors", (authorstr),
-                "website", ("http://github.com/Df458/Singularity"),
-                "website-label", ("Github"),
-                "comments", ("A simple webfeed aggregator"),
-                "version", ("0.3"),
-                "license-type", ((Gtk.License)License.GPL_3_0),
-                "copyright", ("Copyright © 2014-2016 Hugues Ross"));
-        });
-        this.add_action(about_action);
-
-        SimpleActionGroup feed_group = new SimpleActionGroup();
-        unsubscribe_action = new GLib.SimpleAction("unsubscribe", null);
-        unsubscribe_action.activate.connect(() =>
-        {
-            TreeIter iter;
-            TreePath path;
-            TreeViewColumn column;
-            feed_list.get_cursor(out path, out column);
-            feed_data.get_iter(out iter, path);
-
-            string name;
-            int id;
-            feed_data.get(iter, 1, out name, 4, out id);
-
-            MessageDialog confirm = new MessageDialog(this, DialogFlags.MODAL, MessageType.QUESTION, ButtonsType.YES_NO, "Are you sure you want to unsubscribe from %s?", name);
-            confirm.response.connect((response) => {
-                if(response == Gtk.ResponseType.YES) {
-                    app.removeFeed(id);
-                    feed_data.remove(ref iter);
-                }
-                confirm.destroy();
-            });
-            confirm.show_all();
-        });
-        feed_group.add_action(unsubscribe_action);
-        feed_list.insert_action_group("feed", feed_group);
-    }
+    /* private void add_actions() */
+    /* { */
+    /*     import_action = new GLib.SimpleAction("import", null); */
+    /*     import_action.activate.connect(() => */
+    /*     { */
+    /*         FileChooserDialog dialog = new FileChooserDialog("Select a file to import", this, FileChooserAction.OPEN); */
+    /*         dialog.add_button("Import", ResponseType.OK); */
+    /*         dialog.add_button("Cancel", ResponseType.CANCEL); */
+    /*         dialog.response.connect((r) => */
+    /*         { */
+    /*             dialog.close(); */
+    /*             if(r == ResponseType.OK) { */
+    /*                 File file = dialog.get_file(); */
+    /*                 app.import(file); */
+    /*             } */
+    /*         }); */
+    /*         dialog.run(); */
+    /*     }); */
+    /*     this.add_action(import_action); */
+    /*     export_action = new GLib.SimpleAction("export", null); */
+    /*     export_action.activate.connect(() => */
+    /*     { */
+    /*         FileChooserDialog dialog = new FileChooserDialog("Export to\u2026", this, FileChooserAction.SAVE); */
+    /*         dialog.add_button("Export", ResponseType.OK); */
+    /*         dialog.add_button("Cancel", ResponseType.CANCEL); */
+    /*         dialog.response.connect((r) => */
+    /*         { */
+    /*             dialog.close(); */
+    /*             if(r == ResponseType.OK) { */
+    /*                 File file = dialog.get_file(); */
+    /*                 app.export(file); */
+    /*             } */
+    /*         }); */
+    /*         dialog.run(); */
+    /*     }); */
+    /*     this.add_action(export_action); */
+    /*     refresh_action = new GLib.SimpleAction("refresh-feeds", null); */
+    /*     refresh_action.set_enabled(false); */
+    /*     refresh_action.activate.connect(() => */
+    /*     { */
+    /*         app.update(); */
+    /*     }); */
+    /*     this.add_action(refresh_action); */
+    /*     preferences_action = new GLib.SimpleAction("app-preferences", null); */
+    /*     preferences_action.activate.connect(() => */
+    /*     { */
+    /*         settings.sync(); */
+    /*         view_stack.set_visible_child_name("settings"); */
+    /*         preferences_action.set_enabled(false); */
+    /*     }); */
+    /*     this.add_action(preferences_action); */
+    /*     mkread_action = new GLib.SimpleAction("mark-read", null); */
+    /*     mkread_action.set_enabled(false); */
+    /*     mkread_action.activate.connect(() => */
+    /*     { */
+    /*         app.markAllAsRead(); */
+    /*     }); */
+    /*     this.add_action(mkread_action); */
+    /*     about_action = new GLib.SimpleAction("about", null); */
+    /*     about_action.activate.connect(() => */
+    /*     { */
+    /*         Gtk.show_about_dialog(this, */
+    /*             "program-name", ("Singularity"), */
+    /*             "authors", (authorstr), */
+    /*             "website", ("http://github.com/Df458/Singularity"), */
+    /*             "website-label", ("Github"), */
+    /*             "comments", ("A simple webfeed aggregator"), */
+    /*             "version", ("0.3"), */
+    /*             "license-type", ((Gtk.License)License.GPL_3_0), */
+    /*             "copyright", ("Copyright © 2014-2016 Hugues Ross")); */
+    /*     }); */
+    /*     this.add_action(about_action); */
+    /*  */
+    /*     SimpleActionGroup feed_group = new SimpleActionGroup(); */
+    /*     unsubscribe_action = new GLib.SimpleAction("unsubscribe", null); */
+    /*     unsubscribe_action.activate.connect(() => */
+    /*     { */
+    /*         TreeIter iter; */
+    /*         TreePath path; */
+    /*         TreeViewColumn column; */
+    /*         feed_list.get_cursor(out path, out column); */
+    /*         feed_data.get_iter(out iter, path); */
+    /*  */
+    /*         string name; */
+    /*         int id; */
+    /*         feed_data.get(iter, 1, out name, 4, out id); */
+    /*  */
+    /*         MessageDialog confirm = new MessageDialog(this, DialogFlags.MODAL, MessageType.QUESTION, ButtonsType.YES_NO, "Are you sure you want to unsubscribe from %s?", name); */
+    /*         confirm.response.connect((response) => { */
+    /*             if(response == Gtk.ResponseType.YES) { */
+    /*                 app.removeFeed(id); */
+    /*                 feed_data.remove(ref iter); */
+    /*             } */
+    /*             confirm.destroy(); */
+    /*         }); */
+    /*         confirm.show_all(); */
+    /*     }); */
+    /*     feed_group.add_action(unsubscribe_action); */
+    /*     feed_list.insert_action_group("feed", feed_group); */
+    /* } */
 
     private void init_menus()
     {
@@ -588,55 +588,55 @@ class MainWindow : Gtk.ApplicationWindow
         //}
     }
 
-    public void add_feeds(Gee.ArrayList<Feed> feeds)
-    {
-        for(int i = 0; i < feeds.size; ++i) {
-            add_feed(feeds[i], feeds[i].id);
-        }
-    }
+    /* public void add_feeds(Gee.ArrayList<Feed> feeds) */
+    /* { */
+    /*     for(int i = 0; i < feeds.size; ++i) { */
+    /*         add_feed(feeds[i], feeds[i].id); */
+    /*     } */
+    /* } */
 
-    public void add_feed(Feed f, int index)
-    {
-        int count = 0;
-        feed_data.get(unread_item, 2, out count);
-        feed_data.set(unread_item, 2, count + f.unread_count, -1);
-        count = 0;
-        feed_data.get(starred_item, 2, out count);
-        feed_data.set(starred_item, 2, count + f.starred_count, -1);
-        TreeIter iter;
-        feed_data.append(out iter, category_all);
-        feed_data.set(iter, 1, f.title, 2, f.unread_count, 3, true, 4, index, 5, f.starred_count, -1);
-        updateSubtitle();
-        // TODO: Redo this
-        //if(firststart) {
-            //firststart = false;
-            //refresh_action.set_enabled(true);
-            //set_content(web_view);
-        //}
-    }
+    /* public void add_feed(Feed f, int index) */
+    /* { */
+    /*     int count = 0; */
+    /*     feed_data.get(unread_item, 2, out count); */
+    /*     feed_data.set(unread_item, 2, count + f.unread_count, -1); */
+    /*     count = 0; */
+    /*     feed_data.get(starred_item, 2, out count); */
+    /*     feed_data.set(starred_item, 2, count + f.starred_count, -1); */
+    /*     TreeIter iter; */
+    /*     feed_data.append(out iter, category_all); */
+    /*     feed_data.set(iter, 1, f.title, 2, f.unread_count, 3, true, 4, index, 5, f.starred_count, -1); */
+    /*     updateSubtitle(); */
+    /*     // TODO: Redo this */
+    /*     //if(firststart) { */
+    /*         //firststart = false; */
+    /*         //refresh_action.set_enabled(true); */
+    /*         //set_content(web_view); */
+    /*     //} */
+    /* } */
 
-    public void updateFeedItem(Feed f, int index)
-    {
-        feed_data.foreach((model, path, iter) => {
-            int id = 0;
-            feed_data.get(iter, 4, out id);
-            if(id == index) {
-                int last_count = 0;
-                int last_starred = 0;
-                feed_data.get(iter, 2, out last_count, 5, out last_starred, -1);
-                int count = 0;
-                feed_data.get(unread_item, 2, out count);
-                feed_data.set(unread_item, 2, count + (f.unread_count - last_count), -1);
-                count = 0;
-                feed_data.get(starred_item, 2, out count);
-                feed_data.set(starred_item, 2, count + (f.starred_count - last_starred), -1);
-                feed_data.set(iter, 2, f.unread_count, -1);
-                feed_data.set(iter, 5, f.starred_count, -1);
-                return true;
-            }
-            return false;
-        });
-    }
+    /* public void updateFeedItem(Feed f, int index) */
+    /* { */
+    /*     feed_data.foreach((model, path, iter) => { */
+    /*         int id = 0; */
+    /*         feed_data.get(iter, 4, out id); */
+    /*         if(id == index) { */
+    /*             int last_count = 0; */
+    /*             int last_starred = 0; */
+    /*             feed_data.get(iter, 2, out last_count, 5, out last_starred, -1); */
+    /*             int count = 0; */
+    /*             feed_data.get(unread_item, 2, out count); */
+    /*             feed_data.set(unread_item, 2, count + (f.unread_count - last_count), -1); */
+    /*             count = 0; */
+    /*             feed_data.get(starred_item, 2, out count); */
+    /*             feed_data.set(starred_item, 2, count + (f.starred_count - last_starred), -1); */
+    /*             feed_data.set(iter, 2, f.unread_count, -1); */
+    /*             feed_data.set(iter, 5, f.starred_count, -1); */
+    /*             return true; */
+    /*         } */
+    /*         return false; */
+    /*     }); */
+    /* } */
 
     public int get_unread_count()
     {
