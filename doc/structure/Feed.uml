@@ -1,0 +1,150 @@
+@startuml
+DataEntry <|-- Feed
+Feed <|-- RSSFeed
+Feed <|-- AtomFeed
+Feed o--  Database : weak reference >
+Feed *--  Tag
+Feed --  Icon
+RSSFeed *-- Person : up to 2 >
+AtomFeed *-- Person
+AtomFeed -- Icon
+
+class Feed {
+    Feed(Database)
+    Feed(Record)
+    --
+    +string title
+    +string link
+    +string? rights
+    +Collection<Tag> tags
+    +string? generator
+    +Icon? icon
+    +DateTime? last_updated
+    -Database _db
+
+    +string get_title()
+    +void set_title(string)
+    +string get_link()
+    +void set_link(string)
+    +string? get_rights()
+    +void set_rights(string)
+    +Collection<Tag> get_tags()
+    +void set_tags(Collection<Tag>)
+    +string? get_generator()
+    +void set_generator(string)
+    +Icon? get_icon()
+    +set_icon(Icon)
+    +DateTime? get_last_updated()
+    +void set_last_updated(DateTime)
+    --
+    +void add_category(Tag);
+}
+
+class RSSFeed {
+    +string description
+    +string? language
+    +Person? managing_editor
+    +Person? webmaster
+    +DateTime? publication_date
+    +int ttl
+    +Collection<int> skip_hours
+    +Collection<int> skip_days
+
+    +string get_description()
+    +void set_description(string)
+    +string? get_language()
+    +void set_language(string)
+    +Person? get_managing_editor()
+    +void set_managing_editor(Person)
+    +Person? get_webmaster()
+    +void set_webmaster(Person)
+    +DateTime? get_publication_date()
+    +void set_publication_date(DateTime)
+    +int get_ttl()
+    +void set_ttl(int)
+    +Collection<int> get_skip_hours
+    +void set_skip_hours(Collection<int>)
+    +Collection<int> get_skip_days
+    +void set_skip_days(Collection<int>)
+    --
+    +void add_skip_hour(int);
+    +void add_skip_day(int);
+}
+
+class AtomFeed {
+    +Collection<Person> authors
+    +Collection<Person> contributors
+    +Icon? logo
+    +UUID id
+    +string? subtitle
+
+    +Collection<Person> get_authors()
+    +void set_authors(Collection<Person>)
+    +Collection<Person> get_contributors()
+    +void set_contributors(Collection<Person>)
+    +Icon? get_logo()
+    +void set_logo(Icon)
+    +UUID get_id()
+    +string? get_subtitle()
+    +void set_subtitle(string)
+    --
+    +void add_author(Person)
+    +void add_contributor(Person)
+}
+
+class Tag {
+    +Tag(string name, string? link = null, string? label = null)
+    --
+    +string name
+    +string? link
+    +string? label
+
+    +string get_name()
+    +void set_name(string)
+    +string? get_link()
+    +void set_link(string)
+    +string? get_label()
+    +void set_label(string)
+}
+
+class Icon {
+    Icon(string new_url, string new_title = null, string new_link = null1)
+    --
+    +string url
+    +string? title
+    +string? link
+    +Pixbuf? image
+    +string? description
+
+    +string get_url()
+    +void set_url(string)
+    +string? get_title()
+    +void set_title(string)
+    +string? get_link()
+    +void set_link(string)
+    +Pixbuf? get_image()
+    +string? get_description()
+    +void set_description(string)
+    --
+    +async bool load()
+}
+note left: Icon title and link aren't guaranteed to be non-null because Atom only defines icons by their url
+
+class Person {
+    +Person(string? new_name = null, string? new_url = null, string? new_email = null)
+    --
+    +string? name
+    +string? url
+    +string? email
+    +bool is_valid
+
+    +string? get_name()
+    +void set_name(string)
+    +string? get_url()
+    +void set_url(string)
+    +string? get_email()
+    +void set_email(string)
+    +bool get_is_valid()
+}
+note left: Name isn't guaranteed to be non-null because of RSS2.0 email-only fields
+@enduml
