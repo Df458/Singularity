@@ -9,7 +9,25 @@ RSSFeed *-- Person : up to 2 >
 AtomFeed *-- Person
 AtomFeed -- Icon
 
-class Feed {
+abstract class DataEntry {
+}
+
+abstract class FeedBuilder {
+}
+
+class XmlRSSFeedBuilder {
+}
+
+class XmlAtomFeedBuilder {
+}
+
+class RecordRSSFeedBuilder {
+}
+
+class RecordAtomFeedBuilder {
+}
+
+abstract class Feed {
     Feed(Database)
     Feed(Record)
     --
@@ -41,6 +59,9 @@ class Feed {
 }
 
 class RSSFeed {
+    RSSFeed(Database)
+    RSSFeed(Record)
+    --
     +string description
     +string? language
     +Person? managing_editor
@@ -72,6 +93,9 @@ class RSSFeed {
 }
 
 class AtomFeed {
+    AtomFeed(Database)
+    AtomFeed(Record)
+    --
     +Collection<Person> authors
     +Collection<Person> contributors
     +Icon? logo
@@ -131,20 +155,12 @@ class Icon {
 note left: Icon title and link aren't guaranteed to be non-null because Atom only defines icons by their url
 
 class Person {
-    +Person(string? new_name = null, string? new_url = null, string? new_email = null)
+    +Person(string? name, string? url = null, string? email = null)
     --
     +string? name
     +string? url
     +string? email
     +bool is_valid
-
-    +string? get_name()
-    +void set_name(string)
-    +string? get_url()
-    +void set_url(string)
-    +string? get_email()
-    +void set_email(string)
-    +bool get_is_valid()
 }
 note left: Name isn't guaranteed to be non-null because of RSS2.0 email-only fields
 @enduml
