@@ -15,68 +15,113 @@
 	You should have received a copy of the GNU General Public License
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+using Gee;
 
 namespace Singularity
 {
+    public class Feed : Subscription<Item>, DataEntry
+    {
+        public string           title       { get; set; }
+        public string?          description { get; set; }
+        public string           link        { get; set; }
+        public string?          rights      { get; set; }
+        public Collection<Tag?>  tags        { get; set; }
+        public string?          generator   { get; set; }
+        public Icon?            icon        { get; set; }
+        public DateTime?        last_update { get; set; }
+        public Collection<Item> items       { get; set; }
+
+        public bool get_should_update()
+        {
+            warning("get_should_update() is unimplemented.");
+            return false;
+        }
+
+        public bool update_contents(DataSource<Item> source)
+        {
+            warning("update_contents() is unimplemented.");
+            return false;
+        }
+
+        public override bool insert()
+        {
+            warning("insert() is unimplemented.");
+            return false;
+        }
+
+        public override bool update()
+        {
+            warning("update() is unimplemented.");
+            return false;
+        }
+
+        public override bool remove()
+        {
+            warning("remove() is unimplemented.");
+            return false;
+        }
+    }
+}
+
 //:TODO: 05.09.14 08:11:23, Hugues Ross
 // Add a full implementation of the various feed standards
-public class Feed : DataEntry
-{
-    public Feed(SQLHeavy.Database db)
-    {
-        base();
-        _db = db;
-    }
-
-    public Feed.from_record(SQLHeavy.Record r, SQLHeavy.Database db)
-    {
-        base.from_record(r);
-        _db = db;
-    }
-
-    public override bool insert()
-    {
-        try {
-            SQLHeavy.Query q = new SQLHeavy.Query(_db, insert_statement);
-            q.execute();
-        } catch(SQLHeavy.Error e) {
-            warning("Failed to write new feed: %s", e.message);
-            return false;
-        }
-        return true;
-    }
-
-    public override bool update()
-    {
-        try {
-            SQLHeavy.Query q = new SQLHeavy.Query(_db, update_statement);
-            q[":id"] = id;
-            q.execute();
-        } catch(SQLHeavy.Error e) {
-            warning("Failed to write feed: %s", e.message);
-            return false;
-        }
-        return true;
-    }
-
-    public override bool remove()
-    {
-        try {
-            SQLHeavy.Query q = new SQLHeavy.Query(_db, remove_statement);
-            q[":id"] = id;
-            q.execute();
-        } catch(SQLHeavy.Error e) {
-            warning("Failed to remove feed: %s", e.message);
-            return false;
-        }
-        return true;
-    }
-
-    private weak SQLHeavy.Database _db;
-
-    private static const string insert_statement = "INSERT INTO feeds () VALUES ()";
-    private static const string update_statement = "UPDATE feeds WHERE `id` = :id";
-    private static const string remove_statement = "DELETE FROM feeds WHERE `id` = :id";
+/* public class Feed : DataEntry */
+/* { */
+/*     public Feed(SQLHeavy.Database db) */
+/*     { */
+/*         base(); */
+/*         _db = db; */
+/*     } */
+/*  */
+/*     public Feed.from_record(SQLHeavy.Record r, SQLHeavy.Database db) */
+/*     { */
+/*         base.from_record(r); */
+/*         _db = db; */
+/*     } */
+/*  */
+/*     public override bool insert() */
+/*     { */
+/*         try { */
+/*             SQLHeavy.Query q = new SQLHeavy.Query(_db, insert_statement); */
+/*             q.execute(); */
+/*         } catch(SQLHeavy.Error e) { */
+/*             warning("Failed to write new feed: %s", e.message); */
+/*             return false; */
+/*         } */
+/*         return true; */
+/*     } */
+/*  */
+/*     public override bool update() */
+/*     { */
+/*         try { */
+/*             SQLHeavy.Query q = new SQLHeavy.Query(_db, update_statement); */
+/*             q[":id"] = id; */
+/*             q.execute(); */
+/*         } catch(SQLHeavy.Error e) { */
+/*             warning("Failed to write feed: %s", e.message); */
+/*             return false; */
+/*         } */
+/*         return true; */
+/*     } */
+/*  */
+/*     public override bool remove() */
+/*     { */
+/*         try { */
+/*             SQLHeavy.Query q = new SQLHeavy.Query(_db, remove_statement); */
+/*             q[":id"] = id; */
+/*             q.execute(); */
+/*         } catch(SQLHeavy.Error e) { */
+/*             warning("Failed to remove feed: %s", e.message); */
+/*             return false; */
+/*         } */
+/*         return true; */
+/*     } */
+/*  */
+/*     private weak SQLHeavy.Database _db; */
+/*  */
+/*     private static const string insert_statement = "INSERT INTO feeds () VALUES ()"; */
+/*     private static const string update_statement = "UPDATE feeds WHERE `id` = :id"; */
+/*     private static const string remove_statement = "DELETE FROM feeds WHERE `id` = :id"; */
 /*     private Gee.ArrayList<Item> _items; */
 /*     private Gee.ArrayList<Item> _items_unread; */
 /*     private Gee.ArrayList<Item> _items_starred; */
@@ -554,5 +599,4 @@ public class Feed : DataEntry
 /*                 _items_starred.remove(i); */
 /*         } */
 /*     } */
-}
-}
+/* } */

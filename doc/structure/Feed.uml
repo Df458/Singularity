@@ -1,13 +1,14 @@
 @startuml
 DataEntry <|-- Feed
-Feed <|-- RSSFeed
-Feed <|-- AtomFeed
+Subscription <|-- Feed
 Feed o--  Database : weak reference >
 Feed *--  Tag
 Feed --  Icon
-RSSFeed *-- Person : up to 2 >
-AtomFeed *-- Person
-AtomFeed -- Icon
+
+interface DataSource<T> {
+    --
+    +abstract T get_data(string uri);
+}
 
 abstract class DataEntry {
 }
@@ -15,33 +16,32 @@ abstract class DataEntry {
 abstract class FeedBuilder {
 }
 
-class XmlRSSFeedBuilder {
+interface Subscription<T> {
+    +string uri
+    +UUID id
+    --
+    +abstract bool should_update();
+    +abstract void update(DataSource source);
 }
 
-class XmlAtomFeedBuilder {
-}
-
-class RecordRSSFeedBuilder {
-}
-
-class RecordAtomFeedBuilder {
-}
-
-abstract class Feed {
+public class Feed {
     Feed(Database)
     Feed(Record)
     --
     +string title
+    +string? description
     +string link
     +string? rights
     +Collection<Tag> tags
     +string? generator
     +Icon? icon
     +DateTime? last_updated
-    -Database _db
+    -Collection<Item> items
 
     +string get_title()
     +void set_title(string)
+    +string? get_description()
+    +void set_description(string)
     +string get_link()
     +void set_link(string)
     +string? get_rights()
@@ -56,64 +56,8 @@ abstract class Feed {
     +void set_last_updated(DateTime)
     --
     +void add_category(Tag);
-}
-
-class RSSFeed {
-    RSSFeed(Database)
-    RSSFeed(Record)
-    --
-    +string description
-    +string? language
-    +Person? managing_editor
-    +Person? webmaster
-    +DateTime? publication_date
-    +int ttl
-    +Collection<int> skip_hours
-    +Collection<int> skip_days
-
-    +string get_description()
-    +void set_description(string)
-    +string? get_language()
-    +void set_language(string)
-    +Person? get_managing_editor()
-    +void set_managing_editor(Person)
-    +Person? get_webmaster()
-    +void set_webmaster(Person)
-    +DateTime? get_publication_date()
-    +void set_publication_date(DateTime)
-    +int get_ttl()
-    +void set_ttl(int)
-    +Collection<int> get_skip_hours
-    +void set_skip_hours(Collection<int>)
-    +Collection<int> get_skip_days
-    +void set_skip_days(Collection<int>)
-    --
-    +void add_skip_hour(int);
-    +void add_skip_day(int);
-}
-
-class AtomFeed {
-    AtomFeed(Database)
-    AtomFeed(Record)
-    --
-    +Collection<Person> authors
-    +Collection<Person> contributors
-    +Icon? logo
-    +UUID id
-    +string? subtitle
-
-    +Collection<Person> get_authors()
-    +void set_authors(Collection<Person>)
-    +Collection<Person> get_contributors()
-    +void set_contributors(Collection<Person>)
-    +Icon? get_logo()
-    +void set_logo(Icon)
-    +UUID get_id()
-    +string? get_subtitle()
-    +void set_subtitle(string)
-    --
-    +void add_author(Person)
-    +void add_contributor(Person)
+    +bool should_update();
+    +void update();
 }
 
 class Tag {

@@ -21,6 +21,7 @@ using SQLHeavy;
 namespace Singularity
 {
 
+// TODO: Make DatabaseManager a DataSource
 public class DatabaseManager
 {
     private static const string schema_dir = "/usr/local/share/singularity/schemas";
@@ -57,17 +58,17 @@ public class DatabaseManager
     {
         Gee.ArrayList<Feed> feed_list = new Gee.ArrayList<Feed>();
 
-        try {
-            Query load_query = new Query(db, "SELECT * FROM feeds");
-            for(QueryResult result = yield load_query.execute_async(); !result.finished; result.next() ) {
-                if(result.fetch_int(0) >= next_id)
-                    next_id = result.fetch_int(0) + 1;
-                Feed f = new Feed.from_record(result, db);
-                feed_list.add(f);
-            }
-        } catch(SQLHeavy.Error e) {
-            stderr.printf("Error loading feed data: %s\n", e.message);
-        }
+        /* try { */
+        /*     Query load_query = new Query(db, "SELECT * FROM feeds"); */
+        /*     for(QueryResult result = yield load_query.execute_async(); !result.finished; result.next() ) { */
+        /*         if(result.fetch_int(0) >= next_id) */
+        /*             next_id = result.fetch_int(0) + 1; */
+        /*         Feed f = new Feed.from_record(result, db); */
+        /*         feed_list.add(f); */
+        /*     } */
+        /* } catch(SQLHeavy.Error e) { */
+        /*     stderr.printf("Error loading feed data: %s\n", e.message); */
+        /* } */
 
         return feed_list;
     }
@@ -201,52 +202,52 @@ public class DatabaseManager
 
     public async void updateUnread(Feed feed, Gee.ArrayList<Item> items)
     {
-        foreach(Item item in items) {
-            try {
-                Query save_query = new Query(db, "UPDATE items SET unread = :unread WHERE guid = :guid");
-                save_query[":guid"] = item.guid;
-                save_query[":unread"] = item.unread ? 1 : 0;
-                yield save_query.execute_async();
-            } catch(SQLHeavy.Error e) {
-                stderr.printf("Error saving feed data: %s\n", e.message);
-            }
-        }
+        /* foreach(Item item in items) { */
+        /*     try { */
+        /*         Query save_query = new Query(db, "UPDATE items SET unread = :unread WHERE guid = :guid"); */
+        /*         save_query[":guid"] = item.guid; */
+        /*         save_query[":unread"] = item.unread ? 1 : 0; */
+        /*         yield save_query.execute_async(); */
+        /*     } catch(SQLHeavy.Error e) { */
+        /*         stderr.printf("Error saving feed data: %s\n", e.message); */
+        /*     } */
+        /* } */
     }
 
     public async void updateStarred(Feed feed, Item item)
     {
-        try {
-            Query save_query = new Query(db, "UPDATE items SET starred = :starred WHERE parent_id = :fid AND guid = :guid");
-            save_query[":guid"] = item.guid;
-            save_query[":starred"] = item.starred ? 1 : 0;
-            save_query[":fid"] = feed.id;
-            yield save_query.execute_async();
-        } catch(SQLHeavy.Error e) {
-            stderr.printf("Error saving feed data: %s\n", e.message);
-        }
+        /* try { */
+        /*     Query save_query = new Query(db, "UPDATE items SET starred = :starred WHERE parent_id = :fid AND guid = :guid"); */
+        /*     save_query[":guid"] = item.guid; */
+        /*     save_query[":starred"] = item.starred ? 1 : 0; */
+        /*     save_query[":fid"] = feed.id; */
+        /*     yield save_query.execute_async(); */
+        /* } catch(SQLHeavy.Error e) { */
+        /*     stderr.printf("Error saving feed data: %s\n", e.message); */
+        /* } */
     }
     
     public async void updateSingleUnread(Item item)
     {
-	    try {
-            Query save_query = new Query(db, "UPDATE items SET unread = :unread WHERE guid = :guid");
-            save_query[":guid"] = item.guid;
-            save_query[":unread"] = item.unread ? 1 : 0;
-            yield save_query.execute_async();
-	    } catch(SQLHeavy.Error e) {
-            stderr.printf("Error saving feed data: %s\n", e.message);
-        }
+	    /* try { */
+        /*     Query save_query = new Query(db, "UPDATE items SET unread = :unread WHERE guid = :guid"); */
+        /*     save_query[":guid"] = item.guid; */
+        /*     save_query[":unread"] = item.unread ? 1 : 0; */
+        /*     yield save_query.execute_async(); */
+	    /* } catch(SQLHeavy.Error e) { */
+        /*     stderr.printf("Error saving feed data: %s\n", e.message); */
+        /* } */
     }
 
     public async void removeOldItems(DateTime cutoff)
     {
-        try {
-            Query rm_query = new Query(db, "DELETE FROM items WHERE savedate < :cutoff");
-            rm_query[":cutoff"] = cutoff.to_unix();
-            yield rm_query.execute_async();
-        } catch(SQLHeavy.Error e) {
-            stderr.printf("Error clearing old items: %s", e.message);
-        }
+        /* try { */
+        /*     Query rm_query = new Query(db, "DELETE FROM items WHERE savedate < :cutoff"); */
+        /*     rm_query[":cutoff"] = cutoff.to_unix(); */
+        /*     yield rm_query.execute_async(); */
+        /* } catch(SQLHeavy.Error e) { */
+        /*     stderr.printf("Error clearing old items: %s", e.message); */
+        /* } */
     }
 
     /*

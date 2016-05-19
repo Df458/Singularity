@@ -12,48 +12,48 @@ public class OPML
     {
         ArrayList<Feed> feeds = new ArrayList<Feed>();
 
-        while(node != null && node->name != "opml")
-            node = node->next;
-
-        if(node == null) {
-            // TODO: verbose
-            /* if(verbose) */
-            /*     stderr.printf("Error: No defining node was found\n"); */
-            return feeds;
-        }
-
-        node = node->children;
-        while(node != null && node->name != "body")
-            node = node->next;
-
-        if(node == null) {
-            // TODO: verbose
-            /* if(verbose) */
-            /*     stderr.printf("Error: No body was found\n"); */
-            return feeds;
-        }
-
-        stderr.printf("Entering body...\n");
-        for(node = node->children; node != null; node = node->next) {
-            if(node->type == Xml.ElementType.ELEMENT_NODE) {
-                if(node->name == "outline") {
-                    stderr.printf("Found outline node...\n");
-                    if(node->has_prop("xmlUrl") != null) {
-                        stderr.printf("Creating feed...\n");
-                        // TODO: Fix interdependency
-                        /* app.createFeed(node->has_prop("xmlUrl")->children->content); */
-                    }
-                    stderr.printf("Iterating Children...\n");
-                    for(Xml.Node* dat = node->children; dat != null; dat = dat->next) {
-                        if(dat->has_prop("xmlUrl") != null) {
-                            stderr.printf("Creating feed...\n");
-                            // FIXME: Fix interdependency
-                            /* app.createFeed(dat->has_prop("xmlUrl")->children->content); */
-                        }
-                    }
-                }
-            }
-        }
+//        while(node != null && node->name != "opml")
+//            node = node->next;
+//
+//        if(node == null) {
+//            // TODO: verbose
+//            /* if(verbose) */
+//            /*     stderr.printf("Error: No defining node was found\n"); */
+//            return feeds;
+//        }
+//
+//        node = node->children;
+//        while(node != null && node->name != "body")
+//            node = node->next;
+//
+//        if(node == null) {
+//            // TODO: verbose
+//            /* if(verbose) */
+//            /*     stderr.printf("Error: No body was found\n"); */
+//            return feeds;
+//        }
+//
+//        stderr.printf("Entering body...\n");
+//        for(node = node->children; node != null; node = node->next) {
+//            if(node->type == Xml.ElementType.ELEMENT_NODE) {
+//                if(node->name == "outline") {
+//                    stderr.printf("Found outline node...\n");
+//                    if(node->has_prop("xmlUrl") != null) {
+//                        stderr.printf("Creating feed...\n");
+//                        // TODO: Fix interdependency
+//                        /* app.createFeed(node->has_prop("xmlUrl")->children->content); */
+//                    }
+//                    stderr.printf("Iterating Children...\n");
+//                    for(Xml.Node* dat = node->children; dat != null; dat = dat->next) {
+//                        if(dat->has_prop("xmlUrl") != null) {
+//                            stderr.printf("Creating feed...\n");
+//                            // FIXME: Fix interdependency
+//                            /* app.createFeed(dat->has_prop("xmlUrl")->children->content); */
+//                        }
+//                    }
+//                }
+//            }
+//        }
         return feeds;
     }
 
