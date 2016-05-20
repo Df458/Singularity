@@ -1,9 +1,16 @@
-using Gee;
-
 namespace Singularity
 {
-    public interface DataSource<T>
+    public abstract class DataSource<DataType, ParseType>
     {
-        public abstract Collection<T> get_data(string uri);
+        public Gee.List<DataType> data { get { return _data; } }
+
+        public DataType @get(int index)
+        {
+            return _data.get(index);
+        }
+
+        public abstract bool parse_data(ParseType type);
+
+        protected Gee.List<DataType> _data;
     }
 }

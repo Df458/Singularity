@@ -19,7 +19,7 @@ using Gee;
 
 namespace Singularity
 {
-    public class Feed : Subscription<Item>, DataEntry
+    public class Feed : Subscription<Item, Xml.Doc>, DataEntry
     {
         public string           title       { get; set; }
         public string?          description { get; set; }
@@ -37,7 +37,7 @@ namespace Singularity
             return false;
         }
 
-        public bool update_contents(DataSource<Item> source)
+        public bool update_contents(DataSource<Item, Xml.Doc> source)
         {
             warning("update_contents() is unimplemented.");
             return false;

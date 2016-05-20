@@ -516,6 +516,7 @@ class SingularityApp : Gtk.Application
         if(!prepare_data_directory())
             return;
 
+        // TODO: Removal time should be variable
         m_database = new DatabaseManager(m_session_settings);
         m_database.removeOldItems.begin(new DateTime.now_utc().add_months(-1));
 

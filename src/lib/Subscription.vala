@@ -1,8 +1,8 @@
 namespace Singularity
 {
-    public interface Subscription<T> : DataEntry
+    public interface Subscription<ItemType, ParseType> : DataEntry
     {
         public abstract bool get_should_update();
-        public abstract bool update_contents(DataSource<T> source);
+        public abstract bool update_contents(DataSource<ItemType, ParseType> source);
     }
 }

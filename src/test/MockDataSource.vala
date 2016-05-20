@@ -1,25 +1,15 @@
-using Gee;
-
 namespace Singularity.Tests
 {
-    class MockDataSource<T> : DataSource<T>
+    class MockDataSource<T, U> : DataSource<T, U>
     {
-        public Collection<T> held_data;
-
-        public MockDataSource(Collection<T> data)
+        public MockDataSource(Gee.List<T> new_data)
         {
-            held_data = data;
+            _data = new_data;
         }
 
-        public MockDataSource.single(T data)
+        public override bool parse_data(U type)
         {
-            held_data = new HashSet<T>();
-            held_data.add(data);
-        }
-
-        public Collection<T> get_data(string uri)
-        {
-            return held_data;
+            return true;
         }
     }
 }
