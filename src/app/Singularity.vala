@@ -33,7 +33,6 @@ class SingularityApp : Gtk.Application
 
     private HashMap<int, Feed> feeds;
     private MainWindow main_window;
-    private OPML opml;
 
     private StreamViewBuilder  stream_builder;
     private GridViewBuilder    grid_builder;
@@ -233,7 +232,7 @@ class SingularityApp : Gtk.Application
         Xml.Doc* doc = Xml.Parser.parse_file(file.get_path());
         if(doc == null)
             return; // TODO: We should put an error here
-        opml.import(doc->children);
+        /* opml.import(doc->children); */
         delete doc; // FIXME: Some stray docs may be floating around from older xml code. Kill them.
     }
 
@@ -247,7 +246,7 @@ class SingularityApp : Gtk.Application
                 continue;
             feed_list.add(iter.get_value());
         }
-        opml.export(file, feed_list);
+        /* opml.export(file, feed_list); */
     }
 
     // TODO: Separate this from subscription so that it just returns a new feed
