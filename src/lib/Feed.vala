@@ -25,7 +25,7 @@ namespace Singularity
         public string?          description { get; set; }
         public string           link        { get; set; }
         public string?          rights      { get; set; }
-        public Collection<Tag?> tags        { get; set; }
+        public Collection<Tag?>  tags        { get; set; }
         public string?          generator   { get; set; }
         public Icon?            icon        { get; set; }
         public DateTime?        last_update { get; set; }

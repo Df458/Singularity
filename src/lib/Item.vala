@@ -20,6 +20,17 @@ namespace Singularity
 {
     public class Item
     {
+        string  title;
+        string? link;
+        string? content;
+        string  guid;
+        Person? author;
+        Gee.Collection<Tag?> tags;
+        /* Gee.Collection<Attachment?> attachments; */
+        Gee.Collection<Person?> contributors;
+        string? rights;
+        DateTime time_published;
+        DateTime time_updated;
     }
 }
 

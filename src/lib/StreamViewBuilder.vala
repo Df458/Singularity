@@ -15,7 +15,7 @@ public class StreamViewBuilder : ViewBuilder, GLib.Object
         star_svg = star_data;
     }
 
-    public string buildHTML(ArrayList<Item> items)
+    public string buildHTML(Gee.List<Item> items)
     {
         StringBuilder builder = new StringBuilder("<html>");
 //        builder.append(head);

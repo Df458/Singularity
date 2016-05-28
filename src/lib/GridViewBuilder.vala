@@ -15,7 +15,7 @@ public class GridViewBuilder : ViewBuilder, GLib.Object
         star_svg = star_data;
     }
 
-    public string buildHTML(Gee.ArrayList<Item> items)
+    public string buildHTML(Gee.List<Item> items)
     {
         StringBuilder builder = new StringBuilder("<html>");
 //        builder.append(head);

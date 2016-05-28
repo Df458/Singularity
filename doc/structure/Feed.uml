@@ -3,6 +3,7 @@ DataEntry <|-- Feed
 Subscription <|-- Feed
 Feed o--  Database : weak reference >
 Feed *--  Tag
+Feed *--  Item
 Feed --  Icon
 
 interface DataSource<T> {
@@ -105,6 +106,22 @@ class Person {
     +string? url
     +string? email
     +bool is_valid
+}
+
+class Item {
+    Item()
+    --
+    +string title
+    +string? link
+    +string? content
+    +string guid
+    +Person? author
+    +Collection<Tag> tags
+    +Collection<Attachment> attachments
+    +Collection<Person> contributors
+    +string? rights
+    +DateTime published
+    +DateTime updated
 }
 note left: Name isn't guaranteed to be non-null because of RSS2.0 email-only fields
 @enduml
