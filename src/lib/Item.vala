@@ -20,17 +20,37 @@ namespace Singularity
 {
     public class Item
     {
-        string  title;
-        string? link;
-        string? content;
-        string  guid;
-        Person? author;
-        Gee.Collection<Tag?> tags;
+        public string  title;
+        public string? link;
+        public string? content;
+        public string  guid;
+        public Person? author;
+        public Gee.Collection<Tag?> tags;
         /* Gee.Collection<Attachment?> attachments; */
-        Gee.Collection<Person?> contributors;
-        string? rights;
-        DateTime time_published;
-        DateTime time_updated;
+        public Gee.Collection<Person?> contributors;
+        public string? rights;
+        public DateTime time_published;
+        public DateTime time_updated;
+        public DateTime time_loaded;
+
+        bool unread;
+        bool starred;
+
+        public Item()
+        {
+            title          = "";
+            link           = null;
+            content        = null;
+            author         = null;
+            tags           = new Gee.HashSet<Tag?>();
+            contributors   = new Gee.HashSet<Person?>();
+            rights         = null;
+            time_published = new DateTime.from_unix_utc(0);
+            time_updated   = new DateTime.from_unix_utc(0);
+            time_loaded    = new DateTime.now_utc();
+            unread         = true;
+            starred        = false;
+        }
     }
 }
 
