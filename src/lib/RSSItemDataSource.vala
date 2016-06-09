@@ -1,9 +1,10 @@
 namespace Singularity
 {
-    class RSSItemDataSource : DataSource<Item, unowned Xml.Doc>
+    class RSSItemDataSource : FeedProvider
     {
         public override bool parse_data(Xml.Doc doc)
         {
+            stored_feed = new Feed();
             _data = new Gee.ArrayList<Item>();
             Xml.Node* node = doc.get_root_element();
 
@@ -29,15 +30,15 @@ namespace Singularity
                         if(dat->type == Xml.ElementType.ELEMENT_NODE) {
                             switch(dat->name) {
                                 case "title":
-                                    /* title = getNodeContents(dat); */
+                                    stored_feed.title = getNodeContents(dat);
                                 break;
 
                                 case "link":
-                                    /* link = getNodeContents(dat); */
+                                    stored_feed.link = getNodeContents(dat);
                                 break;
 
                                 case "description":
-                                    /* description = getNodeContents(dat); */
+                                    stored_feed.description = getNodeContents(dat);
                                 break;
 
                                 case "item":
@@ -106,7 +107,7 @@ namespace Singularity
 
                         case "author":
                         case "creator":
-                            new_item.author = new Person(getNodeContents(dat));
+                            new_item.author = Person(getNodeContents(dat));
                         break;
 
                         case "enclosure":

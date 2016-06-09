@@ -1,6 +1,6 @@
 /*
 	Singularity - A web newsfeed aggregator
-	Copyright (C) 2014  Hugues Ross <hugues.ross@gmail.com>
+	Copyright (C) 2016  Hugues Ross <hugues.ross@gmail.com>
 
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -16,6 +16,7 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 using Gee;
+using SQLHeavy;
 
 namespace Singularity
 {
@@ -25,11 +26,16 @@ namespace Singularity
         public string?          description { get; set; }
         public string           link        { get; set; }
         public string?          rights      { get; set; }
-        public Collection<Tag?>  tags        { get; set; }
+        public Collection<Tag?> tags        { get; set; }
         public string?          generator   { get; set; }
         public Icon?            icon        { get; set; }
         public DateTime?        last_update { get; set; }
         public Collection<Item> items       { get; set; }
+
+        public enum DBColumn
+        {
+            ID = 0,
+        }
 
         public bool get_should_update()
         {
@@ -43,21 +49,42 @@ namespace Singularity
             return false;
         }
 
-        public override bool insert()
+        public override Query? insert(Queryable q)
         {
-            warning("insert() is unimplemented.");
-            return false;
+            try {
+                warning("insert() is unimplemented.");
+                return new Query(q, "");
+            } catch(SQLHeavy.Error e) {
+                warning("Cannot insert feed data: " + e.message);
+                return null;
+            }
         }
 
-        public override bool update()
+        public override Query? update(Queryable q)
         {
-            warning("update() is unimplemented.");
-            return false;
+            try {
+                warning("update() is unimplemented.");
+                return new Query(q, "");
+            } catch(SQLHeavy.Error e) {
+                warning("Cannot update feed data: " + e.message);
+                return null;
+            }
         }
 
-        public override bool remove()
+        public override Query? remove(Queryable q)
         {
-            warning("remove() is unimplemented.");
+            try {
+                warning("remove() is unimplemented.");
+                return new Query(q, "");
+            } catch(SQLHeavy.Error e) {
+                warning("Cannot remove feed data: " + e.message);
+                return null;
+            }
+        }
+
+        protected override bool build_from_record(SQLHeavy.Record r)
+        {
+            warning("build_from_record() is unimplemented.");
             return false;
         }
     }

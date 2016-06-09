@@ -26,7 +26,7 @@ namespace Singularity
         public string  guid;
         public Person? author;
         public Gee.Collection<Tag?> tags;
-        /* Gee.Collection<Attachment?> attachments; */
+        public Gee.Collection<Attachment?> attachments;
         public Gee.Collection<Person?> contributors;
         public string? rights;
         public DateTime time_published;
