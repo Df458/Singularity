@@ -2,7 +2,7 @@ include config.mk
 
 PKGLIBS=glib-2.0 libxml-2.0 webkit2gtk-4.0 sqlheavy-0.1 gee-0.8 granite libnotify
 CFLAGS=-g -I generated/lib -Wno-incompatible-pointer-types `$(PKGCONFIG) --cflags $(PKGLIBS)`
-CLIBS=`$(PKGCONFIG) --libs $(PKGLIBS)` -ldflib
+CLIBS= -ldflib `$(PKGCONFIG) --libs $(PKGLIBS)`
 FLAGS=-d . --thread
 LIBS=--pkg webkit2gtk-4.0 --pkg libsoup-2.4 --pkg granite --pkg libxml-2.0 --pkg sqlheavy-0.1 --pkg glib-2.0 --pkg libnotify --pkg posix --pkg dflib
 
@@ -35,7 +35,8 @@ $(OBJPATH)/app/%.vala.o: $(GENPATH)/app/%.c
 $(OBJPATH)/test/%.vala.o: $(GENPATH)/test/%.c
 	$(CC) -c $< -o $@ $(CFLAGS) `$(PKGCONFIG) --cflags valadate-1.0` -pie -fPIE
 
-all: $(LIBNAME) $(APPNAME) $(TESTNAME)
+# TODO: Uncomment after resolving PIC issue (Will probably just rebuild dflib)
+all: $(LIBNAME) $(APPNAME) #$(TESTNAME)
 .PHONY: all
 
 # $(LIBC) $(VAPIPATH)/$(APPNAME).vapi: $(LIBV)
@@ -54,6 +55,7 @@ $(LIBNAME): $(LIBV)
 	$(VALAC) -c $(LIBV) --vapi=$(VAPIPATH)/$(APPNAME).vapi --header=$(GENPATH)/lib/$(APPNAME).h $(FLAGS) $(LIBS) -X -pie -X -fPIE
 	mv -t $(OBJPATH)/lib ./*.vala.o
 	ar -rs $(LIBNAME) $(LIBO)
+	ranlib $(LIBNAME)
 
 $(TESTNAME): $(LIBNAME) testsrc $(TESTO)
 	$(CC) -o $(TESTNAME) $(TESTO) $(LIBNAME) $(CFLAGS) $(CLIBS) `$(PKGCONFIG) --cflags --libs valadate-1.0` -pie -fPIE
