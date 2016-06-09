@@ -29,7 +29,7 @@ namespace Singularity
         {
             ID = 0,
             TITLE,
-            COUNT,
+            COUNT
         }
 
         public override Query? insert(Queryable q)
@@ -63,7 +63,6 @@ namespace Singularity
         public override Query? remove(Queryable q)
         {
             try {
-                warning("remove() is unimplemented.");
                 Query query = new Query(q, "DELETE FROM collections WHERE `id` = :id");
                 query[":id"] = id;
                 return query;

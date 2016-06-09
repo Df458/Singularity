@@ -25,22 +25,29 @@ namespace Singularity
         public string           title       { get; set; }
         public string?          description { get; set; }
         public string           link        { get; set; }
-        public string?          rights      { get; set; }
-        public Collection<Tag?> tags        { get; set; }
-        public string?          generator   { get; set; }
-        public Icon?            icon        { get; set; }
-        public DateTime?        last_update { get; set; }
-        public Collection<Item> items       { get; set; }
+        public string?          rights      { get; protected set; }
+        public Collection<Tag?> tags        { get; protected set; }
+        public string?          generator   { get; protected set; }
+        public Icon?            icon        { get; protected set; }
+        public DateTime?        last_update { get; protected set; }
+        public DateTime?        next_update { get; protected set; }
 
         public enum DBColumn
         {
             ID = 0,
+            TITLE,
+            LINK,
+            DESCRIPTION,
+            RIGHTS,
+            GENERATOR,
+            LAST_UPDATE,
+            NEXT_UPDATE,
+            COUNT
         }
 
         public bool get_should_update()
         {
-            warning("get_should_update() is unimplemented.");
-            return false;
+            return next_update.compare(new DateTime.now_utc()) <= 0;
         }
 
         public bool update_contents(DataSource<Item, Xml.Doc> source)
@@ -52,8 +59,18 @@ namespace Singularity
         public override Query? insert(Queryable q)
         {
             try {
-                warning("insert() is unimplemented.");
-                return new Query(q, "");
+                Query query = new Query(q, "INSERT INTO feeds (id, title, link, description, rights, generator, last_update, next_update) VALUES (:id, :title, :link, :description, :rights, :generator, :last_update, :next_update)");
+                query[":id"] = id;
+                query[":title"] = title;
+                query[":link"] = link;
+                query[":description"] = description;
+                query[":rights"] = rights;
+                query[":generator"] = generator;
+                query[":last_update"] = last_update.to_unix();
+                query[":next_update"] = next_update.to_unix();
+                // TODO: Decide how to store icons
+                // TODO: Decide how to store tags
+                return query;
             } catch(SQLHeavy.Error e) {
                 warning("Cannot insert feed data: " + e.message);
                 return null;
@@ -63,8 +80,19 @@ namespace Singularity
         public override Query? update(Queryable q)
         {
             try {
-                warning("update() is unimplemented.");
-                return new Query(q, "");
+                // TODO: Build the query to only have what's needed
+                Query query = new Query(q, "UPDATE feeds SET title = :title, link = :link, description = :description, rights = :rights, generator = :generator, :last_update = last_update, next_update = :next_update WHERE id = :id");
+                query[":id"] = id;
+                query[":title"] = title;
+                query[":link"] = link;
+                query[":description"] = description;
+                query[":rights"] = rights;
+                query[":generator"] = generator;
+                query[":last_update"] = last_update.to_unix();
+                query[":next_update"] = next_update.to_unix();
+                // TODO: Decide how to store icons
+                // TODO: Decide how to store tags
+                return query;
             } catch(SQLHeavy.Error e) {
                 warning("Cannot update feed data: " + e.message);
                 return null;
@@ -74,8 +102,9 @@ namespace Singularity
         public override Query? remove(Queryable q)
         {
             try {
-                warning("remove() is unimplemented.");
-                return new Query(q, "");
+                Query query = new Query(q, "DELETE FROM feeds WHERE `id` = :id");
+                query[":id"] = id;
+                return query;
             } catch(SQLHeavy.Error e) {
                 warning("Cannot remove feed data: " + e.message);
                 return null;
@@ -84,8 +113,21 @@ namespace Singularity
 
         protected override bool build_from_record(SQLHeavy.Record r)
         {
-            warning("build_from_record() is unimplemented.");
-            return false;
+            try {
+                title = r.fetch_string(DBColumn.TITLE);
+                link = r.fetch_string(DBColumn.LINK);
+                description = r.fetch_string(DBColumn.DESCRIPTION);
+                rights = r.fetch_string(DBColumn.RIGHTS);
+                generator = r.fetch_string(DBColumn.GENERATOR);
+                last_update = new DateTime.from_unix_utc(r.fetch_int(DBColumn.LAST_UPDATE));
+                next_update = new DateTime.from_unix_utc(r.fetch_int(DBColumn.NEXT_UPDATE));
+                // TODO: Decide how to store icons
+                // TODO: Decide how to store tags
+                return true;
+            } catch(SQLHeavy.Error e) {
+                warning("Cannot load collection data: " + e.message);
+                return false;
+            }
         }
     }
 }
