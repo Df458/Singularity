@@ -195,61 +195,63 @@ class SettingsPane : SettingsGrid
 
     public void sync()
     {
-        if(!app.auto_update)
-            auto_update_combo.active = 0;
-        else
-            switch(app.timeout_value / 60) {
-                case 5:
-                    auto_update_combo.active = 1;
-                    break;
-                case 10:
-                    auto_update_combo.active = 2;
-                    break;
-                case 30:
-                    auto_update_combo.active = 3;
-                    break;
-                case 60:
-                    auto_update_combo.active = 4;
-                    break;
-                default:
-                    auto_update_combo.active = 5;
-                    break;
-            }
-        start_update_switch.set_active(app.start_update);
-        auto_update_time_entry.set_value(app.timeout_value / 60);
-        this.get_label_for_child(auto_update_time_entry).set_sensitive(app.auto_update);
-        auto_update_time_entry.set_sensitive(app.auto_update);
-        read_spin.set_value(app.read_rule[0]);
-        unread_spin.set_value(app.unread_rule[0]);
-        read_incr_combo.set_active(app.read_rule[1]);
-        unread_incr_combo.set_active(app.unread_rule[1]);
-        if(app.read_rule[2] == 1)
-            read_action_combo.set_active(-1);
-        else
-            read_action_combo.set_active(app.read_rule[2] / 2); // 0 or 2 becomes 0 or 1
-        unread_action_combo.set_active(app.unread_rule[2]);
-        always_ask_check.set_active(app.get_location);
-        download_to_button.set_current_folder(app.default_location);
-        download_to_button.set_sensitive(!app.get_location);
-        link_command_entry.set_text(app.link_command);
+        // TODO: Integrate this with GlobalSettings
+        /* if(!app.auto_update) */
+        /*     auto_update_combo.active = 0; */
+        /* else */
+        /*     switch(app.timeout_value / 60) { */
+        /*         case 5: */
+        /*             auto_update_combo.active = 1; */
+        /*             break; */
+        /*         case 10: */
+        /*             auto_update_combo.active = 2; */
+        /*             break; */
+        /*         case 30: */
+        /*             auto_update_combo.active = 3; */
+        /*             break; */
+        /*         case 60: */
+        /*             auto_update_combo.active = 4; */
+        /*             break; */
+        /*         default: */
+        /*             auto_update_combo.active = 5; */
+        /*             break; */
+        /*     } */
+        /* start_update_switch.set_active(app.start_update); */
+        /* auto_update_time_entry.set_value(app.timeout_value / 60); */
+        /* this.get_label_for_child(auto_update_time_entry).set_sensitive(app.auto_update); */
+        /* auto_update_time_entry.set_sensitive(app.auto_update); */
+        /* read_spin.set_value(app.read_rule[0]); */
+        /* unread_spin.set_value(app.unread_rule[0]); */
+        /* read_incr_combo.set_active(app.read_rule[1]); */
+        /* unread_incr_combo.set_active(app.unread_rule[1]); */
+        /* if(app.read_rule[2] == 1) */
+        /*     read_action_combo.set_active(-1); */
+        /* else */
+        /*     read_action_combo.set_active(app.read_rule[2] / 2); // 0 or 2 becomes 0 or 1 */
+        /* unread_action_combo.set_active(app.unread_rule[2]); */
+        /* always_ask_check.set_active(app.get_location); */
+        /* download_to_button.set_current_folder(app.default_location); */
+        /* download_to_button.set_sensitive(!app.get_location); */
+        /* link_command_entry.set_text(app.link_command); */
     }
 
     public void save()
     {
-        app.auto_update = auto_update_combo.active != 0;
-        app.start_update = start_update_switch.get_active();
-        app.timeout_value = (int)auto_update_time_entry.get_value() * 60;
-        app.read_rule[0] = (int)read_spin.get_value();
-        app.read_rule[1] = read_incr_combo.get_active();
-        if(read_action_combo.get_active() != -1)
-            app.read_rule[2] = read_action_combo.get_active() * 2; // 0 or 1 becomes 0 or 2
-        app.unread_rule[0] = (int)unread_spin.get_value();
-        app.unread_rule[1] = unread_incr_combo.get_active();
-        app.unread_rule[2] = unread_action_combo.get_active();
-        app.get_location = always_ask_check.get_active();
-        app.default_location = download_to_button.get_filename();
-        app.link_command = link_command_entry.text;
-        app.update_settings();
+        // TODO: Move this so that this gets set in the GlobalSettings object
+        /* app.auto_update = auto_update_combo.active != 0; */
+        /* app.start_update = start_update_switch.get_active(); */
+        /* app.timeout_value = (int)auto_update_time_entry.get_value() * 60; */
+        /* app.read_rule[0] = (int)read_spin.get_value(); */
+        /* app.read_rule[1] = read_incr_combo.get_active(); */
+        /* if(read_action_combo.get_active() != -1) */
+        /*     app.read_rule[2] = read_action_combo.get_active() * 2; // 0 or 1 becomes 0 or 2 */
+        /* app.unread_rule[0] = (int)unread_spin.get_value(); */
+        /* app.unread_rule[1] = unread_incr_combo.get_active(); */
+        /* app.unread_rule[2] = unread_action_combo.get_active(); */
+        /* app.get_location = always_ask_check.get_active(); */
+        /* app.default_location = download_to_button.get_filename(); */
+        /* app.link_command = link_command_entry.text; */
+        /* app.update_settings(); */
         done();
     }
 

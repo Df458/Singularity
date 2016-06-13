@@ -42,25 +42,25 @@ class SingularityApp : Gtk.Application
     private ArrayList<Item> view_list;
     bool done_load = false;
     int load_counter = 0;
-    public bool auto_update = true;
-    public bool start_update = true;
+    /* public bool auto_update = true; */
+    /* public bool start_update = true; */
     public uint timeout_value = 600;
     public bool update_running = true;
     public uint update_next = 600;
-    public bool get_location = true;
-    public string default_location;
-    public string link_command = "xdg-open %s";
-    public bool download_attachments = true;
+    /* public bool get_location = true; */
+    /* public string default_location; */
+    /* public string link_command = "xdg-open %s"; */
+    /* public bool download_attachments = true; */
     //public Notify.Notification update_complete_notification;
     //Count, Increment(d,m,y), action(nothing,read(unread only),delete)
-    public int[] unread_rule = {0, 0, 0};
-    public int[] read_rule   = {0, 0, 0};
+    /* public int[] unread_rule = {0, 0, 0}; */
+    /* public int[] read_rule   = {0, 0, 0}; */
 
     public SingularityApp(SessionSettings settings)
     {
         Object(application_id: APP_ID);
 
-        m_global_settings = new Settings(APP_ID);
+        m_global_settings = new GlobalSettings(APP_ID);
         m_session_settings = settings;
 
         this.startup.connect(start_run);
@@ -292,16 +292,17 @@ class SingularityApp : Gtk.Application
 
     public void update_settings()
     {
-        m_global_settings.set_boolean("auto-update", auto_update);
-        m_global_settings.set_boolean("start-update", start_update);
-        m_global_settings.set_uint("auto-update-freq", timeout_value / 60);
-        m_global_settings.set_value("unread-rule", new Variant("(iii)",unread_rule[0],unread_rule[1],unread_rule[2]));
-        m_global_settings.set_value("read-rule", new Variant("(iii)",read_rule[0],read_rule[1],read_rule[2]));
-        m_global_settings.set_boolean("download-attachments", download_attachments);
-        m_global_settings.set_boolean("ask-download-location", get_location);
-        m_global_settings.set_string("default-download-location", default_location);
-        m_global_settings.set_string("link-command", link_command);
-        if(auto_update && !update_running) {
+        /* m_global_settings.set_boolean("auto-update", auto_update); */
+        /* m_global_settings.set_boolean("start-update", start_update); */
+        /* m_global_settings.set_uint("auto-update-freq", timeout_value / 60); */
+        /* m_global_settings.set_value("unread-rule", new Variant("(iii)",unread_rule[0],unread_rule[1],unread_rule[2])); */
+        /* m_global_settings.set_value("read-rule", new Variant("(iii)",read_rule[0],read_rule[1],read_rule[2])); */
+        /* m_global_settings.set_boolean("download-attachments", download_attachments); */
+        /* m_global_settings.set_boolean("ask-download-location", get_location); */
+        /* m_global_settings.set_string("default-download-location", default_location); */
+        /* m_global_settings.set_string("link-command", link_command); */
+        m_global_settings.save();
+        if(m_global_settings.auto_update && !update_running) {
             update_running = true;
             update_next = timeout_value;
             Timeout.add_seconds(timeout_value, update);
@@ -493,19 +494,19 @@ class SingularityApp : Gtk.Application
         } while(should_continue);
         if(feeds.size == 0)
             done_load = true;
-        update_running = auto_update;
+        update_running = m_global_settings.auto_update;
         if(update_running && update_next != timeout_value) {
             update_next = timeout_value;
             Timeout.add_seconds(timeout_value, update);
             return false;
         }
-        return auto_update;
+        return m_global_settings.auto_update;
     }
 
 
 
     // Private section --------------------------------------------------------
-    private Settings m_global_settings;
+    private GlobalSettings m_global_settings;
     private SessionSettings m_session_settings;
     private DatabaseManager m_database;
     private bool m_init_success = false;
