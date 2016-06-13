@@ -1,3 +1,21 @@
+/*
+	Singularity - A web newsfeed aggregator
+	Copyright (C) 2016  Hugues Ross <hugues.ross@gmail.com>
+
+	This program is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation, either version 3 of the License, or
+	(at your option) any later version.
+
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+
+	You should have received a copy of the GNU General Public License
+	along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 namespace Singularity
 {
     class RSSItemDataSource : FeedProvider
@@ -30,15 +48,15 @@ namespace Singularity
                         if(dat->type == Xml.ElementType.ELEMENT_NODE) {
                             switch(dat->name) {
                                 case "title":
-                                    stored_feed.title = getNodeContents(dat);
+                                    stored_feed.title = get_node_contents(dat);
                                 break;
 
                                 case "link":
-                                    stored_feed.link = getNodeContents(dat);
+                                    stored_feed.link = get_node_contents(dat);
                                 break;
 
                                 case "description":
-                                    stored_feed.description = getNodeContents(dat);
+                                    stored_feed.description = get_node_contents(dat);
                                 break;
 
                                 case "item":
@@ -64,35 +82,35 @@ namespace Singularity
                 if(dat->type == Xml.ElementType.ELEMENT_NODE) {
                     switch(dat->name) {
                         case "title":
-                            new_item.title = getNodeContents(dat);
+                            new_item.title = get_node_contents(dat);
                         break;
 
                         case "link":
-                            new_item.link = getNodeContents(dat);
+                            new_item.link = get_node_contents(dat);
                         break;
 
                         case "description":
-                            new_item.content = getNodeContents(dat);
+                            new_item.content = get_node_contents(dat);
                         break;
 
                         case "guid":
-                            new_item.guid = getNodeContents(dat);
+                            new_item.guid = get_node_contents(dat);
                         break;
 
                         case "pubDate":
-                            string input = getNodeContents(dat);
+                            string input = get_node_contents(dat);
                             string[] date_strs = input.split(" ");
                             if(date_strs.length < 5)
                                 break;
                             string[] time_strs = date_strs[4].split(":");
                             if(time_strs.length < 3)
                                 break;
-                            new_item.time_published = new DateTime.utc(int.parse(date_strs[3]), getMonth(date_strs[2]), int.parse(date_strs[1]), int.parse(time_strs[0]), int.parse(time_strs[1]), int.parse(time_strs[2]));
-                            new_item.time_updated = new DateTime.utc(int.parse(date_strs[3]), getMonth(date_strs[2]), int.parse(date_strs[1]), int.parse(time_strs[0]), int.parse(time_strs[1]), int.parse(time_strs[2]));
+                            new_item.time_published = new DateTime.utc(int.parse(date_strs[3]), get_month(date_strs[2]), int.parse(date_strs[1]), int.parse(time_strs[0]), int.parse(time_strs[1]), int.parse(time_strs[2]));
+                            new_item.time_updated = new DateTime.utc(int.parse(date_strs[3]), get_month(date_strs[2]), int.parse(date_strs[1]), int.parse(time_strs[0]), int.parse(time_strs[1]), int.parse(time_strs[2]));
                         break;
 
                         case "date":
-                            string[] big_strs = getNodeContents(dat).split("T");
+                            string[] big_strs = get_node_contents(dat).split("T");
                             if(big_strs.length < 2)
                                 break;
                             string[] date_strs = big_strs[0].split("-");
@@ -107,7 +125,7 @@ namespace Singularity
 
                         case "author":
                         case "creator":
-                            new_item.author = Person(getNodeContents(dat));
+                            new_item.author = Person(get_node_contents(dat));
                         break;
 
                         case "enclosure":
@@ -154,15 +172,15 @@ namespace Singularity
                                         if(cdat->type == Xml.ElementType.ELEMENT_NODE) {
                                             switch(cdat->name) {
                                                 case "title":
-                                                    /* title = getNodeContents(cdat); */
+                                                    /* title = get_node_contents(cdat); */
                                                 break;
 
                                                 case "link":
-                                                    /* link = getNodeContents(cdat); */
+                                                    /* link = get_node_contents(cdat); */
                                                 break;
 
                                                 case "description":
-                                                    /* description = getNodeContents(cdat); */
+                                                    /* description = get_node_contents(cdat); */
                                                 break;
                                             }
                                         }

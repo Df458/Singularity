@@ -21,10 +21,40 @@ namespace Singularity
     public class UpdateGenerator
     {
         protected Feed to_update;
+
+        public UpdateGenerator(Feed f)
+        {
+            to_update = f;
+        }
         
-        /* public async UpdatePackage do_update() */
-        /* { */
-        /*     // TODO: Implement this */
-        /* } */
+        public async UpdatePackage do_update()
+        {
+            string err_message;
+            Xml.Doc* doc = yield get_xml_data(to_update.link, out err_message);
+            if(doc == null) {
+                return new UpdatePackage.failure(to_update, err_message);
+            }
+
+            DataSource<Item, Xml.Doc>? source = null;
+            XmlContentType type = determine_content_type(doc);
+            switch(type) {
+                case XmlContentType.INVALID:
+                    return new UpdatePackage.failure(to_update, "Couldn't determine document content type");
+                case XmlContentType.RSS:
+                    source = new RSSItemDataSource();
+                    break;
+                case XmlContentType.ATOM:
+                    source = new AtomItemDataSource();
+                    break;
+            }
+            if(source == null || !source.parse_data(doc))
+                return new UpdatePackage.failure(to_update, "Failed to parse feed data");
+            
+            if(!to_update.update_contents(source)) {
+                return new UpdatePackage.failure(to_update, "Data was parsed, but the feed couldn't be updated");
+            }
+
+            return new UpdatePackage.success(to_update, source.data);
+        }
     }
 }

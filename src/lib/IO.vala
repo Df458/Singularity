@@ -1,6 +1,6 @@
 /*
 	Singularity - A web newsfeed aggregator
-	Copyright (C) 2014  Hugues Ross <hugues.ross@gmail.com>
+	Copyright (C) 2016  Hugues Ross <hugues.ross@gmail.com>
 
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -16,21 +16,29 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-async Xml.Doc* getXmlData(string url)
+public enum XmlContentType
 {
-    SourceFunc callback = getXmlData.callback;
+    INVALID = -1,
+    RSS,
+    ATOM,
+    COUNT
+}
+
+async Xml.Doc* get_xml_data(string url, out string? err_message = null)
+{
     Soup.Session session = new Soup.Session();
     session.use_thread_context = true;
-            // TODO: verbose
-    /* if(verbose) */
-    /*     stderr.printf("Adding %s Started...\n", url); */
     Soup.Message message = new Soup.Message("GET", url);
-    string data = "";
-    session.queue_message(message, (session_out, message_out) => {
-        data = (string)message_out.response_body.data;
-        Idle.add((owned) callback);
-    });
-    yield;
+    string data;
+    try {
+        yield session.send_async(message);
+        data = (string)message.response_body.data;
+    } catch(Error e) {
+        err_message = e.message;
+        return null;
+    }
+    
+
     Xml.Doc* xml_doc;
     xml_doc = Xml.Parser.parse_doc(data);
 
@@ -38,13 +46,10 @@ async Xml.Doc* getXmlData(string url)
         data = data.split("<!DOCTYPE html")[0];
         xml_doc = Xml.Parser.parse_doc(data);
     }
-            // TODO: verbose
-    /* if(verbose) */
-    /*     stderr.printf("Adding %s Succeeded...\n", url); */
     return xml_doc;
 }
 
-string getNodeContents(Xml.Node* node, bool atom = false)
+string get_node_contents(Xml.Node* node, bool atom = false)
 {
     string output = "";
     if(node == null || node->children == null){
@@ -62,7 +67,7 @@ string getNodeContents(Xml.Node* node, bool atom = false)
 	    break;
 
 	    case "xhtml":
-            output = dumpXml(node);
+            output = dump_xml_node(node);
 	    break;
 	}
     } else if(node->children->type != Xml.ElementType.TEXT_NODE && node->children->type != Xml.ElementType.CDATA_SECTION_NODE) {
@@ -75,7 +80,7 @@ string getNodeContents(Xml.Node* node, bool atom = false)
     return output;
 }
 
-int getMonth(string month_abbr)
+int get_month(string month_abbr)
 {
     switch(month_abbr) {
 	case "Jan":
@@ -106,7 +111,7 @@ int getMonth(string month_abbr)
     return -1;
 }
 
-string dumpXml(Xml.Node* node)
+string dump_xml_node(Xml.Node* node)
 {
     string xml_str = "";
 
@@ -120,8 +125,22 @@ string dumpXml(Xml.Node* node)
     else {
 	xml_str += ">";
 	for(Xml.Node* n = node->children; n != null; n = n->next)
-	    xml_str += dumpXml(n);
+	    xml_str += dump_xml_node(n);
 	xml_str += "</" + node->name + ">";
     }
     return xml_str;
+}
+
+XmlContentType determine_content_type(Xml.Doc doc)
+{
+    Xml.Node* node = doc.get_root_element();
+
+    while(node != null) {
+        if(node->name == "rss" || node->name == "RDF")
+            return XmlContentType.RSS;
+        else if(node->name == "feed")
+            return XmlContentType.ATOM;
+        node = node->next;
+    }
+    return XmlContentType.INVALID;
 }
