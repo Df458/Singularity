@@ -22,9 +22,12 @@ namespace Singularity
 {
     public class Feed : Subscription<Item, Xml.Doc>, DataEntry
     {
+        public int              parent_id   { get; set; }
+        public FeedCollection?  parent      { get; set; }
         public string           title       { get; set; }
         public string?          description { get; set; }
         public string           link        { get; set; }
+        public string?          site_link   { get; set; }
         public string?          rights      { get; protected set; }
         public Collection<Tag?> tags        { get; protected set; }
         public string?          generator   { get; protected set; }
@@ -35,8 +38,12 @@ namespace Singularity
         public enum DBColumn
         {
             ID = 0,
+            TYPE,
             TITLE,
+            PARENT,
+            ICON,
             LINK,
+            SITE_LINK,
             DESCRIPTION,
             RIGHTS,
             GENERATOR,
@@ -44,6 +51,8 @@ namespace Singularity
             NEXT_UPDATE,
             COUNT
         }
+
+        public Feed.from_record(Record r) { base.from_record(r); }
 
         public bool get_should_update()
         {
@@ -59,10 +68,13 @@ namespace Singularity
         public override Query? insert(Queryable q)
         {
             try {
-                Query query = new Query(q, "INSERT INTO feeds (id, title, link, description, rights, generator, last_update, next_update) VALUES (:id, :title, :link, :description, :rights, :generator, :last_update, :next_update)");
+                Query query = new Query(q, "INSERT INTO feeds (id, parent_id, type, title, link, site_link, description, rights, generator, last_update, next_update) VALUES (:id, :parent_id, :type, :title, :link, :site_link, :description, :rights, :generator, :last_update, :next_update)");
                 query[":id"] = id;
+                query[":parent_id"] = parent_id;
+                query[":type"] = CollectionNode.Contents.FEED;
                 query[":title"] = title;
                 query[":link"] = link;
+                query[":site_link"] = site_link;
                 query[":description"] = description;
                 query[":rights"] = rights;
                 query[":generator"] = generator;
@@ -81,10 +93,11 @@ namespace Singularity
         {
             try {
                 // TODO: Build the query to only have what's needed
-                Query query = new Query(q, "UPDATE feeds SET title = :title, link = :link, description = :description, rights = :rights, generator = :generator, :last_update = last_update, next_update = :next_update WHERE id = :id");
+                Query query = new Query(q, "UPDATE feeds SET title = :title, link = :link, site_link = :site_link, description = :description, rights = :rights, generator = :generator, :last_update = last_update, next_update = :next_update WHERE id = :id");
                 query[":id"] = id;
                 query[":title"] = title;
                 query[":link"] = link;
+                query[":site_link"] = site_link;
                 query[":description"] = description;
                 query[":rights"] = rights;
                 query[":generator"] = generator;

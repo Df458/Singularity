@@ -22,8 +22,11 @@ namespace Singularity
 {
     public class FeedCollection : DataEntry
     {
+        public int              parent_id   { get; set; }
+        public FeedCollection?  parent      { get; set; }
         public string title { get; protected set; }
         public Icon? icon   { get; protected set; }
+        public Gee.List<CollectionNode> nodes { get; protected set; }
 
         public enum DBColumn
         {
@@ -32,11 +35,28 @@ namespace Singularity
             COUNT
         }
 
+        public FeedCollection.from_record(Record r) { parent = null; parent_id = -1; base.from_record(r); }
+        public FeedCollection.root() { parent = null; parent_id = -1; }
+
+        public void add_node(CollectionNode c)
+        {
+            nodes.add(c);
+            c.set_parent(this);
+        }
+
+        public void remove_node(CollectionNode c)
+        {
+            nodes.remove(c);
+            c.remove_parent();
+        }
+
         public override Query? insert(Queryable q)
         {
             try {
-                Query query = new Query(q, "INSERT INTO collections (id, title) VALUES (:id, :title)");
+                Query query = new Query(q, "INSERT INTO feeds (id, parent_id, type, title) VALUES (:id, :parent_id, :type, :title)");
                 query[":id"] = id;
+                query[":parent_id"] = parent_id;
+                query[":type"] = CollectionNode.Contents.COLLECTION;
                 query[":title"] = title;
                 // TODO: Decide how to store icons
                 return query;
@@ -49,8 +69,9 @@ namespace Singularity
         public override Query? update(Queryable q)
         {
             try {
-                Query query = new Query(q, "UPDATE collections SET title = :title WHERE id = :id");
+                Query query = new Query(q, "UPDATE collections SET title = :title, parent_id = :parent_id WHERE id = :id");
                 query[":id"] = id;
+                query[":parent_id"] = parent_id;
                 query[":title"] = title;
                 // TODO: Decide how to store icons
                 return query;

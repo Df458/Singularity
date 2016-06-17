@@ -21,7 +21,6 @@ using SQLHeavy;
 namespace Singularity
 {
 
-// TODO: Make DatabaseManager a DataSource
 public class DatabaseManager
 {
     private static const string schema_dir = "/usr/local/share/singularity/schemas";
@@ -54,23 +53,46 @@ public class DatabaseManager
             stderr.printf("Database successfully created. User version is %d.\n", db.user_version);
     }
     
-    public async Gee.ArrayList<Feed> loadFeeds()
+    public async FeedCollection load_feeds()
     {
-        Gee.ArrayList<Feed> feed_list = new Gee.ArrayList<Feed>();
+        FeedCollection feed_list = new FeedCollection.root();
 
-        /* try { */
-        /*     Query load_query = new Query(db, "SELECT * FROM feeds"); */
-        /*     for(QueryResult result = yield load_query.execute_async(); !result.finished; result.next() ) { */
-        /*         if(result.fetch_int(0) >= next_id) */
-        /*             next_id = result.fetch_int(0) + 1; */
-        /*         Feed f = new Feed.from_record(result, db); */
-        /*         feed_list.add(f); */
-        /*     } */
-        /* } catch(SQLHeavy.Error e) { */
-        /*     stderr.printf("Error loading feed data: %s\n", e.message); */
-        /* } */
+        yield load_feeds_for_collection(feed_list);
 
         return feed_list;
+    }
+
+    public async void load_feeds_for_collection(FeedCollection feed_list)
+    {
+        try {
+            Query load_query = new Query(db, "SELECT * FROM feeds WHERE `parent_id` = :parent_id");
+            if(feed_list.id == null)
+                load_query[":parent_id"] = -1;
+            else
+                load_query[":parent_id"] = feed_list.id;
+            Gee.ArrayList<FeedCollection> clist = new Gee.ArrayList<FeedCollection>();
+            for(QueryResult result = yield load_query.execute_async(); !result.finished; result.next() ) {
+                if(result.fetch_int(0) >= next_id)
+                    next_id = result.fetch_int(0) + 1;
+                switch(result.get_int("type")) {
+                    case CollectionNode.Contents.FEED:
+                        Feed f = new Feed.from_record(result);
+                        CollectionNode n = new CollectionNode.with_feed(f);
+                        feed_list.add_node(n);
+                        break;
+                    case CollectionNode.Contents.COLLECTION:
+                        FeedCollection c = new FeedCollection.from_record(result);
+                        CollectionNode n = new CollectionNode.with_collection(c);
+                        feed_list.add_node(n);
+                        break;
+                }
+            }
+            foreach(FeedCollection c in clist) {
+                yield load_feeds_for_collection(c);
+            }
+        } catch(SQLHeavy.Error e) {
+            error("Error loading feed data: %s\n", e.message);
+        }
     }
 	
     /* public async void loadFeedItems(Feed feed, int item_count = -1) */
