@@ -58,7 +58,7 @@ namespace Singularity
         public override Query? insert(Queryable q)
         {
             try {
-                Query query = new Query(q, "INSERT INTO items (id, feed_id, guid, title, link, content, rights, publish_time, update_time, load_time, unread, starred)");
+                Query query = new Query(q, "INSERT INTO items (id, feed_id, guid, title, link, content, rights, publish_time, update_time, load_time, unread, starred) VALUES (:id, :feed_id, :guid, :title, :link, :content, :rights, :publish_time, :update_time, :load_time, :unread, :starred)");
                 query[":id"] = id;
                 query[":feed_id"] = owner.id;
                 query[":guid"] = guid;

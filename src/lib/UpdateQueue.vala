@@ -5,20 +5,19 @@ namespace Singularity
 
 public class UpdateQueue : Object
 {
-    public  AsyncQueue<Feed> update_requests { get; construct; }
+    private AsyncQueue<Feed> m_update_requests;
 
     public UpdateQueue()
     {
-        Object(update_requests: new AsyncQueue<Feed>());
         // TODO: Load existing queued requests and put them at the front
 
+        m_update_requests = new AsyncQueue<Feed>();
         m_processing_thread = new Thread<void*>(null, this.process);
     }
 
     public void request_update(Feed f)
     {
-        // TODO: Implement this
-        warning("UpdateQueue.request_update: unimplemented");
+        m_update_requests.push(f);
     }
 
     public void set_paused(bool paused)
@@ -34,7 +33,7 @@ public class UpdateQueue : Object
     private void* process()
     {
         while(true) {
-            Feed f = update_requests.pop();
+            Feed f = m_update_requests.pop();
             UpdateGenerator gen = new UpdateGenerator(f);
             update_processed(gen.do_update());
         }

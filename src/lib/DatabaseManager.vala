@@ -94,6 +94,32 @@ public class DatabaseManager
             error("Error loading feed data: %s\n", e.message);
         }
     }
+
+    public async void save_updates(UpdatePackage package)
+    {
+        try {
+            Query? feed_query = package.feed.update(db);
+            yield feed_query.execute_async();
+
+            foreach(Item i in package.items) {
+                Query test_query = new Query(db, "SELECT COUNT FROM items WHERE `feed_id` = :id AND `guid` = :guid");
+                test_query[":id"] = i.owner.id;
+                test_query[":guid"] = i.guid;
+                QueryResult test_result = yield test_query.execute_async();
+                Query? q;
+                if(test_result.fetch_int(0) == 0) {
+                    q = i.insert(db);
+                } else {
+                    q = i.update(db);
+                }
+
+                if(q != null)
+                    yield q.execute_async();
+            }
+        } catch(SQLHeavy.Error e) {
+            error("Error saving item data: %s\n", e.message);
+        }
+    }
 	
     /* public async void loadFeedItems(Feed feed, int item_count = -1) */
     /* { */
