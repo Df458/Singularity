@@ -24,31 +24,6 @@ public enum XmlContentType
     COUNT
 }
 
-async Xml.Doc* get_xml_data(string url, out string? err_message = null)
-{
-    Soup.Session session = new Soup.Session();
-    session.use_thread_context = true;
-    Soup.Message message = new Soup.Message("GET", url);
-    string data;
-    try {
-        yield session.send_async(message);
-        data = (string)message.response_body.data;
-    } catch(Error e) {
-        err_message = e.message;
-        return null;
-    }
-    
-
-    Xml.Doc* xml_doc;
-    xml_doc = Xml.Parser.parse_doc(data);
-
-    if(xml_doc == null && data != null) {
-        data = data.split("<!DOCTYPE html")[0];
-        xml_doc = Xml.Parser.parse_doc(data);
-    }
-    return xml_doc;
-}
-
 string get_node_contents(Xml.Node* node, bool atom = false)
 {
     string output = "";

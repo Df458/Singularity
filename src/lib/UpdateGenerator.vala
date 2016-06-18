@@ -27,13 +27,14 @@ namespace Singularity
             to_update = f;
         }
         
-        public async UpdatePackage do_update()
+        public UpdatePackage do_update()
         {
-            string err_message;
-            Xml.Doc* doc = yield get_xml_data(to_update.link, out err_message);
-            if(doc == null) {
-                return new UpdatePackage.failure(to_update, err_message);
+            XmlRequest req = new XmlRequest(to_update.link);
+            if(!req.send()) {
+                return new UpdatePackage.failure(to_update, req.error_message);
             }
+
+            Xml.Doc* doc = req.doc;
 
             DataSource<Item, Xml.Doc>? source = null;
             XmlContentType type = determine_content_type(doc);

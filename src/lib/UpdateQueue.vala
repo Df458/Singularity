@@ -10,7 +10,6 @@ public class UpdateQueue : Object
     public UpdateQueue()
     {
         Object(update_requests: new AsyncQueue<Feed>());
-        m_update_queue  = new Gee.ArrayQueue<Feed>();
         // TODO: Load existing queued requests and put them at the front
 
         m_processing_thread = new Thread<void*>(null, this.process);
@@ -30,15 +29,15 @@ public class UpdateQueue : Object
 
     public signal void update_processed(UpdatePackage update);
 
-    private Gee.Queue<Feed> m_update_queue;
     private Thread<void*>   m_processing_thread;
 
     private void* process()
     {
-        // TODO: Implement this
-        warning("UpdateQueue.process: unimplemented");
-
-        return null;
+        while(true) {
+            Feed f = update_requests.pop();
+            UpdateGenerator gen = new UpdateGenerator(f);
+            update_processed(gen.do_update());
+        }
     }
 }
 
