@@ -209,9 +209,9 @@ class MainWindow : Gtk.ApplicationWindow
         stream_view.get_context().get_security_manager().register_uri_scheme_as_cors_enabled("file");
 //:TODO: 16.09.14 18:52:26, Hugues Ross
 // Add a custom right-click menu
-        grid_view.load_html(app.constructFrontPage(), "");
-        column_view_display.load_html(app.constructFrontPage(), "");
-        stream_view.load_html(app.constructFrontPage(), "");
+        /* grid_view.load_html(app.constructFrontPage(), ""); */
+        /* column_view_display.load_html(app.constructFrontPage(), ""); */
+        /* stream_view.load_html(app.constructFrontPage(), ""); */
         /* init_feed_pane(); */
         grid_view_button.active = true;
 
