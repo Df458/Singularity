@@ -30,10 +30,13 @@ public class DatabaseManager
     
     public bool open { get { return _open; } }
     
-    public DatabaseManager(SessionSettings settings)
+    public DatabaseManager(SessionSettings settings, string default_path)
     {
         try {
-            db = new Database(settings.database_path);
+            if(settings.database_path != null)
+                db = new Database(settings.database_path);
+            else
+                db = new Database(default_path);
             if(db.schema_version == 0) {
                 if(settings.verbose)
                     stderr.printf("Creating database...\n");

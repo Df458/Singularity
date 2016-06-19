@@ -22,7 +22,7 @@ public class SessionSettings
 {
     // Properties
     public bool    background    { get { return m_background; } }
-    public string  database_path { get { return m_database; } }
+    public string? database_path { get { return m_database; } }
     public bool    is_valid      { get { return m_valid_options; } }
     public bool    verbose       { get { return m_verbose; } }
     public string? user_css      { get { return m_user_css; } }
@@ -54,7 +54,7 @@ public class SessionSettings
     }
 
     // Private data
-    string   m_database = "";
+    string?   m_database = null;
     string?  m_user_css = null;
     bool     m_verbose = false;
     bool     m_background = false;

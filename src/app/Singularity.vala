@@ -42,19 +42,9 @@ class SingularityApp : Gtk.Application
     private ArrayList<Item> view_list;
     bool done_load = false;
     int load_counter = 0;
-    /* public bool auto_update = true; */
-    /* public bool start_update = true; */
     public uint timeout_value = 600;
     public bool update_running = true;
     public uint update_next = 600;
-    /* public bool get_location = true; */
-    /* public string default_location; */
-    /* public string link_command = "xdg-open %s"; */
-    /* public bool download_attachments = true; */
-    //public Notify.Notification update_complete_notification;
-    //Count, Increment(d,m,y), action(nothing,read(unread only),delete)
-    /* public int[] unread_rule = {0, 0, 0}; */
-    /* public int[] read_rule   = {0, 0, 0}; */
 
     public SingularityApp(SessionSettings settings)
     {
@@ -66,13 +56,6 @@ class SingularityApp : Gtk.Application
         this.startup.connect(start_run);
         this.shutdown.connect(cleanup);
     }
-
-    /* public string constructFrontPage() */
-    /* { */
-    /*     view_list.clear(); */
-    /*     string html_str = "<html><head><style>" + css_dat + "</style></head><body>" + js_str + "</body></html>"; */
-    /*     return html_str; */
-    /* } */
 
     public void import(File file)
     {
@@ -96,46 +79,10 @@ class SingularityApp : Gtk.Application
         /* opml.export(file, feed_list); */
     }
 
-    // TODO: Separate this from subscription so that it just returns a new feed
-    /* public void createFeed(string url, string? title = null) */
-    /* { */
-    /*     Feed f = new Feed(m_database.next_id); */
-    /*     m_database.next_id++; */
-    /*     f.origin_link = url; */
-    /*     if(title != null) */
-    /*         f.title = title; */
-    /*     m_database.addFeed(f); */
-    /*         // TODO: verbose */
-    /*     //getXmlData.begin(url, (obj, res) => { */
-    /*         //Xml.Doc* doc = getXmlData.end(res); */
-    /*         //if(doc == null || doc->get_root_element() == null) { */
-    /*             //stderr.printf("Error: doc is null\n"); */
-    /*             //return; */
-    /*         //} */
-    /*         //Feed f = new Feed.from_xml(doc->get_root_element(), url, m_database.next_id); */
-    /*     f.updateFromWeb.begin(m_database, () => */
-    /*     { */
-    /*         //if(f.status == 3) */
-    /*             //return; */
-    /*         //m_database.saveFeed.begin(f); */
-    /*         feeds.set(f.id, f); */
-    /*         main_window.add_feed(f, f.id); */
-    /*         //main_window.updateFeedItem(f, f.id); */
-    /*     }); */
-    /*     //}); */
-    /* } */
-
     public Feed getFeed(int feed_index)
     {
         return feeds[feed_index];
     }
-
-    /* public void removeFeed(int feed_index) */
-    /* { */
-    /*     Feed f; */
-    /*     feeds.unset(feed_index, out f); */
-    /*     m_database.removeFeed.begin(f); */
-    /* } */
 
     public void update_settings()
     {
@@ -190,106 +137,6 @@ class SingularityApp : Gtk.Application
         }
         return 0;
     }
-
-    /* public void updateFeedItems(Feed f) */
-    /* { */
-    /*     if(!m_session_settings.background) */
-    /*         main_window.updateFeedItem(f, f.id); */
-    /* } */
-
-/*     public void interpretUriEncodedAction(string action) */
-/*     { */
-/*         string[] args = action.split("/"); */
-/*             // TODO: verbose */
-/*         switch(args[0]) { */
-/*             case "read": */
-/*                 int pos = int.parse(args[1]); */
-/*                 Gee.ArrayList<Item> to_mark = new Gee.ArrayList<Item>(); */
-/*                 for(int i = 0; i <= pos; ++i) { */
-/*                     if(view_list[i].unread == true) { */
-/*                         view_list[i].unread = false; */
-/*                         to_mark.add(view_list[i]); */
-/*                     } */
-/*                 } */
-/*                 m_database.updateUnread.begin(new Feed(), to_mark, () => { */
-/*                     foreach(var item in to_mark) { */
-/*                         item.feed.removeUnreadItem(item); */
-/*                         updateFeedItems(item.feed); */
-/*                     } */
-/*                 }); */
-/*             break; */
-/*  */
-/*             case "toggleRead": */
-/* //:TODO: 29.12.14 14:30:40, df458 */
-/* // Finish this when the time to add a button for this feature arrives */
-/* // For now, it shouldn't save this change, so nothing permanent should happen */
-/* // if it gets activated by accident :) */
-/*                 int pos = int.parse(args[1]); */
-/*                 view_list[pos].unread = !view_list[pos].unread; */
-/*             break; */
-/*             case "toggleStarred": */
-/*                 int pos = int.parse(args[1]); */
-/*                 Feed f = view_list[pos].feed; */
-/*                 f.toggleStar(view_list[pos]); */
-/*                 m_database.updateStarred.begin(f, view_list[pos]); */
-/*             break; */
-/*         } */
-/*     } */
-
-    /* public void downloadAttachment(string att) */
-    /* { */
-    /*     bool getl = get_location; */
-    /*     string default_loc = default_location; */
-    /*  */
-    /*     int id = -1; */
-    /*     string action = ""; */
-    /*     att.scanf("%d_", &id); */
-    /*     action = att.substring(id.to_string().length + 1); */
-    /*     Feed tocheck = null; */
-    /*     tocheck = feeds.get(id); */
-    /*     if(tocheck != null && tocheck.override_location) { */
-    /*         getl = tocheck.get_location; */
-    /*         default_loc = tocheck.default_location; */
-    /*     } */
-    /*     try { */
-    /*         if(!download_attachments) */
-    /*             GLib.Process.spawn_command_line_async("xdg-open " + action); */
-    /*         else { */
-    /*             if(getl) { */
-    /*                 Gtk.FileChooserDialog dialog = new Gtk.FileChooserDialog("Download attachment", main_window, Gtk.FileChooserAction.SELECT_FOLDER, "Cancel", Gtk.ResponseType.CANCEL, "Download here", Gtk.ResponseType.ACCEPT); */
-    /*                 dialog.set_current_folder(default_loc); */
-    /*                 if(dialog.run() == Gtk.ResponseType.ACCEPT) { */
-    /*                     GLib.Process.spawn_command_line_async("wget -b -o'/tmp/singularity-wget-log' -P '" + dialog.get_filename() +  "' '" + action + "'"); */
-    /*                 } */
-    /*                 dialog.close(); */
-    /*             } else */
-    /*                 GLib.Process.spawn_command_line_async("wget -b -P '" + default_loc +  "' '" + action + "'"); */
-    /*         } */
-    /*     } catch(GLib.SpawnError e) { */
-    /*         stderr.printf("Failed to spawn %s: %s\n", (download_attachments ? "wget" : "xdg-open"), e.message); */
-    /*     } */
-    /* } */
-
-    /* public void markAllAsRead() */
-    /* { */
-    /*     stdout.printf("Clearing %d items:\n", view_list.size); */
-    /*     Gee.ArrayList<Item> to_mark = new Gee.ArrayList<Item>(); */
-    /*     for(int i = 0; i < view_list.size; ++i) { */
-    /*         if(view_list[i].unread == true) { */
-    /*             view_list[i].unread = false; */
-    /*             to_mark.add(view_list[i]); */
-    /*         } */
-    /*     } */
-    /*     m_database.updateUnread.begin(new Feed(), to_mark, () => { */
-    /*         stdout.printf("Removing items\n"); */
-    /*         foreach(var item in to_mark) { */
-    /*             item.feed.removeUnreadItem(item); */
-    /*             updateFeedItems(item.feed); */
-    /*         } */
-    /*         stdout.printf("Items removed\n"); */
-    /*     }); */
-    /*     stdout.printf("done. Waiting...\n"); */
-    /* } */
 
     public void exit()
     {
@@ -350,8 +197,6 @@ class SingularityApp : Gtk.Application
         return m_global_settings.auto_update;
     }
 
-
-
     // Private section --------------------------------------------------------
     private GlobalSettings         m_global_settings;
     private SessionSettings        m_session_settings;
@@ -363,11 +208,11 @@ class SingularityApp : Gtk.Application
 
     private void start_run()
     {
-        if(!prepare_data_directory())
-            return;
+        DataLocator loc = new DataLocator(m_session_settings);
+        if(loc.data_location == null)
+           return;
 
-        // TODO: Removal time should be variable
-        m_database = new DatabaseManager(m_session_settings);
+        m_database = new DatabaseManager(m_session_settings, loc.data_location);
         m_database.load_feeds.begin((obj, res) =>
         {
             m_feeds = m_database.load_feeds.end(res);
@@ -384,25 +229,6 @@ class SingularityApp : Gtk.Application
 
     private void cleanup()
     {
-    }
-
-    // TODO: Refactor this function to be in its own path class
-    private bool prepare_data_directory()
-    {
-        string? default_data_path = Environment.get_user_data_dir() + "/singularity";
-        try {
-            File default_data_file = File.new_for_path(default_data_path);
-            if(!default_data_file.query_exists()) {
-                if(m_session_settings.verbose)
-                    stderr.printf("Default data location does not exist, and will be created.\n");
-                default_data_file.make_directory_with_parents();
-            }
-        } catch(Error e) {
-            stderr.printf("Error: Failed to initialize the directory at %s: %s\n", default_data_path, e.message);
-            return false;
-        }
-
-        return true;
     }
 }
 }

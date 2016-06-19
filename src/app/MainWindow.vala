@@ -1,6 +1,6 @@
 /*
 	Singularity - A web newsfeed aggregator
-	Copyright (C) 2014  Hugues Ross <hugues.ross@gmail.com>
+	Copyright (C) 2016  Hugues Ross <hugues.ross@gmail.com>
 
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -19,7 +19,8 @@
 using Gtk;
 using Gdk;
 
-namespace Singularity {
+namespace Singularity
+{
 enum ViewType
 {
     GRID,
