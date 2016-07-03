@@ -35,8 +35,8 @@ namespace Singularity
             COUNT
         }
 
-        public FeedCollection.from_record(Record r) { parent = null; parent_id = -1; base.from_record(r); }
-        public FeedCollection.root() { parent = null; parent_id = -1; }
+        public FeedCollection.from_record(Record r) { parent = null; parent_id = -1; nodes = new Gee.ArrayList<CollectionNode>(); base.from_record(r); }
+        public FeedCollection.root() { parent = null; parent_id = -1; nodes = new Gee.ArrayList<CollectionNode>(); }
 
         public void add_node(CollectionNode c)
         {

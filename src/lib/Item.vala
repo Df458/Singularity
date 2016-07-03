@@ -37,6 +37,13 @@ namespace Singularity
         public bool                         unread;
         public bool                         starred;
 
+        public Item()
+        {
+            time_published = new DateTime.from_unix_utc(0);
+            time_updated = new DateTime.from_unix_utc(0);
+            time_loaded = new DateTime.from_unix_utc(0);
+        }
+
         public enum DBColumn
         {
             ID = 0,
@@ -58,9 +65,9 @@ namespace Singularity
         public override Query? insert(Queryable q)
         {
             try {
-                Query query = new Query(q, "INSERT INTO items (id, feed_id, guid, title, link, content, rights, publish_time, update_time, load_time, unread, starred) VALUES (:id, :feed_id, :guid, :title, :link, :content, :rights, :publish_time, :update_time, :load_time, :unread, :starred)");
+                Query query = new Query(q, "INSERT INTO items (id, parent_id, guid, title, link, content, rights, publish_time, update_time, load_time, unread, starred) VALUES (:id, :parent_id, :guid, :title, :link, :content, :rights, :publish_time, :update_time, :load_time, :unread, :starred)");
                 query[":id"] = id;
-                query[":feed_id"] = owner.id;
+                query[":parent_id"] = owner.id;
                 query[":guid"] = guid;
                 query[":title"] = title;
                 query[":link"] = link;
@@ -117,6 +124,11 @@ namespace Singularity
                 warning("Cannot remove item data: " + e.message);
                 return null;
             }
+        }
+
+        public void prepare_for_db(int new_id)
+        {
+            set_id(new_id);
         }
 
         protected override bool build_from_record(SQLHeavy.Record r)

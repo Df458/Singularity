@@ -26,8 +26,5 @@ public static int main (string[] args)
 
     SingularityApp app = new SingularityApp(settings);
 
-    if(!app.init_success)
-        return 1;
-
-    return 0;
+    return app.run();
 }

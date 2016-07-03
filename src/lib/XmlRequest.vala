@@ -42,20 +42,26 @@ public class XmlRequest : Object
 
     public bool send()
     {
+        MainLoop loop = new MainLoop();
         request_sent = true;
 
-        string data;
         try {
-            m_session.send(m_message);
-            data = (string)m_message.response_body.data;
+            m_session.queue_message(m_message, (s, m) =>
+            {
+                loop.quit();
+            });
         } catch(Error e) {
             error_message = e.message;
             return false;
         }
 
+        loop.run();
+
+        string data = (string)m_message.response_body.data;
         doc = Xml.Parser.parse_doc(data);
 
         if(doc == null && data != null) {
+            warning("Spilt then parse\u2026");
             data = data.split("<!DOCTYPE html")[0];
             doc = Xml.Parser.parse_doc(data);
         }

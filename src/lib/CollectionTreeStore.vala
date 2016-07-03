@@ -35,20 +35,31 @@ public class CollectionTreeStore : TreeStore
         COUNT
     }
 
+    public CollectionTreeStore()
+    {
+        prepare();
+    }
+
     public CollectionTreeStore.from_collection(FeedCollection fc)
     {
-        set_column_types({typeof(int), typeof(int), typeof(string), typeof(Gdk.Pixbuf), typeof(CollectionNode)});
-        set_sort_column_id(Column.TITLE, SortType.ASCENDING);
-        TreeIter iter;
-        append(out iter, null);
-        set(iter, Column.ID, -1, Column.TYPE, CollectionNode.Contents.COLLECTION, Column.TITLE, FEED_CATEGORY_STRING);
+        prepare();
+        append_root_collection(fc);
+    }
+
+    public void append_root_collection(FeedCollection fc)
+    {
         foreach(CollectionNode n in fc.nodes) {
-            append_node(n, iter);
+            append_node(n, base_iter);
         }
     }
 
     public void append_node(CollectionNode node, TreeIter? parent)
     {
+        if(parent == null)
+            parent = base_iter;
+
+        node_map.set(node.id, node);
+
         TreeIter iter;
         append(out iter, parent);
         string title = "";
@@ -61,6 +72,63 @@ public class CollectionTreeStore : TreeStore
             foreach(CollectionNode n in node.collection.nodes)
                 append_node(n, iter);
         }
+    }
+
+    public Feed? get_feed_from_path(TreePath path)
+    {
+        int id;
+        int type;
+        TreeIter iter;
+
+        get_iter(out iter, path);
+        get(iter, Column.ID, out id, Column.TYPE, out type);
+        if(type != CollectionNode.Contents.FEED)
+            return null;
+
+        if(node_map.has_key(id))
+            return node_map.get(id).feed;
+        return null;
+    }
+
+    public FeedCollection? get_collection_from_path(TreePath path)
+    {
+        int id;
+        int type;
+        TreeIter iter;
+
+        get_iter(out iter, path);
+        get(iter, Column.ID, out id, Column.TYPE, out type);
+        if(type != CollectionNode.Contents.COLLECTION)
+            return null;
+
+        if(node_map.has_key(id))
+            return node_map.get(id).collection;
+        return null;
+    }
+
+    public CollectionNode? get_node_from_path(TreePath path)
+    {
+        int id;
+        TreeIter iter;
+
+        get_iter(out iter, path);
+        get(iter, Column.ID, out id);
+
+        if(node_map.has_key(id))
+            return node_map.get(id);
+        return null;
+    }
+
+    private TreeIter base_iter;
+    private Gee.HashMap<int, CollectionNode> node_map;
+
+    private void prepare()
+    {
+        node_map = new Gee.HashMap<int, CollectionNode>();
+        set_column_types({typeof(int), typeof(int), typeof(string), typeof(Gdk.Pixbuf), typeof(CollectionNode)});
+        set_sort_column_id(Column.TITLE, SortType.ASCENDING);
+        append(out base_iter, null);
+        set(base_iter, Column.ID, -1, Column.TYPE, CollectionNode.Contents.COLLECTION, Column.TITLE, FEED_CATEGORY_STRING);
     }
 }
 

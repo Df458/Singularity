@@ -69,10 +69,8 @@ public class DatabaseManager
     {
         try {
             Query load_query = new Query(db, "SELECT * FROM feeds WHERE `parent_id` = :parent_id");
-            if(feed_list.id == null)
-                load_query[":parent_id"] = -1;
-            else
-                load_query[":parent_id"] = feed_list.id;
+            load_query[":parent_id"] = feed_list.id;
+
             Gee.ArrayList<FeedCollection> clist = new Gee.ArrayList<FeedCollection>();
             for(QueryResult result = yield load_query.execute_async(); !result.finished; result.next() ) {
                 if(result.fetch_int(0) >= next_id)
@@ -87,6 +85,7 @@ public class DatabaseManager
                         FeedCollection c = new FeedCollection.from_record(result);
                         CollectionNode n = new CollectionNode.with_collection(c);
                         feed_list.add_node(n);
+                        clist.add(c);
                         break;
                 }
             }
@@ -98,22 +97,68 @@ public class DatabaseManager
         }
     }
 
+    public async Gee.List<Item?> load_items_for_node(CollectionNode node, bool unread_only, bool starred_only)
+    {
+        StringBuilder q_builder = new StringBuilder("SELECT * in items");
+
+        if(node.id == -1) {
+            if(unread_only || starred_only)
+                q_builder.append(" WHERE ");
+        } else if(node.contents == CollectionNode.Contents.COLLECTION) {
+            // TODO: Get all contained feeds
+            if(unread_only || starred_only)
+                q_builder.append(" AND ");
+        } else {
+            q_builder.append(" WHERE `owner_id` = :owner_id");
+            if(unread_only || starred_only)
+                q_builder.append(" AND ");
+        }
+        if(unread_only) {
+            q_builder.append("`unread` = 1");
+            if(starred_only)
+                q_builder.append(" AND ");
+        }
+        if(starred_only) {
+            q_builder.append("`starred` = 1");
+        }
+
+        try {
+            Query q = new Query(db, q_builder.str);
+            if(node.contents == CollectionNode.Contents.COLLECTION) {
+                // TODO: Get all contained feeds
+            } else {
+                q[":owner_id"] = node.id;
+            }
+
+            yield q.execute_async();
+        } catch(SQLHeavy.Error e) {
+            warning("Failed to load items: %s", e.message);
+        }
+
+        return new Gee.ArrayList<Item?>();
+    }
+
     public async void save_updates(UpdatePackage package)
     {
         try {
             Query? feed_query = package.feed.update(db);
-            yield feed_query.execute_async();
+            if(feed_query != null)
+                yield feed_query.execute_async();
 
             foreach(Item i in package.items) {
-                Query test_query = new Query(db, "SELECT COUNT FROM items WHERE `feed_id` = :id AND `guid` = :guid");
-                test_query[":id"] = i.owner.id;
+                Query test_query = new Query(db, "SELECT id FROM items WHERE `parent_id` = :id AND `guid` = :guid");
+                test_query[":id"] = package.feed.id;
                 test_query[":guid"] = i.guid;
                 QueryResult test_result = yield test_query.execute_async();
                 Query? q;
                 if(test_result.fetch_int(0) == 0) {
+                    i.prepare_for_db(next_id);
                     q = i.insert(db);
+                    next_id++;
                 } else {
+                    i.prepare_for_db(next_id);
                     q = i.update(db);
+                    next_id++;
                 }
 
                 if(q != null)

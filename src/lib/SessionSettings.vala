@@ -47,8 +47,7 @@ public class SessionSettings
         try {
             context.parse(ref args);
         } catch(OptionError e) {
-            stderr.printf("Failed to parse arguments: %s\n", e.message);
-            return;
+            error("Failed to parse arguments: %s\n", e.message);
         }
         m_valid_options = true;
     }

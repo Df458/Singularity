@@ -23,23 +23,22 @@ static const string APP_ID = "org.df458.singularity";
 namespace Singularity
 {
 
-class SingularityApp : Gtk.Application
+public class SingularityApp : Gtk.Application
 {
+    public enum LoadStatus
+    {
+        NOT_STARTED,
+        STARTED,
+        COMPLETED,
+        FAILED,
+        COUNT
+    }
+
     // Public section ---------------------------------------------------------
-    public bool init_success { get { return m_init_success; } }
-
-
-
-
-    private HashMap<int, Feed> feeds;
-    private MainWindow main_window;
-
-    private StreamViewBuilder  stream_builder;
-    private GridViewBuilder    grid_builder;
+    public bool init_success { get; private set; }
 
     private MainLoop ml;
     string css_dat = "";
-    private ArrayList<Item> view_list;
     bool done_load = false;
     int load_counter = 0;
     public uint timeout_value = 600;
@@ -54,6 +53,7 @@ class SingularityApp : Gtk.Application
         m_session_settings = settings;
 
         this.startup.connect(start_run);
+        this.activate.connect(activate_response);
         this.shutdown.connect(cleanup);
     }
 
@@ -71,17 +71,12 @@ class SingularityApp : Gtk.Application
         // TODO: Make this a tree eventually
         ArrayList<Feed> feed_list = new ArrayList<Feed>();
         bool should_continue = true;
-        for(MapIterator<int, Feed> iter = feeds.map_iterator(); should_continue && (iter.valid || iter.has_next()); should_continue = iter.next()) {
-            if(!iter.valid)
-                continue;
-            feed_list.add(iter.get_value());
-        }
+        /* for(MapIterator<int, Feed> iter = feeds.map_iterator(); should_continue && (iter.valid || iter.has_next()); should_continue = iter.next()) { */
+        /*     if(!iter.valid) */
+        /*         continue; */
+        /*     feed_list.add(iter.get_value()); */
+        /* } */
         /* opml.export(file, feed_list); */
-    }
-
-    public Feed getFeed(int feed_index)
-    {
-        return feeds[feed_index];
     }
 
     public void update_settings()
@@ -99,7 +94,7 @@ class SingularityApp : Gtk.Application
         if(m_global_settings.auto_update && !update_running) {
             update_running = true;
             update_next = timeout_value;
-            Timeout.add_seconds(timeout_value, update);
+            /* Timeout.add_seconds(timeout_value, update); */
         }
     }
 
@@ -110,6 +105,12 @@ class SingularityApp : Gtk.Application
         //if(!f.override_rules)
             //outrule = "";
         //m_database.updateFeedSettings.begin(f, outrule);
+    }
+
+    // TODO: Make this take a query object with more limits and settings
+    public async Gee.List<Item?> query_items(CollectionNode node, bool unread_only, bool starred_only)
+    {
+        return yield m_database.load_items_for_node(node, unread_only, starred_only);
     }
 
     public int runall()
@@ -142,89 +143,65 @@ class SingularityApp : Gtk.Application
     {
     }
 
-    public void addToView(Item i)
+    public CollectionTreeStore get_feed_store()
     {
-        view_list.add(i);
+        return m_feed_store;
     }
 
-    public bool update()
-    {
-            // TODO: verbose
-        /* if(verbose) */
-        /*     stderr.printf("Running updates on %d feeds...\n", feeds.size); */
-        bool should_continue = true;
-        MapIterator<int, Feed> iter = feeds.map_iterator();
-        do {
-            if(!iter.valid) {
-                should_continue = iter.next();
-                continue;
-            }
-            Feed f = iter.get_value();
-            /* m_database.loadFeedItems.begin(f, -1, (obj, res) => { */
-            /*     load_counter++; */
-            /*     f.updateFromWeb.begin(m_database, (obj, res) => { */
-            /*         load_counter--; */
-            /*         if(load_counter <= 0) { */
-            /*             load_counter = 0; */
-            /*             done_load = true; */
-            /*             if(!m_session_settings.background) { */
-            /*             // TODO: Readd this */
-            /*                 //int unread_count = main_window.get_unread_count(); */
-            /*                 //if(unread_count != 0) { */
-            /*                     //try { */
-            /*                         //update_complete_notification.update("Update Complete", "You have " + unread_count.to_string() + " unread item" + (unread_count > 1 ? "s." : "."), null); */
-            /*                         //update_complete_notification.show(); */
-            /*                     //} catch(GLib.Error e) { */
-            /*                         //stderr.printf("Error displaying notification: %s.\n", e.message); */
-            /*                     //} */
-            /*                 //} */
-            /*             } else { */
-            /*                 ml.quit(); */
-            /*             } */
-            /*         } */
-            /*     }); */
-            /* }); */
-            should_continue = iter.next();
-        } while(should_continue);
-        if(feeds.size == 0)
-            done_load = true;
-        update_running = m_global_settings.auto_update;
-        if(update_running && update_next != timeout_value) {
-            update_next = timeout_value;
-            Timeout.add_seconds(timeout_value, update);
-            return false;
-        }
-        return m_global_settings.auto_update;
-    }
+    // Signals ----------------------------------------------------------------
+    public signal void load_status_changed(LoadStatus status);
 
     // Private section --------------------------------------------------------
     private GlobalSettings         m_global_settings;
     private SessionSettings        m_session_settings;
     private DatabaseManager        m_database;
     private FeedCollection         m_feeds;
-    private CollectionTreeStore    m_feed_store;
+    private CollectionTreeStore?   m_feed_store = null;
     private UpdateQueue            m_update_queue;
-    private bool                   m_init_success = false;
+    private LoadStatus             m_current_load_status = LoadStatus.NOT_STARTED;
 
     private void start_run()
     {
         DataLocator loc = new DataLocator(m_session_settings);
-        if(loc.data_location == null)
-           return;
 
         m_database = new DatabaseManager(m_session_settings, loc.data_location);
+        load_status_changed(LoadStatus.STARTED);
+        m_update_queue = new UpdateQueue();
+
+        m_update_queue.update_processed.connect((pak) =>
+        {
+            if(pak.contents == UpdatePackage.PackageContents.FEED_UPDATE) {
+                m_database.save_updates(pak);
+            } else if(pak.contents == UpdatePackage.PackageContents.ERROR_DATA) {
+                warning("Can't update feed %s: %s", pak.feed.title, pak.message);
+            }
+        });
+
         m_database.load_feeds.begin((obj, res) =>
         {
             m_feeds = m_database.load_feeds.end(res);
-            m_feed_store = new CollectionTreeStore.from_collection(m_feeds);
+            if(m_feed_store == null)
+                m_feed_store = new CollectionTreeStore.from_collection(m_feeds);
+            else
+                m_feed_store.append_root_collection(m_feeds);
 
-            m_init_success = true;
+            load_status_changed(LoadStatus.COMPLETED);
+            init_success = true;
         });
     }
 
     private void activate_response()
     {
-        // TODO: Create the window
+        if(m_feed_store == null)
+            m_feed_store = new CollectionTreeStore();
+
+        MainWindow window = new MainWindow(this);
+        window.update_requested.connect((f) =>
+        {
+            if(f != null)
+                m_update_queue.request_update(f);
+        });
+        this.add_window(window);
     }
 
     private void cleanup()

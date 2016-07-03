@@ -62,7 +62,7 @@ namespace Singularity
         public bool update_contents(DataSource<Item, Xml.Doc> source)
         {
             warning("update_contents() is unimplemented.");
-            return false;
+            return true;
         }
 
         public override Query? insert(Queryable q)
@@ -127,13 +127,14 @@ namespace Singularity
         protected override bool build_from_record(SQLHeavy.Record r)
         {
             try {
-                title = r.fetch_string(DBColumn.TITLE);
-                link = r.fetch_string(DBColumn.LINK);
-                description = r.fetch_string(DBColumn.DESCRIPTION);
-                rights = r.fetch_string(DBColumn.RIGHTS);
-                generator = r.fetch_string(DBColumn.GENERATOR);
-                last_update = new DateTime.from_unix_utc(r.fetch_int(DBColumn.LAST_UPDATE));
-                next_update = new DateTime.from_unix_utc(r.fetch_int(DBColumn.NEXT_UPDATE));
+                title = r.fetch_string(r.field_index("title"));
+                link = r.fetch_string(r.field_index("link"));
+                site_link = r.fetch_string(r.field_index("site_link"));
+                description = r.fetch_string(r.field_index("description"));
+                rights = r.fetch_string(r.field_index("rights"));
+                generator = r.fetch_string(r.field_index("generator"));
+                last_update = new DateTime.from_unix_utc(r.fetch_int(r.field_index("last_update")));
+                next_update = new DateTime.from_unix_utc(r.fetch_int(r.field_index("next_update")));
                 // TODO: Decide how to store icons
                 // TODO: Decide how to store tags
                 return true;

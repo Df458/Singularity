@@ -23,7 +23,7 @@ public class CollectionNode : Object
     public Feed? feed { get; construct; }
     public FeedCollection? collection { get; construct; }
     public Contents contents { get; construct; }
-    public uint id { get; construct; }
+    public int id { get; construct; }
 
     public enum Contents
     {
@@ -46,7 +46,7 @@ public class CollectionNode : Object
     {
         if(contents == Contents.FEED) {
             feed.parent = p;
-            feed.parent_id = (int)p.id;
+            feed.parent_id = p.id;
         } else if(contents == Contents.COLLECTION) {
             collection.parent = p;
             collection.parent_id = (int)p.id;

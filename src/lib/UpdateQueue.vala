@@ -35,7 +35,8 @@ public class UpdateQueue : Object
         while(true) {
             Feed f = m_update_requests.pop();
             UpdateGenerator gen = new UpdateGenerator(f);
-            update_processed(gen.do_update());
+            UpdatePackage pak = gen.do_update();
+            update_processed(pak);
         }
     }
 }

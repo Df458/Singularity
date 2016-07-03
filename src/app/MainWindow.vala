@@ -28,35 +28,37 @@ enum ViewType
     STREAM
 }
 
-class MainWindow : Gtk.ApplicationWindow
+public class MainWindow : Gtk.ApplicationWindow
 {
     private Box   main_box;
     private Paned main_paned;
     private SingularityApp app;
-    private string current_view = "grid";
-    private bool   toggle_lock = false; // Prevents extra button toggle changes when selecting a view
-
-    // Headerbar
+    /* private string current_view = "grid"; */
+    /* private bool   toggle_lock = false; // Prevents extra button toggle changes when selecting a view */
+    /*  */
+    /* // Headerbar */
     private HeaderBar    top_bar;
     private Button       add_button;
     private MenuButton   menu_button;
     private ToggleButton item_search_toggle;
-
-    // Actions
-    private SimpleAction import_action;
-    private SimpleAction export_action;
-    private SimpleAction refresh_action;
-    private SimpleAction preferences_action;
-    private SimpleAction mkread_action;
-    private SimpleAction about_action;
-    private SimpleAction unsubscribe_action;
-
-    // Search
+    /*  */
+    /* // Actions */
+    /* private SimpleAction import_action; */
+    /* private SimpleAction export_action; */
+    /* private SimpleAction refresh_action; */
+    /* private SimpleAction preferences_action; */
+    /* private SimpleAction mkread_action; */
+    /* private SimpleAction about_action; */
+    /* private SimpleAction unsubscribe_action; */
+    /*  */
+    /* // Search */
     private SearchBar   item_search_bar;
     private SearchEntry item_search_entry;
-    private Gtk.Menu feed_menu;
+    /* private Gtk.Menu feed_menu; */
 
-    // Statusbar
+    private FeedPane feed_pane;
+
+    /* // Statusbar */
     private ActionBar    status_bar;
     private Box          view_switcher;
     private ToggleButton grid_view_button;
@@ -65,31 +67,18 @@ class MainWindow : Gtk.ApplicationWindow
     private Label        status_label;
     private Spinner      progress_spinner;
     private ProgressBar  progress_bar;
-
-    // Feed List
-    private ScrolledWindow feed_list_scroll;
-    private TreeView       feed_list;
-    private TreeViewColumn col_name;
-    private TreeViewColumn col_count;
-    private TreeStore      feed_data;
-    private TreeIter       category_all;
-    private TreeIter       category_collection;
-    private TreeIter       all_item;
-    private TreeIter       unread_item;
-    private TreeIter       starred_item;
-
-    // Views
+    /* // Views */
     private Stack          view_stack;
     private WebKit.WebView grid_view;
     private Box            column_view_box;
-    private ListBox        item_column_box;
+    /* private ListBox        item_column_box; */
     private WebKit.WebView column_view_display;
     private WebKit.WebView stream_view;
     private SettingsPane settings;
     private FeedSettingsPane feed_settings;
     private AddPane add_pane;
-
-    string[] authorstr = { "Hugues Ross(df458)" };
+    /*  */
+    /* string[] authorstr = { "Hugues Ross(df458)" }; */
 
     private enum FeedColumn
     {
@@ -108,12 +97,12 @@ class MainWindow : Gtk.ApplicationWindow
         set_default_size(1024, 768);
 
         init_structure();
-        init_content();
+        init_content(owner_app.get_feed_store());
         /* connect_signals(); */
         /* add_actions(); */
-        init_menus();
+        /* init_menus(); */
 
-        resize_columns(128);
+        /* resize_columns(128); */
         this.show_all();
 
         /*
@@ -133,23 +122,22 @@ class MainWindow : Gtk.ApplicationWindow
         */
     }
 
+    
+    public signal void update_requested(Feed? feed);
+
+
     private void init_structure()
     {
         top_bar = new HeaderBar();
         main_box = new Box(Orientation.VERTICAL, 0);
         main_paned = new Paned(Orientation.HORIZONTAL);
-        // TODO: Remove "Gtk." once Granite is removed
-        item_search_bar = new Gtk.SearchBar();
+        item_search_bar = new SearchBar();
         status_bar = new ActionBar();
-        feed_list_scroll = new ScrolledWindow(null, null);
         view_stack = new Stack();
 
         top_bar.set_title("Singularity");
-        top_bar.set_show_close_button(true);
-        feed_list_scroll.hscrollbar_policy = PolicyType.NEVER;
         main_paned.position = 128;
 
-        main_paned.pack1(feed_list_scroll, true, true);
         main_paned.pack2(view_stack, true, true);
         main_box.pack_start(item_search_bar, false, false);
         main_box.pack_start(main_paned, true, true);
@@ -158,7 +146,7 @@ class MainWindow : Gtk.ApplicationWindow
         this.set_titlebar(top_bar);
     }
 
-    private void init_content()
+    private void init_content(CollectionTreeStore store)
     {
         view_switcher       = new Box(Orientation.HORIZONTAL, 0);
         add_button          = new Button.from_icon_name("list-add-symbolic");
@@ -178,48 +166,38 @@ class MainWindow : Gtk.ApplicationWindow
         settings            = new SettingsPane(app);
         feed_settings       = new FeedSettingsPane();
         add_pane            = new AddPane();
+        feed_pane           = new FeedPane(this, store);
 
         add_button.get_style_context().add_class(STYLE_CLASS_SUGGESTED_ACTION);
         add_button.set_tooltip_text("Subscribe to a new feed");
+
         item_search_toggle.set_image(new Image.from_icon_name("edit-find-symbolic", IconSize.BUTTON));
         item_search_toggle.set_tooltip_text("Search for items");
+
         menu_button.set_direction(ArrowType.DOWN);
         menu_button.set_image       (new Image.from_icon_name("open-menu-symbolic", IconSize.BUTTON));
+
         view_switcher.get_style_context().add_class(STYLE_CLASS_LINKED);
+
         grid_view_button.set_image  (new Image.from_icon_name("view-grid-symbolic", IconSize.BUTTON));
         grid_view_button.set_tooltip_text("Grid view");
         grid_view_button.can_focus = false;
+
         column_view_button.set_image(new Image.from_icon_name("view-column-symbolic", IconSize.BUTTON));
         column_view_button.set_tooltip_text("Column view");
         column_view_button.can_focus = false;
+
         stream_view_button.set_image(new Image.from_icon_name("view-continuous-symbolic", IconSize.BUTTON));
         stream_view_button.set_tooltip_text("Stream view");
         stream_view_button.can_focus = false;
+
         progress_bar.valign  = Align.CENTER;
 
-        WebKit.Settings view_settings = new WebKit.Settings();
-        view_settings.enable_javascript = true;
-        view_settings.enable_developer_extras = true;
-        view_settings.enable_smooth_scrolling = true;
-        view_settings.allow_file_access_from_file_urls = true;
-        grid_view.set_settings(view_settings);
-        column_view_display.set_settings(view_settings);
-        stream_view.set_settings(view_settings);
-        grid_view.get_context().get_security_manager().register_uri_scheme_as_cors_enabled("file");
-        column_view_display.get_context().get_security_manager().register_uri_scheme_as_cors_enabled("file");
-        stream_view.get_context().get_security_manager().register_uri_scheme_as_cors_enabled("file");
-//:TODO: 16.09.14 18:52:26, Hugues Ross
-// Add a custom right-click menu
-        /* grid_view.load_html(app.constructFrontPage(), ""); */
-        /* column_view_display.load_html(app.constructFrontPage(), ""); */
-        /* stream_view.load_html(app.constructFrontPage(), ""); */
-        /* init_feed_pane(); */
         grid_view_button.active = true;
 
         item_search_bar.add(item_search_entry);
         item_search_bar.connect_entry(item_search_entry);
         column_view_box.pack_end(column_view_display);
-        feed_list_scroll.add(feed_list);
         view_switcher.add(grid_view_button);
         view_switcher.add(column_view_button);
         view_switcher.add(stream_view_button);
@@ -238,6 +216,7 @@ class MainWindow : Gtk.ApplicationWindow
         top_bar.pack_start(add_button);
         top_bar.pack_end(menu_button);
         top_bar.pack_end(item_search_toggle);
+        main_paned.pack1(feed_pane, true, true);
     }
 
     /* private bool policy_decision(WebKit.PolicyDecision decision, WebKit.PolicyDecisionType type) */
@@ -550,44 +529,44 @@ class MainWindow : Gtk.ApplicationWindow
     /*     feed_list.insert_action_group("feed", feed_group); */
     /* } */
 
-    private void init_menus()
-    {
-        GLib.Menu menu = new GLib.Menu();
-        menu.append_item(new GLib.MenuItem("Import Feeds\u2026", "win.import"));
-        menu.append_item(new GLib.MenuItem("Export Feeds\u2026", "win.export"));
-        menu.append_item(new GLib.MenuItem("Refresh", "win.refresh-feeds"));
-        menu.append_item(new GLib.MenuItem("Preferences", "win.app-preferences"));
-        menu.append_item(new GLib.MenuItem("Mark All as Read", "win.mark-read"));
-        menu.append_item(new GLib.MenuItem("About", "win.about"));
-        menu_button.set_menu_model(menu);
-
-        GLib.Menu feed_model = new GLib.Menu();
-        feed_model.append_item(new GLib.MenuItem("Unsubscribe", "feed.unsubscribe"));
-        feed_menu = new Gtk.Menu.from_model(feed_model);
-
-        feed_menu.attach_to_widget(feed_list, null);
-    }
-
-    private void resize_columns(int size)
-    {
-        int w = size - col_count.get_width();
-        if(w < 0)
-            w = 0;
-        col_name.set_fixed_width(w);
-    }
-
-    public void updateSubtitle()
-    {
-        // TODO: Update this to display unread items
-        //if(feed_items.size > 1) {
-            //top_bar.set_subtitle("You have " + feed_items.size.to_string() + " subscriptions");
-        //} else if(feed_items.size == 1) {
-            //top_bar.set_subtitle("You have 1 subscription");
-        //} else {
-            //top_bar.set_subtitle("You have no subscriptions");
-            //firststart = true;
-        //}
-    }
+    /* private void init_menus() */
+    /* { */
+    /*     GLib.Menu menu = new GLib.Menu(); */
+    /*     menu.append_item(new GLib.MenuItem("Import Feeds\u2026", "win.import")); */
+    /*     menu.append_item(new GLib.MenuItem("Export Feeds\u2026", "win.export")); */
+    /*     menu.append_item(new GLib.MenuItem("Refresh", "win.refresh-feeds")); */
+    /*     menu.append_item(new GLib.MenuItem("Preferences", "win.app-preferences")); */
+    /*     menu.append_item(new GLib.MenuItem("Mark All as Read", "win.mark-read")); */
+    /*     menu.append_item(new GLib.MenuItem("About", "win.about")); */
+    /*     menu_button.set_menu_model(menu); */
+    /*  */
+    /*     GLib.Menu feed_model = new GLib.Menu(); */
+    /*     feed_model.append_item(new GLib.MenuItem("Unsubscribe", "feed.unsubscribe")); */
+    /*     feed_menu = new Gtk.Menu.from_model(feed_model); */
+    /*  */
+    /*     feed_menu.attach_to_widget(feed_list, null); */
+    /* } */
+    /*  */
+    /* private void resize_columns(int size) */
+    /* { */
+    /*     int w = size - col_count.get_width(); */
+    /*     if(w < 0) */
+    /*         w = 0; */
+    /*     col_name.set_fixed_width(w); */
+    /* } */
+    /*  */
+    /* public void updateSubtitle() */
+    /* { */
+    /*     // TODO: Update this to display unread items */
+    /*     //if(feed_items.size > 1) { */
+    /*         //top_bar.set_subtitle("You have " + feed_items.size.to_string() + " subscriptions"); */
+    /*     //} else if(feed_items.size == 1) { */
+    /*         //top_bar.set_subtitle("You have 1 subscription"); */
+    /*     //} else { */
+    /*         //top_bar.set_subtitle("You have no subscriptions"); */
+    /*         //firststart = true; */
+    /*     //} */
+    /* } */
 
     /* public void add_feeds(Gee.ArrayList<Feed> feeds) */
     /* { */
@@ -639,11 +618,11 @@ class MainWindow : Gtk.ApplicationWindow
     /*     }); */
     /* } */
 
-    public int get_unread_count()
-    {
-        int count = 0;
-        feed_data.get(unread_item, 2, out count);
-        return count;
-    }
+    /* public int get_unread_count() */
+    /* { */
+    /*     int count = 0; */
+    /*     feed_data.get(unread_item, 2, out count); */
+    /*     return count; */
+    /* } */
 }
 }

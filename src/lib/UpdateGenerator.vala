@@ -30,7 +30,7 @@ namespace Singularity
         public UpdatePackage do_update()
         {
             XmlRequest req = new XmlRequest(to_update.link);
-            if(!req.send()) {
+            if(req.send() == false) {
                 return new UpdatePackage.failure(to_update, req.error_message);
             }
 
@@ -50,9 +50,13 @@ namespace Singularity
             }
             if(source == null || !source.parse_data(doc))
                 return new UpdatePackage.failure(to_update, "Failed to parse feed data");
-            
+
             if(!to_update.update_contents(source)) {
                 return new UpdatePackage.failure(to_update, "Data was parsed, but the feed couldn't be updated");
+            }
+
+            foreach(Item i in source.data) {
+                i.owner = to_update;
             }
 
             return new UpdatePackage.success(to_update, source.data);
