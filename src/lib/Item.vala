@@ -44,6 +44,8 @@ namespace Singularity
             time_loaded = new DateTime.from_unix_utc(0);
         }
 
+        public Item.from_record(SQLHeavy.Record r) { base.from_record(r); }
+
         public enum DBColumn
         {
             ID = 0,

@@ -84,6 +84,8 @@ public class FeedPane : Gtk.Box
             feed_list.get_cursor(out path, null);
 
             selected_feed = feed_data.get_feed_from_path(path);
+
+            owner.display_node(feed_data.get_node_from_path(path));
         });
         feed_list.button_press_event.connect((event) =>
         {

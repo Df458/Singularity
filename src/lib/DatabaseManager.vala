@@ -97,11 +97,12 @@ public class DatabaseManager
         }
     }
 
-    public async Gee.List<Item?> load_items_for_node(CollectionNode node, bool unread_only, bool starred_only)
+    public async Gee.List<Item?> load_items_for_node(CollectionNode? node, bool unread_only, bool starred_only)
     {
-        StringBuilder q_builder = new StringBuilder("SELECT * in items");
+        StringBuilder q_builder = new StringBuilder("SELECT * FROM items");
+        Gee.ArrayList<Item?> item_list = new Gee.ArrayList<Item?>();
 
-        if(node.id == -1) {
+        if(node == null) {
             if(unread_only || starred_only)
                 q_builder.append(" WHERE ");
         } else if(node.contents == CollectionNode.Contents.COLLECTION) {
@@ -109,7 +110,7 @@ public class DatabaseManager
             if(unread_only || starred_only)
                 q_builder.append(" AND ");
         } else {
-            q_builder.append(" WHERE `owner_id` = :owner_id");
+            q_builder.append(" WHERE `parent_id` = :parent_id");
             if(unread_only || starred_only)
                 q_builder.append(" AND ");
         }
@@ -124,18 +125,22 @@ public class DatabaseManager
 
         try {
             Query q = new Query(db, q_builder.str);
-            if(node.contents == CollectionNode.Contents.COLLECTION) {
-                // TODO: Get all contained feeds
-            } else {
-                q[":owner_id"] = node.id;
+            if(node != null) {
+                if(node.contents == CollectionNode.Contents.COLLECTION) {
+                    // TODO: Get all contained feeds
+                } else {
+                    q[":parent_id"] = node.id;
+                }
             }
 
-            yield q.execute_async();
+            for(QueryResult result = yield q.execute_async(); !result.finished; result.next() ) {
+                item_list.add(new Item.from_record(result));
+            }
         } catch(SQLHeavy.Error e) {
-            warning("Failed to load items: %s", e.message);
+            warning("Failed to load items: %s (Query %s)", e.message, q_builder.str);
         }
 
-        return new Gee.ArrayList<Item?>();
+        return item_list;
     }
 
     public async void save_updates(UpdatePackage package)

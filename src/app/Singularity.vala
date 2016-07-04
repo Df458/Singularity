@@ -108,7 +108,7 @@ public class SingularityApp : Gtk.Application
     }
 
     // TODO: Make this take a query object with more limits and settings
-    public async Gee.List<Item?> query_items(CollectionNode node, bool unread_only, bool starred_only)
+    public async Gee.List<Item?> query_items(CollectionNode? node, bool unread_only, bool starred_only)
     {
         return yield m_database.load_items_for_node(node, unread_only, starred_only);
     }

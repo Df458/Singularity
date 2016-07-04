@@ -30,6 +30,8 @@ enum ViewType
 
 public class MainWindow : Gtk.ApplicationWindow
 {
+    private ViewBuilder m_view_builder;
+
     private Box   main_box;
     private Paned main_paned;
     private SingularityApp app;
@@ -96,6 +98,8 @@ public class MainWindow : Gtk.ApplicationWindow
         window_position = WindowPosition.CENTER;
         set_default_size(1024, 768);
 
+        m_view_builder = new StreamViewBuilder("", "");
+
         init_structure();
         init_content(owner_app.get_feed_store());
         /* connect_signals(); */
@@ -122,6 +126,17 @@ public class MainWindow : Gtk.ApplicationWindow
         */
     }
 
+    // TODO: Allow filtering unread/starred
+    public void display_node(CollectionNode? node)
+    {
+        app.query_items.begin(node, false, false, (obj, res) =>
+        {
+            Gee.List<Item?> item_list = app.query_items.end(res);
+            string html = m_view_builder.buildHTML(item_list);
+            grid_view.load_html(html, null);
+            stderr.printf("Data:\n%s\n", html);
+        });
+    }
     
     public signal void update_requested(Feed? feed);
 
