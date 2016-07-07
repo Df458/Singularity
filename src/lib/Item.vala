@@ -136,16 +136,16 @@ namespace Singularity
         protected override bool build_from_record(SQLHeavy.Record r)
         {
             try {
-                guid = r.fetch_string(DBColumn.GUID);
-                title = r.fetch_string(DBColumn.TITLE);
-                link = r.fetch_string(DBColumn.LINK);
-                content = r.fetch_string(DBColumn.CONTENT);
-                rights = r.fetch_string(DBColumn.RIGHTS);
-                time_published = new DateTime.from_unix_utc(r.fetch_int(DBColumn.PUBLISH_TIME));
-                time_updated = new DateTime.from_unix_utc(r.fetch_int(DBColumn.UPDATE_TIME));
-                time_loaded = new DateTime.from_unix_utc(r.fetch_int(DBColumn.LOAD_TIME));
-                unread = r.fetch_int(DBColumn.STARRED) == 1;
-                starred = r.fetch_int(DBColumn.UNREAD) == 1;
+                guid = r.fetch_string(r.field_index("guid"));
+                title = r.fetch_string(r.field_index("title"));
+                link = r.fetch_string(r.field_index("link"));
+                content = r.fetch_string(r.field_index("content"));
+                rights = r.fetch_string(r.field_index("rights"));
+                time_published = new DateTime.from_unix_utc(r.field_index("publish_time"));
+                time_updated = new DateTime.from_unix_utc(r.fetch_int(r.field_index("update_time")));
+                time_loaded = new DateTime.from_unix_utc(r.fetch_int(r.field_index("load_time")));
+                unread = r.fetch_int(r.fetch_int(r.field_index("unread"))) == 1;
+                starred = r.fetch_int(r.field_index("starred")) == 1;
                 // TODO: Decide how to retrieve owner
                 // TODO: Decide how to store authors
                 // TODO: Decide how to store contributors

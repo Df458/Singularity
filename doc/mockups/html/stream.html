@@ -5,8 +5,10 @@
 <body>
     <article class="stream">
         <header class="stream">
-            <img class="stream star" id="active" src="../../../data/star.svg"/>
-            <h1 class="stream title"><a href="http://example.com">Post Title</a></h1>
+            <div class="stream" id="top">
+                <h1 class="stream title"><a href="http://example.com">Post Title</a></h1>
+                <img class="stream star" id="active" src="../../../data/star.svg"/>
+            </div>
             <section class="stream" id="posted">
                 Posted by <span class="stream author">Author</span> on <time class="stream date" datetime="2016-01-01 12:00">Jan 1, 2015</time>.
             </section>
@@ -15,21 +17,22 @@
         <section class="stream content">
             Article description
         </section>
+            <hr class="stream" id="header-separator">
         <footer class="stream">
-            <h3 class="stream footer-heading">Attachments</h3>
             <section class="stream" id="attach-list">
                 <span class="stream attach">Attachment1</span>
             </section>
-            <h3 class="stream footer-heading">Tags</h3>
             <section class="stream" id="taglist">
                 <span class="stream tag">Tag1</span>, <span class="stream tag">Tag2</span>, <span class="stream tag">Tag3</span>
             </section>
         </footer>
     </article>
-    <article class="stream">
+    <article class="stream" id="unread">
         <header class="stream">
-            <img class="stream star" id="active" src="../../../data/star.svg"/>
-            <h1 class="stream title"><a href="http://example.com">Post Title</a></h1>
+            <div class="stream" id="top">
+                <h1 class="stream title"><a href="http://example.com">Post Title</a></h1>
+                <img class="stream star" src="../../../data/star.svg"/>
+            </div>
             <section class="stream" id="posted">
                 Posted by <span class="stream author">Author</span> on <time class="stream date" datetime="2016-01-01 12:00">Jan 1, 2015</time>.
             </section>
@@ -38,12 +41,12 @@
         <section class="stream content">
             Article description
         </section>
+            <hr class="stream" id="header-separator">
         <footer class="stream">
-            <h3 class="stream footer-heading">Attachments</h3>
             <section class="stream" id="attach-list">
                 <span class="stream attach">Attachment1</span>
             </section>
-            <h3 class="stream footer-heading">Tags</h3>
+            <!-- <h3 class="stream footer&#45;heading">Tags</h3> -->
             <section class="stream" id="taglist">
                 <span class="stream tag">Tag1</span>, <span class="stream tag">Tag2</span>, <span class="stream tag">Tag3</span>
             </section>

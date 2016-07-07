@@ -43,8 +43,10 @@ public class StreamViewBuilder : ViewBuilder, GLib.Object
             StringBuilder footer_builder  = new StringBuilder("<footer ");
 
             head_builder.append_printf("class=\"%s\">", builder_class);
-            head_builder.append_printf("<img class=\"%s star\" %s, src=\"data:image/svg;base64,%s\"/>", builder_class, i.starred ? "id=\"active\"" : "", star_svg);
+            head_builder.append_printf("<div class=\"%s\" id=\"top\">", builder_class);
             head_builder.append_printf("<h1 class=\"%s title\"><a href=\"%s\">%s</a></h1>", builder_class, i.link, i.title == "" ? "Untitled Post" : i.title);
+            head_builder.append_printf("<img class=\"%s star\" %s, src=\"data:image/svg;base64,%s\"/>", builder_class, i.starred ? "id=\"active\"" : "", star_svg);
+            head_builder.append("</div>");
             // TODO: Posted section
             head_builder.append_printf("<hr class=\"%s\" id=\"header-separator\"/>", builder_class);
 

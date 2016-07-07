@@ -16,14 +16,8 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-public enum XmlContentType
+namespace Singularity
 {
-    INVALID = -1,
-    RSS,
-    ATOM,
-    COUNT
-}
-
 string get_node_contents(Xml.Node* node, bool atom = false)
 {
     string output = "";
@@ -106,16 +100,4 @@ string dump_xml_node(Xml.Node* node)
     return xml_str;
 }
 
-XmlContentType determine_content_type(Xml.Doc doc)
-{
-    Xml.Node* node = doc.get_root_element();
-
-    while(node != null) {
-        if(node->name == "rss" || node->name == "RDF")
-            return XmlContentType.RSS;
-        else if(node->name == "feed")
-            return XmlContentType.ATOM;
-        node = node->next;
-    }
-    return XmlContentType.INVALID;
 }

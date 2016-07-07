@@ -52,7 +52,7 @@ namespace Singularity
                                 break;
 
                                 case "link":
-                                    stored_feed.link = get_node_contents(dat);
+                                    stored_feed.site_link = get_node_contents(dat);
                                 break;
 
                                 case "description":

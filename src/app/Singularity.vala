@@ -171,7 +171,7 @@ public class SingularityApp : Gtk.Application
         m_update_queue.update_processed.connect((pak) =>
         {
             if(pak.contents == UpdatePackage.PackageContents.FEED_UPDATE) {
-                m_database.save_updates(pak);
+                m_database.save_updates.begin(pak);
             } else if(pak.contents == UpdatePackage.PackageContents.ERROR_DATA) {
                 warning("Can't update feed %s: %s", pak.feed.title, pak.message);
             }

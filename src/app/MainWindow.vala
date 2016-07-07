@@ -60,6 +60,9 @@ public class MainWindow : Gtk.ApplicationWindow
 
     private FeedPane feed_pane;
 
+    private Popover     feed_popover;
+    private FeedBuilder feed_builder;
+
     /* // Statusbar */
     private ActionBar    status_bar;
     private Box          view_switcher;
@@ -98,11 +101,11 @@ public class MainWindow : Gtk.ApplicationWindow
         window_position = WindowPosition.CENTER;
         set_default_size(1024, 768);
 
-        m_view_builder = new StreamViewBuilder("", "");
+        m_view_builder = new StreamViewBuilder(css_str, star_icon_base64);
 
         init_structure();
         init_content(owner_app.get_feed_store());
-        /* connect_signals(); */
+        connect_signals();
         /* add_actions(); */
         /* init_menus(); */
 
@@ -134,7 +137,6 @@ public class MainWindow : Gtk.ApplicationWindow
             Gee.List<Item?> item_list = app.query_items.end(res);
             string html = m_view_builder.buildHTML(item_list);
             grid_view.load_html(html, null);
-            stderr.printf("Data:\n%s\n", html);
         });
     }
     
@@ -182,6 +184,8 @@ public class MainWindow : Gtk.ApplicationWindow
         feed_settings       = new FeedSettingsPane();
         add_pane            = new AddPane();
         feed_pane           = new FeedPane(this, store);
+        feed_popover        = new Popover(add_button);
+        feed_builder        = new FeedBuilder();
 
         add_button.get_style_context().add_class(STYLE_CLASS_SUGGESTED_ACTION);
         add_button.set_tooltip_text("Subscribe to a new feed");
@@ -231,6 +235,7 @@ public class MainWindow : Gtk.ApplicationWindow
         top_bar.pack_start(add_button);
         top_bar.pack_end(menu_button);
         top_bar.pack_end(item_search_toggle);
+        feed_popover.add(feed_builder);
         main_paned.pack1(feed_pane, true, true);
     }
 
@@ -267,79 +272,13 @@ public class MainWindow : Gtk.ApplicationWindow
     /*     return false; */
     /* } */
 
-    /* private void init_feed_pane() */
-    /* { */
-    /*     // Spinner, Name, Unread Badge, Show Badge, Feed Id, Starred Count */
-    /*     feed_data = new TreeStore(6, typeof(bool), typeof(string), typeof(int), typeof(bool), typeof(int), typeof(int)); */
-    /*     feed_data.set_sort_column_id(FeedColumn.TITLE, Gtk.SortType.ASCENDING); */
-    /*     feed_list = new TreeView.with_model(feed_data); */
-    /*     feed_list.set_headers_visible(false); */
-    /*     CellRendererSpinner spin = new CellRendererSpinner(); */
-    /*     //Gtk.TreeViewColumn col_load = new Gtk.TreeViewColumn.with_attributes("Loading", spin, "active", FeedColumn.WORKING, null); */
-    /*     //feed_list.insert_column(col_load, -1); */
-    /*     CellRendererText name_renderer = new CellRendererText(); */
-    /*     name_renderer.ellipsize = Pango.EllipsizeMode.END; */
-    /*     col_name = new Gtk.TreeViewColumn.with_attributes("Name", name_renderer, "text", FeedColumn.TITLE, null); */
-    /*     feed_list.insert_column(col_name, -1); */
-    /*     col_count = new Gtk.TreeViewColumn.with_attributes("Count", new CellRendererText(), "text", FeedColumn.UNREAD_COUNT, "visible", FeedColumn.SHOW_UNREAD_COUNT, null); */
-    /*     feed_list.set_events(Gdk.EventMask.BUTTON_PRESS_MASK); */
-    /*     feed_list.insert_column(col_count, -1); */
-    /*     feed_data.append(out category_collection, null); */
-    /*     feed_data.set(category_collection, FeedColumn.TITLE, "Collections", FeedColumn.SHOW_UNREAD_COUNT, false, -1); */
-    /*     feed_data.append(out all_item, category_collection); */
-    /*     feed_data.set(all_item, FeedColumn.TITLE, "All Feeds", FeedColumn.SHOW_UNREAD_COUNT, false, -1); */
-    /*     feed_data.append(out unread_item, category_collection); */
-    /*     feed_data.set(unread_item, FeedColumn.TITLE, "Unread Feeds", FeedColumn.SHOW_UNREAD_COUNT, true, -1); */
-    /*     feed_data.append(out starred_item, category_collection); */
-    /*     feed_data.set(starred_item, FeedColumn.TITLE, "Starred Feeds", FeedColumn.SHOW_UNREAD_COUNT, true, -1); */
-    /*     feed_data.append(out category_all, null); */
-    /*     feed_data.set(category_all, FeedColumn.TITLE, "Subscriptions", FeedColumn.SHOW_UNREAD_COUNT, false, -1); */
-    /*     feed_list.expand_all(); */
-    /*     feed_list.cursor_changed.connect(() => */
-    /*     { */
-    /*         TreePath path; */
-    /*         feed_list.get_cursor(out path, null); */
-    /*         TreeIter iter; */
-    /*         feed_data.get_iter(out iter, path); */
-    /*         mkread_action.set_enabled(true); */
-    /*         // TODO: Redo this */
-    /*         if(iter == unread_item) { */
-    /*             grid_view.load_html(app.constructUnreadHtml(), ""); */
-    /*             column_view_display.load_html(app.constructUnreadHtml(), ""); */
-    /*             stream_view.load_html(app.constructUnreadHtml(), ""); */
-    /*         } else if(iter == all_item) { */
-    /*             grid_view.load_html(app.constructAllHtml(), ""); */
-    /*             column_view_display.load_html(app.constructAllHtml(), ""); */
-    /*             stream_view.load_html(app.constructAllHtml(), ""); */
-    /*         } else if(iter == starred_item) { */
-    /*             grid_view.load_html(app.constructStarredHtml(), ""); */
-    /*             column_view_display.load_html(app.constructStarredHtml(), ""); */
-    /*             stream_view.load_html(app.constructStarredHtml(), ""); */
-    /*         } else if(iter == category_all || iter == category_collection) { */
-    /*             return; */
-    /*         }  else { */
-    /*             int id = 0; */
-    /*             string name = ""; */
-    /*             feed_data.get(iter, FeedColumn.TITLE, out name, FeedColumn.FEED_ID, out id); */
-    /*             grid_view.load_html(app.constructFeedHtml(id, ViewType.GRID), ""); */
-    /*             column_view_display.load_html(app.constructFeedHtml(id, ViewType.COLUMN), ""); */
-    /*             stream_view.load_html(app.constructFeedHtml(id, ViewType.STREAM), ""); */
-    /*         } */
-    /*     }); */
-    /* } */
+    private void connect_signals()
+    {
+        add_button.clicked.connect((ev) =>
+        {
+            feed_popover.show_all();
+        });
 
-    /* private void connect_signals() */
-    /* { */
-    /*     this.destroy.connect(() => */
-    /*     { */
-    /*         Gtk.main_quit(); */
-    /*     }); */
-    /*  */
-    /*     add_button.clicked.connect((ev) => */
-    /*     { */
-    /*         view_stack.set_visible_child_name("add"); */
-    /*     }); */
-    /*  */
     /*     main_paned.notify.connect((spec, prop) => */
     /*     { */
     /*         if(prop.name == "position") { */
@@ -441,7 +380,7 @@ public class MainWindow : Gtk.ApplicationWindow
     /*         feed_menu.popup(null, null, null, 0, Gtk.get_current_event_time()); */
     /*         return false; */
     /*     }); */
-    /* } */
+    }
 
     /* private void add_actions() */
     /* { */

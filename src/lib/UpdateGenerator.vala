@@ -37,14 +37,14 @@ namespace Singularity
             Xml.Doc* doc = req.doc;
 
             DataSource<Item, Xml.Doc>? source = null;
-            XmlContentType type = determine_content_type(doc);
+            XmlRequest.ContentType type = req.determine_content_type();
             switch(type) {
-                case XmlContentType.INVALID:
+                case XmlRequest.ContentType.INVALID:
                     return new UpdatePackage.failure(to_update, "Couldn't determine document content type");
-                case XmlContentType.RSS:
+                case XmlRequest.ContentType.RSS:
                     source = new RSSItemDataSource();
                     break;
-                case XmlContentType.ATOM:
+                case XmlRequest.ContentType.ATOM:
                     source = new AtomItemDataSource();
                     break;
             }

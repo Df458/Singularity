@@ -190,7 +190,7 @@ public class DatabaseManager
     {
         try {
             Query q = to_save.insert(db);
-            q.execute_async();
+            yield q.execute_async();
         } catch(SQLHeavy.Error e) {
             error("Error checking database for feeds: %s\n", e.message);
         }
@@ -200,7 +200,7 @@ public class DatabaseManager
     {
         try {
             Query q = to_save.insert(db);
-            q.execute_async();
+            yield q.execute_async();
         } catch(SQLHeavy.Error e) {
             error("Error checking database for feeds: %s\n", e.message);
         }
