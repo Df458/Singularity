@@ -28,12 +28,12 @@ namespace Singularity
         public string?          description { get; set; }
         public string           link        { get; set; }
         public string?          site_link   { get; set; }
-        public string?          rights      { get; protected set; }
-        public Collection<Tag?> tags        { get; protected set; }
-        public string?          generator   { get; protected set; }
-        public Icon?            icon        { get; protected set; }
-        public DateTime?        last_update { get; protected set; }
-        public DateTime?        next_update { get; protected set; }
+        public string?          rights      { get; set; }
+        public Collection<Tag?> tags        { get; set; }
+        public string?          generator   { get; set; }
+        public Icon?            icon        { get; set; }
+        public DateTime?        last_update { get; set; }
+        public DateTime?        next_update { get; set; }
 
         public enum DBColumn
         {
@@ -50,6 +50,13 @@ namespace Singularity
             LAST_UPDATE,
             NEXT_UPDATE,
             COUNT
+        }
+
+        public Feed()
+        {
+            last_update = new DateTime.from_unix_utc(0);
+            next_update = new DateTime.from_unix_utc(0);
+            parent_id   = -1;
         }
 
         public Feed.from_record(Record r) { base.from_record(r); }
@@ -71,7 +78,7 @@ namespace Singularity
                 Query query = new Query(q, "INSERT INTO feeds (id, parent_id, type, title, link, site_link, description, rights, generator, last_update, next_update) VALUES (:id, :parent_id, :type, :title, :link, :site_link, :description, :rights, :generator, :last_update, :next_update)");
                 query[":id"] = id;
                 query[":parent_id"] = parent_id;
-                query[":type"] = CollectionNode.Contents.FEED;
+                query[":type"] = (int)CollectionNode.Contents.FEED;
                 query[":title"] = title;
                 query[":link"] = link;
                 query[":site_link"] = site_link;
@@ -142,6 +149,11 @@ namespace Singularity
                 warning("Cannot load collection data: " + e.message);
                 return false;
             }
+        }
+
+        public void prepare_for_db(int new_id)
+        {
+            set_id(new_id);
         }
     }
 }

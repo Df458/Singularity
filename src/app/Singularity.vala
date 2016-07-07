@@ -148,6 +148,20 @@ public class SingularityApp : Gtk.Application
         return m_feed_store;
     }
 
+    public void subscribe_to_feed(Feed f, bool loaded)
+    {
+        if(!loaded) {
+            // TODO: Try to load the feed
+        }
+        // TODO: Figure out a way to pass loaded items along
+        m_database.save_new_feed.begin(f, () =>
+        {
+            CollectionNode node = new CollectionNode.with_feed(f);
+
+            m_feed_store.append_node(node, null);
+        });
+    }
+
     // Signals ----------------------------------------------------------------
     public signal void load_status_changed(LoadStatus status);
 

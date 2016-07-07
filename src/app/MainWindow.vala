@@ -279,6 +279,17 @@ public class MainWindow : Gtk.ApplicationWindow
             feed_popover.show_all();
         });
 
+        feed_builder.subscription_added.connect((feed, loaded) =>
+        {
+            app.subscribe_to_feed(feed, loaded);
+            feed_popover.hide();
+        });
+
+        feed_builder.cancelled.connect(() =>
+        {
+            feed_popover.hide();
+        });
+
     /*     main_paned.notify.connect((spec, prop) => */
     /*     { */
     /*         if(prop.name == "position") { */

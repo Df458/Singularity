@@ -19,10 +19,15 @@ namespace Singularity
 
         public void reset_form()
         {
-            warning("reset_form() unimplemented");
+            url_entry.text = "";
+            title_entry.text = "";
+            link_entry.text = "";
+            to_build = null;
+            url_changed = false;
         }
 
-        public signal void subscription_added(Feed new_sub);
+        public signal void subscription_added(Feed new_sub, bool loaded);
+        public signal void cancelled();
 
         private Feed to_build;
         private bool url_changed = false;
@@ -68,6 +73,32 @@ namespace Singularity
             {
                 url_changed = true;
                 url_entry.secondary_icon_name = "content-loading-symbolic";
+                to_build = null;
+            });
+
+            cancel_button.clicked.connect(() =>
+            {
+                cancelled();
+                reset_form();
+            });
+
+            subscribe_button.clicked.connect(() =>
+            {
+                if(url_entry.text == "") {
+                    cancelled();
+                    reset_form();
+                    return;
+                }
+
+                bool loaded = true;
+                if(to_build == null) {
+                    loaded = false;
+                    to_build = new Feed();
+                }
+
+                to_build.link = url_entry.text;
+                subscription_added(to_build, loaded);
+                reset_form();
             });
         }
 

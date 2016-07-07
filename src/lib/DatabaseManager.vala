@@ -189,6 +189,7 @@ public class DatabaseManager
     public async void save_new_feed(Feed to_save)
     {
         try {
+            to_save.prepare_for_db(next_id);
             Query q = to_save.insert(db);
             yield q.execute_async();
         } catch(SQLHeavy.Error e) {
