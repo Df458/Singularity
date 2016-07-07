@@ -76,15 +76,26 @@ public class CollectionTreeStore : TreeStore
 
     public Feed? get_feed_from_path(TreePath path)
     {
+        TreeIter iter;
+        get_iter(out iter, path);
+
+        return get_feed_from_iter(iter);
+    }
+
+    public Feed? get_feed_from_iter(TreeIter iter)
+    {
         int id;
         int type;
-        TreeIter iter;
 
-        get_iter(out iter, path);
         get(iter, Column.ID, out id, Column.TYPE, out type);
         if(type != CollectionNode.Contents.FEED)
             return null;
 
+        return get_feed_from_id(id);
+    }
+
+    public Feed? get_feed_from_id(int id)
+    {
         if(node_map.has_key(id))
             return node_map.get(id).feed;
         return null;

@@ -23,6 +23,7 @@ namespace Singularity
         public override bool parse_data(Xml.Doc doc)
         {
             stored_feed = new Feed();
+            stored_feed.last_update = new DateTime.now_utc();
             _data = new Gee.ArrayList<Item>();
             Xml.Node* node = doc.get_root_element();
 

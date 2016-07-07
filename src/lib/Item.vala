@@ -133,6 +133,14 @@ namespace Singularity
             set_id(new_id);
         }
 
+        public string to_string()
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.append_printf("%d: %s [%s]", id, title, link != null ? link : "null");
+
+            return sb.str;
+        }
+
         protected override bool build_from_record(SQLHeavy.Record r)
         {
             try {

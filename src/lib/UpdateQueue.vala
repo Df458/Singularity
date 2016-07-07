@@ -17,6 +17,7 @@ public class UpdateQueue : Object
 
     public void request_update(Feed f)
     {
+        stderr.printf("Update Requested: %s\n", f.to_string());
         m_update_requests.push(f);
     }
 
@@ -34,8 +35,10 @@ public class UpdateQueue : Object
     {
         while(true) {
             Feed f = m_update_requests.pop();
+            stderr.printf("Update started: %s", f.to_string());
             UpdateGenerator gen = new UpdateGenerator(f);
             UpdatePackage pak = gen.do_update();
+            stderr.printf("Update finished: %s", f.to_string());
             update_processed(pak);
         }
     }

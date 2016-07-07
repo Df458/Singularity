@@ -33,7 +33,6 @@ namespace Singularity
         public string?          generator   { get; set; }
         public Icon?            icon        { get; set; }
         public DateTime?        last_update { get; set; }
-        public DateTime?        next_update { get; set; }
 
         public enum DBColumn
         {
@@ -48,14 +47,12 @@ namespace Singularity
             RIGHTS,
             GENERATOR,
             LAST_UPDATE,
-            NEXT_UPDATE,
             COUNT
         }
 
         public Feed()
         {
             last_update = new DateTime.from_unix_utc(0);
-            next_update = new DateTime.from_unix_utc(0);
             parent_id   = -1;
         }
 
@@ -63,7 +60,8 @@ namespace Singularity
 
         public bool get_should_update()
         {
-            return next_update.compare(new DateTime.now_utc()) <= 0;
+            // TODO: base this on actual update times
+            return last_update.compare(new DateTime.now_utc()) <= 30;
         }
 
         public bool update_contents(DataSource<Item, Xml.Doc> source)
@@ -75,7 +73,7 @@ namespace Singularity
         public override Query? insert(Queryable q)
         {
             try {
-                Query query = new Query(q, "INSERT INTO feeds (id, parent_id, type, title, link, site_link, description, rights, generator, last_update, next_update) VALUES (:id, :parent_id, :type, :title, :link, :site_link, :description, :rights, :generator, :last_update, :next_update)");
+                Query query = new Query(q, "INSERT INTO feeds (id, parent_id, type, title, link, site_link, description, rights, generator, last_update) VALUES (:id, :parent_id, :type, :title, :link, :site_link, :description, :rights, :generator, :last_update)");
                 query[":id"] = id;
                 query[":parent_id"] = parent_id;
                 query[":type"] = (int)CollectionNode.Contents.FEED;
@@ -86,7 +84,6 @@ namespace Singularity
                 query[":rights"] = rights;
                 query[":generator"] = generator;
                 query[":last_update"] = last_update.to_unix();
-                query[":next_update"] = next_update.to_unix();
                 // TODO: Decide how to store icons
                 // TODO: Decide how to store tags
                 return query;
@@ -100,7 +97,7 @@ namespace Singularity
         {
             try {
                 // TODO: Build the query to only have what's needed
-                Query query = new Query(q, "UPDATE feeds SET title = :title, link = :link, site_link = :site_link, description = :description, rights = :rights, generator = :generator, :last_update = last_update, next_update = :next_update WHERE id = :id");
+                Query query = new Query(q, "UPDATE feeds SET title = :title, link = :link, site_link = :site_link, description = :description, rights = :rights, generator = :generator, :last_update = last_update WHERE id = :id");
                 query[":id"] = id;
                 query[":title"] = title;
                 query[":link"] = link;
@@ -109,7 +106,6 @@ namespace Singularity
                 query[":rights"] = rights;
                 query[":generator"] = generator;
                 query[":last_update"] = last_update.to_unix();
-                query[":next_update"] = next_update.to_unix();
                 // TODO: Decide how to store icons
                 // TODO: Decide how to store tags
                 return query;
@@ -131,6 +127,13 @@ namespace Singularity
             }
         }
 
+        public string to_string()
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.append_printf("%d (%d): %s [%s | %s]", id, parent_id, title, link, site_link);
+            return sb.str;
+        }
+
         protected override bool build_from_record(SQLHeavy.Record r)
         {
             try {
@@ -141,7 +144,6 @@ namespace Singularity
                 rights = r.fetch_string(r.field_index("rights"));
                 generator = r.fetch_string(r.field_index("generator"));
                 last_update = new DateTime.from_unix_utc(r.fetch_int(r.field_index("last_update")));
-                next_update = new DateTime.from_unix_utc(r.fetch_int(r.field_index("next_update")));
                 // TODO: Decide how to store icons
                 // TODO: Decide how to store tags
                 return true;

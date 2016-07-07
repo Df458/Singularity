@@ -162,6 +162,21 @@ public class SingularityApp : Gtk.Application
         });
     }
 
+    public void check_for_updates()
+    {
+        if(m_feed_store == null)
+            return;
+
+        m_feed_store.foreach((model, path, iter) =>
+        {
+            Feed? feed = m_feed_store.get_feed_from_iter(iter);
+            if(feed != null)
+                m_update_queue.request_update(feed);
+
+            return false;
+        });
+    }
+
     // Signals ----------------------------------------------------------------
     public signal void load_status_changed(LoadStatus status);
 
@@ -185,7 +200,9 @@ public class SingularityApp : Gtk.Application
         m_update_queue.update_processed.connect((pak) =>
         {
             if(pak.contents == UpdatePackage.PackageContents.FEED_UPDATE) {
-                m_database.save_updates.begin(pak);
+                lock(m_database) {
+                    m_database.save_updates.begin(pak);
+                }
             } else if(pak.contents == UpdatePackage.PackageContents.ERROR_DATA) {
                 warning("Can't update feed %s: %s", pak.feed.title, pak.message);
             }
@@ -198,6 +215,8 @@ public class SingularityApp : Gtk.Application
                 m_feed_store = new CollectionTreeStore.from_collection(m_feeds);
             else
                 m_feed_store.append_root_collection(m_feeds);
+
+            check_for_updates();
 
             load_status_changed(LoadStatus.COMPLETED);
             init_success = true;

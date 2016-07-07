@@ -99,6 +99,7 @@ public class DatabaseManager
 
     public async Gee.List<Item?> load_items_for_node(CollectionNode? node, bool unread_only, bool starred_only)
     {
+        yield lock_command();
         StringBuilder q_builder = new StringBuilder("SELECT * FROM items");
         Gee.ArrayList<Item?> item_list = new Gee.ArrayList<Item?>();
 
@@ -140,17 +141,22 @@ public class DatabaseManager
             warning("Failed to load items: %s (Query %s)", e.message, q_builder.str);
         }
 
+        unlock_command();
+
         return item_list;
     }
 
     public async void save_updates(UpdatePackage package)
     {
+        yield lock_command();
+        warning("BEGIN UPDATE SECTION");
         try {
             Query? feed_query = package.feed.update(db);
             if(feed_query != null)
                 yield feed_query.execute_async();
 
             foreach(Item i in package.items) {
+                stderr.printf("Testing Item %s, for feed %s\n", i.to_string(), package.feed.to_string());
                 Query test_query = new Query(db, "SELECT id FROM items WHERE `parent_id` = :id AND `guid` = :guid");
                 test_query[":id"] = package.feed.id;
                 test_query[":guid"] = i.guid;
@@ -170,8 +176,12 @@ public class DatabaseManager
                     yield q.execute_async();
             }
         } catch(SQLHeavy.Error e) {
+            unlock_command();
             error("Error saving item data: %s\n", e.message);
         }
+
+        warning("END UPDATE SECTION");
+        unlock_command();
     }
 
     public async bool feed_exists(Feed f)
@@ -188,6 +198,7 @@ public class DatabaseManager
 
     public async void save_new_feed(Feed to_save)
     {
+        yield lock_command();
         try {
             to_save.prepare_for_db(next_id);
             Query q = to_save.insert(db);
@@ -195,17 +206,22 @@ public class DatabaseManager
         } catch(SQLHeavy.Error e) {
             error("Error checking database for feeds: %s\n", e.message);
         }
+        unlock_command();
     }
 
     public async void save_new_collection(FeedCollection to_save)
     {
+        yield lock_command();
         try {
             Query q = to_save.insert(db);
             yield q.execute_async();
         } catch(SQLHeavy.Error e) {
             error("Error checking database for feeds: %s\n", e.message);
         }
+        unlock_command();
     }
+
+    private CommandWrapper[] m_waitlist = null;
 
     /*
      * Finds and applies Create.sql file.
@@ -249,5 +265,34 @@ public class DatabaseManager
         db.user_version += 1;
         return true;
     }
+
+    private async void lock_command()
+    {
+        if(m_waitlist != null) {
+            warning("LOCK IN PLACE");
+            CommandWrapper command = new CommandWrapper(lock_command.callback);
+            m_waitlist += (owned) command;
+            yield;
+            warning("RESUMING");
+        } else {
+            m_waitlist = new CommandWrapper[0];
+        }
+    }
+
+    private void unlock_command()
+    {
+        if(m_waitlist != null) {
+            foreach(CommandWrapper c in m_waitlist)
+                c.func();
+            m_waitlist = null;
+        }
+    }
+}
+
+public class CommandWrapper
+{
+    public SourceFunc func {get; private set; }
+
+    public CommandWrapper(SourceFunc f) { func = f; }
 }
 }
