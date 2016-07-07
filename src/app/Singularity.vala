@@ -170,7 +170,7 @@ public class SingularityApp : Gtk.Application
         m_feed_store.foreach((model, path, iter) =>
         {
             Feed? feed = m_feed_store.get_feed_from_iter(iter);
-            if(feed != null)
+            if(feed != null && feed.get_should_update())
                 m_update_queue.request_update(feed);
 
             return false;

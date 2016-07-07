@@ -49,7 +49,7 @@ namespace Singularity
                         if(dat->type == Xml.ElementType.ELEMENT_NODE) {
                             switch(dat->name) {
                                 case "title":
-                                    stored_feed.title = get_node_contents(dat);
+                                    stored_feed.title = get_node_contents(dat).strip().replace("&", "&amp;");
                                 break;
 
                                 case "link":

@@ -36,7 +36,7 @@ namespace Singularity
 
             Xml.Doc* doc = req.doc;
 
-            DataSource<Item, Xml.Doc>? source = null;
+            FeedProvider source = null;
             XmlRequest.ContentType type = req.determine_content_type();
             switch(type) {
                 case XmlRequest.ContentType.INVALID:

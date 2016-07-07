@@ -99,7 +99,7 @@ public class DatabaseManager
 
     public async Gee.List<Item?> load_items_for_node(CollectionNode? node, bool unread_only, bool starred_only)
     {
-        yield lock_command();
+        /* yield lock_command(); */
         StringBuilder q_builder = new StringBuilder("SELECT * FROM items");
         Gee.ArrayList<Item?> item_list = new Gee.ArrayList<Item?>();
 
@@ -141,7 +141,7 @@ public class DatabaseManager
             warning("Failed to load items: %s (Query %s)", e.message, q_builder.str);
         }
 
-        unlock_command();
+        /* unlock_command(); */
 
         return item_list;
     }
@@ -149,7 +149,6 @@ public class DatabaseManager
     public async void save_updates(UpdatePackage package)
     {
         yield lock_command();
-        warning("BEGIN UPDATE SECTION");
         try {
             Query? feed_query = package.feed.update(db);
             if(feed_query != null)
@@ -180,7 +179,6 @@ public class DatabaseManager
             error("Error saving item data: %s\n", e.message);
         }
 
-        warning("END UPDATE SECTION");
         unlock_command();
     }
 
@@ -269,11 +267,9 @@ public class DatabaseManager
     private async void lock_command()
     {
         if(m_waitlist != null) {
-            warning("LOCK IN PLACE");
             CommandWrapper command = new CommandWrapper(lock_command.callback);
             m_waitlist += (owned) command;
             yield;
-            warning("RESUMING");
         } else {
             m_waitlist = new CommandWrapper[0];
         }

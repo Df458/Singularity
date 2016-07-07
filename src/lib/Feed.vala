@@ -20,7 +20,7 @@ using SQLHeavy;
 
 namespace Singularity
 {
-    public class Feed : Subscription<Item, Xml.Doc>, DataEntry
+    public class Feed : DataEntry
     {
         public int              parent_id   { get; set; }
         public FeedCollection?  parent      { get; set; }
@@ -61,12 +61,36 @@ namespace Singularity
         public bool get_should_update()
         {
             // TODO: base this on actual update times
-            return last_update.compare(new DateTime.now_utc()) <= 30;
+            return last_update.add_minutes(30).compare(new DateTime.now_utc()) <= 0;
         }
 
-        public bool update_contents(DataSource<Item, Xml.Doc> source)
+        public bool update_contents(FeedProvider provider)
         {
-            warning("update_contents() is unimplemented.");
+            if(provider.stored_feed == null)
+                return false;
+
+            if(provider.stored_feed.title != title)
+                title = provider.stored_feed.title;
+
+            if(provider.stored_feed.description != null && provider.stored_feed.description != description)
+                description = provider.stored_feed.description;
+
+            if(provider.stored_feed.site_link != null && provider.stored_feed.site_link != site_link)
+                site_link = provider.stored_feed.site_link;
+
+            if(provider.stored_feed.rights != null && provider.stored_feed.rights != rights)
+                rights = provider.stored_feed.rights;
+
+            // TODO: Update tags
+
+            if(provider.stored_feed.generator != null && provider.stored_feed.generator != generator)
+                generator = provider.stored_feed.generator;
+
+            if(provider.stored_feed.icon != icon)
+                icon = provider.stored_feed.icon;
+
+            last_update = provider.stored_feed.last_update;
+
             return true;
         }
 
@@ -97,7 +121,7 @@ namespace Singularity
         {
             try {
                 // TODO: Build the query to only have what's needed
-                Query query = new Query(q, "UPDATE feeds SET title = :title, link = :link, site_link = :site_link, description = :description, rights = :rights, generator = :generator, :last_update = last_update WHERE id = :id");
+                Query query = new Query(q, "UPDATE feeds SET title = :title, link = :link, site_link = :site_link, description = :description, rights = :rights, generator = :generator, last_update = :last_update WHERE id = :id");
                 query[":id"] = id;
                 query[":title"] = title;
                 query[":link"] = link;
