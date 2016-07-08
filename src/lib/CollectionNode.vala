@@ -23,6 +23,7 @@ public class CollectionNode : Object
     public Feed? feed { get; construct; }
     public FeedCollection? collection { get; construct; }
     public Contents contents { get; construct; }
+    // TODO: This shouldn't work like this, it should query what it owns instead
     public int id { get; construct; }
 
     public enum Contents
