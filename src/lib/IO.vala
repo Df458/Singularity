@@ -80,7 +80,7 @@ int get_month(string month_abbr)
     return -1;
 }
 
-string dump_xml_node(Xml.Node* node)
+public static string dump_xml_node(Xml.Node* node)
 {
     string xml_str = "";
 
@@ -99,5 +99,4 @@ string dump_xml_node(Xml.Node* node)
     }
     return xml_str;
 }
-
 }

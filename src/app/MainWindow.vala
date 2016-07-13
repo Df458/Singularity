@@ -30,30 +30,28 @@ enum ViewType
 
 public class MainWindow : Gtk.ApplicationWindow
 {
-    private ViewBuilder m_view_builder;
-
     private Box   main_box;
     private Paned main_paned;
     private SingularityApp app;
     /* private string current_view = "grid"; */
     /* private bool   toggle_lock = false; // Prevents extra button toggle changes when selecting a view */
-    /*  */
-    /* // Headerbar */
+
+    // Headerbar
     private HeaderBar    top_bar;
     private Button       add_button;
     private MenuButton   menu_button;
     private ToggleButton item_search_toggle;
-    /*  */
-    /* // Actions */
-    /* private SimpleAction import_action; */
-    /* private SimpleAction export_action; */
+
+    // Actions
+    private SimpleAction import_action;
+    private SimpleAction export_action;
     /* private SimpleAction refresh_action; */
     /* private SimpleAction preferences_action; */
     /* private SimpleAction mkread_action; */
     /* private SimpleAction about_action; */
     /* private SimpleAction unsubscribe_action; */
-    /*  */
-    /* // Search */
+
+    // Search
     private SearchBar   item_search_bar;
     private SearchEntry item_search_entry;
     /* private Gtk.Menu feed_menu; */
@@ -63,7 +61,7 @@ public class MainWindow : Gtk.ApplicationWindow
     private Popover     feed_popover;
     private FeedBuilder feed_builder;
 
-    /* // Statusbar */
+    // Statusbar
     private ActionBar    status_bar;
     private Box          view_switcher;
     private ToggleButton grid_view_button;
@@ -72,18 +70,14 @@ public class MainWindow : Gtk.ApplicationWindow
     private Label        status_label;
     private Spinner      progress_spinner;
     private ProgressBar  progress_bar;
-    /* // Views */
-    private Stack          view_stack;
-    private WebKit.WebView grid_view;
-    private Box            column_view_box;
-    /* private ListBox        item_column_box; */
-    private WebKit.WebView column_view_display;
-    private WebKit.WebView stream_view;
+    // Views
+    private Stack    view_stack;
+    private ItemView m_item_view;
     private SettingsPane settings;
     private FeedSettingsPane feed_settings;
     private AddPane add_pane;
-    /*  */
-    /* string[] authorstr = { "Hugues Ross(df458)" }; */
+
+    static const string[] authorstr = { "Hugues Ross(df458)" };
 
     private enum FeedColumn
     {
@@ -101,13 +95,11 @@ public class MainWindow : Gtk.ApplicationWindow
         window_position = WindowPosition.CENTER;
         set_default_size(1024, 768);
 
-        m_view_builder = new StreamViewBuilder(css_str, star_icon_base64);
-
         init_structure();
         init_content(owner_app.get_feed_store());
         connect_signals();
-        /* add_actions(); */
-        /* init_menus(); */
+        add_actions();
+        init_menus();
 
         /* resize_columns(128); */
         this.show_all();
@@ -135,8 +127,7 @@ public class MainWindow : Gtk.ApplicationWindow
         app.query_items.begin(node, false, false, (obj, res) =>
         {
             Gee.List<Item?> item_list = app.query_items.end(res);
-            string html = m_view_builder.buildHTML(item_list);
-            grid_view.load_html(html, null);
+            m_item_view.view_items(item_list);
         });
     }
     
@@ -176,10 +167,7 @@ public class MainWindow : Gtk.ApplicationWindow
         progress_spinner    = new Spinner();
         progress_bar        = new ProgressBar();
         status_label        = new Label(null);
-        column_view_box     = new Box(Orientation.HORIZONTAL, 6);
-        grid_view           = new WebKit.WebView();
-        column_view_display = new WebKit.WebView();
-        stream_view         = new WebKit.WebView();
+        m_item_view         = new ItemView(app.get_global_settings());
         settings            = new SettingsPane(app);
         feed_settings       = new FeedSettingsPane();
         add_pane            = new AddPane();
@@ -216,18 +204,15 @@ public class MainWindow : Gtk.ApplicationWindow
 
         item_search_bar.add(item_search_entry);
         item_search_bar.connect_entry(item_search_entry);
-        column_view_box.pack_end(column_view_display);
         view_switcher.add(grid_view_button);
         view_switcher.add(column_view_button);
         view_switcher.add(stream_view_button);
-        view_stack.add_named(grid_view, "grid");
-        view_stack.add_named(column_view_box, "column");
-        view_stack.add_named(stream_view, "stream");
+        view_stack.add_named(m_item_view, "items");
         view_stack.add_named(settings, "settings");
         view_stack.add_named(feed_settings, "feed_settings");
         view_stack.add_named(add_pane, "add");
-        grid_view.show_all();
-        view_stack.set_visible_child(grid_view);
+        m_item_view.show_all();
+        view_stack.set_visible_child(m_item_view);
         status_bar.set_center_widget(status_label);
         status_bar.pack_start(view_switcher);
         status_bar.pack_end(progress_spinner);
@@ -238,39 +223,6 @@ public class MainWindow : Gtk.ApplicationWindow
         feed_popover.add(feed_builder);
         main_paned.pack1(feed_pane, true, true);
     }
-
-    /* private bool policy_decision(WebKit.PolicyDecision decision, WebKit.PolicyDecisionType type) */
-    /* { */
-    /*     if(type == WebKit.PolicyDecisionType.NAVIGATION_ACTION) { */
-    /*         WebKit.NavigationPolicyDecision nav_dec = (WebKit.NavigationPolicyDecision) decision; */
-    /*         if(nav_dec.get_navigation_action().get_request().uri.has_prefix("command://")) { */
-    /*             app.interpretUriEncodedAction(nav_dec.get_navigation_action().get_request().uri.substring(10)); */
-    /*             nav_dec.ignore(); */
-    /*             return true; */
-    /*         } */
-    /*  */
-    /*         if(nav_dec.get_navigation_action().get_request().uri.has_prefix("download-attachment")) { */
-    /*             app.downloadAttachment(nav_dec.get_navigation_action().get_request().uri.substring(19)); */
-    /*             nav_dec.ignore(); */
-    /*             return true; */
-    /*         } */
-    /*  */
-    /*         if(nav_dec.get_navigation_action().get_request().uri.has_prefix("file")) { */
-    /*             return true; */
-    /*         } */
-    /*  */
-    /*         if(nav_dec.get_navigation_action().get_navigation_type() != WebKit.NavigationType.LINK_CLICKED) */
-    /*             return false; */
-    /*         try { */
-    /*             GLib.Process.spawn_command_line_async(app.link_command.printf(nav_dec.get_navigation_action().get_request().uri)); */
-    /*             nav_dec.ignore(); */
-    /*         } catch(Error e) { */
-    /*             stderr.printf(e.message); */
-    /*         } */
-    /*         return true; */
-    /*     } */
-    /*     return false; */
-    /* } */
 
     private void connect_signals()
     {
@@ -393,42 +345,42 @@ public class MainWindow : Gtk.ApplicationWindow
     /*     }); */
     }
 
-    /* private void add_actions() */
-    /* { */
-    /*     import_action = new GLib.SimpleAction("import", null); */
-    /*     import_action.activate.connect(() => */
-    /*     { */
-    /*         FileChooserDialog dialog = new FileChooserDialog("Select a file to import", this, FileChooserAction.OPEN); */
-    /*         dialog.add_button("Import", ResponseType.OK); */
-    /*         dialog.add_button("Cancel", ResponseType.CANCEL); */
-    /*         dialog.response.connect((r) => */
-    /*         { */
-    /*             dialog.close(); */
-    /*             if(r == ResponseType.OK) { */
-    /*                 File file = dialog.get_file(); */
-    /*                 app.import(file); */
-    /*             } */
-    /*         }); */
-    /*         dialog.run(); */
-    /*     }); */
-    /*     this.add_action(import_action); */
-    /*     export_action = new GLib.SimpleAction("export", null); */
-    /*     export_action.activate.connect(() => */
-    /*     { */
-    /*         FileChooserDialog dialog = new FileChooserDialog("Export to\u2026", this, FileChooserAction.SAVE); */
-    /*         dialog.add_button("Export", ResponseType.OK); */
-    /*         dialog.add_button("Cancel", ResponseType.CANCEL); */
-    /*         dialog.response.connect((r) => */
-    /*         { */
-    /*             dialog.close(); */
-    /*             if(r == ResponseType.OK) { */
-    /*                 File file = dialog.get_file(); */
-    /*                 app.export(file); */
-    /*             } */
-    /*         }); */
-    /*         dialog.run(); */
-    /*     }); */
-    /*     this.add_action(export_action); */
+    private void add_actions()
+    {
+        import_action = new GLib.SimpleAction("import", null);
+        import_action.activate.connect(() =>
+        {
+            FileChooserDialog dialog = new FileChooserDialog("Select a file to import", this, FileChooserAction.OPEN);
+            dialog.add_button("Import", ResponseType.OK);
+            dialog.add_button("Cancel", ResponseType.CANCEL);
+            dialog.response.connect((r) =>
+            {
+                dialog.close();
+                if(r == ResponseType.OK) {
+                    File file = dialog.get_file();
+                    app.opml_import(file);
+                }
+            });
+            dialog.run();
+        });
+        this.add_action(import_action);
+        export_action = new GLib.SimpleAction("export", null);
+        export_action.activate.connect(() =>
+        {
+            FileChooserDialog dialog = new FileChooserDialog("Export to\u2026", this, FileChooserAction.SAVE);
+            dialog.add_button("Export", ResponseType.OK);
+            dialog.add_button("Cancel", ResponseType.CANCEL);
+            dialog.response.connect((r) =>
+            {
+                dialog.close();
+                if(r == ResponseType.OK) {
+                    File file = dialog.get_file();
+                    app.opml_export(file);
+                }
+            });
+            dialog.run();
+        });
+        this.add_action(export_action);
     /*     refresh_action = new GLib.SimpleAction("refresh-feeds", null); */
     /*     refresh_action.set_enabled(false); */
     /*     refresh_action.activate.connect(() => */
@@ -492,25 +444,25 @@ public class MainWindow : Gtk.ApplicationWindow
     /*     }); */
     /*     feed_group.add_action(unsubscribe_action); */
     /*     feed_list.insert_action_group("feed", feed_group); */
-    /* } */
+    }
 
-    /* private void init_menus() */
-    /* { */
-    /*     GLib.Menu menu = new GLib.Menu(); */
-    /*     menu.append_item(new GLib.MenuItem("Import Feeds\u2026", "win.import")); */
-    /*     menu.append_item(new GLib.MenuItem("Export Feeds\u2026", "win.export")); */
+    private void init_menus()
+    {
+        GLib.Menu menu = new GLib.Menu();
+        menu.append_item(new GLib.MenuItem("Import Feeds\u2026", "win.import"));
+        menu.append_item(new GLib.MenuItem("Export Feeds\u2026", "win.export"));
     /*     menu.append_item(new GLib.MenuItem("Refresh", "win.refresh-feeds")); */
     /*     menu.append_item(new GLib.MenuItem("Preferences", "win.app-preferences")); */
     /*     menu.append_item(new GLib.MenuItem("Mark All as Read", "win.mark-read")); */
     /*     menu.append_item(new GLib.MenuItem("About", "win.about")); */
-    /*     menu_button.set_menu_model(menu); */
-    /*  */
+        menu_button.set_menu_model(menu);
+
     /*     GLib.Menu feed_model = new GLib.Menu(); */
     /*     feed_model.append_item(new GLib.MenuItem("Unsubscribe", "feed.unsubscribe")); */
     /*     feed_menu = new Gtk.Menu.from_model(feed_model); */
-    /*  */
+
     /*     feed_menu.attach_to_widget(feed_list, null); */
-    /* } */
+    }
     /*  */
     /* private void resize_columns(int size) */
     /* { */

@@ -105,5 +105,10 @@ namespace Singularity
                 return false;
             }
         }
+
+        public void prepare_for_db(int new_id)
+        {
+            set_id(new_id);
+        }
     }
 }

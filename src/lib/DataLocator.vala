@@ -17,7 +17,6 @@ namespace Singularity
                 }
             } catch(Error e) {
                 error("Failed to initialize the directory at %s: %s\n", data_location, e.message);
-                data_location = null;
             }
         }
     }

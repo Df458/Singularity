@@ -38,9 +38,9 @@ public class SingularityApp : Gtk.Application
     public bool init_success { get; private set; }
 
     private MainLoop ml;
-    string css_dat = "";
-    bool done_load = false;
-    int load_counter = 0;
+    /* string css_dat = ""; */
+    /* bool done_load = false; */
+    /* int load_counter = 0; */
     public uint timeout_value = 600;
     public bool update_running = true;
     public uint update_next = 600;
@@ -57,26 +57,32 @@ public class SingularityApp : Gtk.Application
         this.shutdown.connect(cleanup);
     }
 
-    public void import(File file)
+    public void opml_import(File file)
     {
         Xml.Doc* doc = Xml.Parser.parse_file(file.get_path());
-        if(doc == null)
-            return; // TODO: We should put an error here
-        /* opml.import(doc->children); */
+        if(doc == null) {
+            warning("Can't parse XML file");
+            return;
+        }
+        OPMLFeedDataSource opml = new OPMLFeedDataSource();
+        opml.parse_data(doc);
+        foreach(CollectionNode node in opml.data) {
+            if(node.contents == CollectionNode.Contents.FEED)
+                subscribe_to_feed(node.feed, false);
+            else if(node.contents == CollectionNode.Contents.COLLECTION)
+                add_collection(node.collection);
+        }
         delete doc; // FIXME: Some stray docs may be floating around from older xml code. Kill them.
     }
 
-    public void export(File file)
+    public void opml_export(File file)
     {
-        // TODO: Make this a tree eventually
-        ArrayList<Feed> feed_list = new ArrayList<Feed>();
-        bool should_continue = true;
-        /* for(MapIterator<int, Feed> iter = feeds.map_iterator(); should_continue && (iter.valid || iter.has_next()); should_continue = iter.next()) { */
-        /*     if(!iter.valid) */
-        /*         continue; */
-        /*     feed_list.add(iter.get_value()); */
-        /* } */
-        /* opml.export(file, feed_list); */
+        OPMLFeedDataSource opml = new OPMLFeedDataSource();
+        Xml.Doc* doc = opml.encode_data(m_feeds.nodes);
+
+        /* XmlDocWriter.write_document(doc, file); */
+        FileStream fstream = FileStream.open(file.get_path(), "w");
+        doc->dump(fstream);
     }
 
     public void update_settings()
@@ -148,17 +154,36 @@ public class SingularityApp : Gtk.Application
         return m_feed_store;
     }
 
-    public void subscribe_to_feed(Feed f, bool loaded)
+    public void subscribe_to_feed(Feed f, bool loaded, FeedCollection? parent = null)
     {
-        if(!loaded) {
-            // TODO: Try to load the feed
-        }
         // TODO: Figure out a way to pass loaded items along
-        m_database.save_new_feed.begin(f, () =>
-        {
-            CollectionNode node = new CollectionNode.with_feed(f);
+        CollectionNode node = new CollectionNode.with_feed(f);
+        if(parent != null)
+            node.set_parent(parent);
 
-            m_feed_store.append_node(node, null);
+        m_database.save_new_node.begin(node, () =>
+        {
+            Gtk.TreeIter? iter = null;
+
+            m_feed_store.append_node(node, iter);
+            if(!loaded) {
+                m_update_queue.request_update(f);
+            }
+        });
+    }
+
+    public void add_collection(FeedCollection c, FeedCollection? parent = null)
+    {
+        CollectionNode node = new CollectionNode.with_collection(c);
+        if(parent != null)
+            node.set_parent(parent);
+
+        m_database.save_new_node.begin(node, () =>
+        {
+            Gtk.TreeIter? iter = null;
+
+            m_feed_store.append_node(node, iter);
+            // TODO: Figure out how to get the new feeds and update them
         });
     }
 
@@ -177,6 +202,8 @@ public class SingularityApp : Gtk.Application
         });
     }
 
+    public GlobalSettings get_global_settings() { return m_global_settings; }
+
     // Signals ----------------------------------------------------------------
     public signal void load_status_changed(LoadStatus status);
 
@@ -192,6 +219,7 @@ public class SingularityApp : Gtk.Application
     private void start_run()
     {
         DataLocator loc = new DataLocator(m_session_settings);
+        m_global_settings.load();
 
         m_database = new DatabaseManager(m_session_settings, loc.data_location);
         load_status_changed(LoadStatus.STARTED);

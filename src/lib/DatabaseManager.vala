@@ -155,7 +155,7 @@ public class DatabaseManager
                 yield feed_query.execute_async();
 
             foreach(Item i in package.items) {
-                stderr.printf("Testing Item %s, for feed %s\n", i.to_string(), package.feed.to_string());
+                /* stderr.printf("Testing Item %s, for feed %s\n", i.to_string(), package.feed.to_string()); */
                 Query test_query = new Query(db, "SELECT id FROM items WHERE `parent_id` = :id AND `guid` = :guid");
                 test_query[":id"] = package.feed.id;
                 test_query[":guid"] = i.guid;
@@ -194,30 +194,27 @@ public class DatabaseManager
         }
     }
 
-    public async void save_new_feed(Feed to_save)
+    public async void save_new_node(CollectionNode to_save)
     {
         yield lock_command();
-        try {
-            to_save.prepare_for_db(next_id);
-            Query q = to_save.insert(db);
-            yield q.execute_async();
-        } catch(SQLHeavy.Error e) {
-            error("Error checking database for feeds: %s\n", e.message);
+        switch(to_save.contents)
+        {
+            case CollectionNode.Contents.FEED:
+                yield save_new_feed(to_save.feed);
+                break;
+
+            case CollectionNode.Contents.COLLECTION:
+                yield save_new_collection(to_save.collection);
+                foreach(CollectionNode child in to_save.collection.nodes) {
+                    child.set_parent(to_save.collection); // This updates the parent id before saving
+                    yield save_new_node(child);
+                }
+                break;
         }
         unlock_command();
     }
 
-    public async void save_new_collection(FeedCollection to_save)
-    {
-        yield lock_command();
-        try {
-            Query q = to_save.insert(db);
-            yield q.execute_async();
-        } catch(SQLHeavy.Error e) {
-            error("Error checking database for feeds: %s\n", e.message);
-        }
-        unlock_command();
-    }
+//-----------------------------------------------------------------------------
 
     private CommandWrapper[] m_waitlist = null;
 
@@ -262,6 +259,30 @@ public class DatabaseManager
         }
         db.user_version += 1;
         return true;
+    }
+
+    private async void save_new_feed(Feed to_save)
+    {
+        try {
+            to_save.prepare_for_db(next_id);
+            next_id++;
+            Query q = to_save.insert(db);
+            yield q.execute_async();
+        } catch(SQLHeavy.Error e) {
+            error("Error checking database for feeds: %s\n", e.message);
+        }
+    }
+
+    private async void save_new_collection(FeedCollection to_save)
+    {
+        try {
+            to_save.prepare_for_db(next_id);
+            next_id++;
+            Query q = to_save.insert(db);
+            yield q.execute_async();
+        } catch(SQLHeavy.Error e) {
+            error("Error checking database for feeds: %s\n", e.message);
+        }
     }
 
     private async void lock_command()
