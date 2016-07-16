@@ -1,6 +1,8 @@
 #include "jshandler.h"
 #include <JavaScriptCore/JSValueRef.h>
+#include <JavaScriptCore/JSContextRef.h>
 #include <JavaScriptCore/JSStringRef.h>
+#include <stdlib.h>
 
 js_req get_js_info(WebKitJavascriptResult* res)
 {
@@ -32,6 +34,7 @@ js_req get_js_info(WebKitJavascriptResult* res)
             g_value_set_string(&value, str);
 
             free(str);
+
             break;
         default:
             // TODO: Properly handle unexpected values

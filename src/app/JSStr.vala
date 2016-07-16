@@ -167,7 +167,6 @@ article.grid-full {
 """;
 
 const string js_str = """
-webkit.messageHandlers.test.postMessage("Test message");
 function isElementInViewport (el) {
     var rect = el.getBoundingClientRect();
 
@@ -178,7 +177,7 @@ function isElementInViewport (el) {
 }
 
 function callback (el, id) {
-    window.location.assign('command://read/' + id);
+    webkit.messageHandlers.test.postMessage("v:" + id);
 }
 
 
@@ -202,7 +201,7 @@ function swapViewed() {
 }
 
 function toggleStar() {
-    window.location.assign('command://toggleStarred/' + this.id);
+    webkit.messageHandlers.test.postMessage("s:" + id);
     if(this.className == 'starButton') {
         this.className = 'starButtonD';
     } else {
@@ -211,7 +210,7 @@ function toggleStar() {
 }
 
 function toggleRead(el, id) {
-    window.location.assign('command://toggleRead/' + id);
+    webkit.messageHandlers.test.postMessage("r:" + id);
 }
 
 var items = document.getElementsByClassName('item-head');

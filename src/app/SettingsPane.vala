@@ -1,6 +1,6 @@
 /*
 	Singularity - A web newsfeed aggregator
-	Copyright (C) 2014  Hugues Ross <hugues.ross@gmail.com>
+	Copyright (C) 2016  Hugues Ross <hugues.ross@gmail.com>
 
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -22,11 +22,70 @@ namespace Singularity {
 
 class SettingsPane : SettingsGrid
 {
-    private weak SingularityApp app;
+    public SettingsPane(GlobalSettings gs)
+    {
+        settings = gs;
 
+        row_spacing = 18;
+        column_spacing = 12;
+        halign = Align.CENTER;
+
+        init_structure();
+        init_content();
+        connect_signals();
+
+        this.show_all();
+    }
+
+    public void sync()
+    {
+        if(!settings.auto_update)
+            auto_update_combo.active = 0;
+        else
+            /* switch(settings.timeout_value / 60) { */
+            /*     case 5: */
+            /*         auto_update_combo.active = 1; */
+            /*         break; */
+            /*     case 10: */
+            /*         auto_update_combo.active = 2; */
+            /*         break; */
+            /*     case 30: */
+            /*         auto_update_combo.active = 3; */
+            /*         break; */
+            /*     case 60: */
+            /*         auto_update_combo.active = 4; */
+            /*         break; */
+            /*     default: */
+            /*         auto_update_combo.active = 5; */
+            /*         break; */
+            /* } */
+        start_update_switch.set_active(settings.start_update);
+        /* auto_update_time_entry.set_value(settings.timeout_value / 60); */
+        this.get_label_for_child(auto_update_time_entry).set_sensitive(settings.auto_update);
+        auto_update_time_entry.set_sensitive(settings.auto_update);
+        read_spin.set_value(settings.read_rule[0]);
+        unread_spin.set_value(settings.unread_rule[0]);
+        read_incr_combo.set_active(settings.read_rule[1]);
+        unread_incr_combo.set_active(settings.unread_rule[1]);
+        if(settings.read_rule[2] == 1)
+            read_action_combo.set_active(-1);
+        else
+            read_action_combo.set_active(settings.read_rule[2] / 2); // 0 or 2 becomes 0 or 1
+        unread_action_combo.set_active(settings.unread_rule[2]);
+        always_ask_check.set_active(settings.ask_download_location);
+        download_to_button.set_current_folder(settings.default_download_location.get_path());
+        download_to_button.set_sensitive(!settings.ask_download_location);
+        link_command_entry.set_text(settings.link_command);
+    }
+
+    public signal void done();
+
+    private GlobalSettings settings;
+
+    // Update Controls
     private Switch start_update_switch;
-    ComboBoxText   auto_update_combo;
-    SpinButton     auto_update_time_entry;
+    private ComboBoxText   auto_update_combo;
+    private SpinButton     auto_update_time_entry;
 
     // Link and Attachment Controls
     private Box       download_box;
@@ -44,29 +103,12 @@ class SettingsPane : SettingsGrid
     private ComboBoxText unread_action_combo;
     private ComboBoxText read_action_combo;
 
-    ButtonBox confirm_buttons;
-    Button confirm_button;
-    Button cancel_button;
-    Button reset_button;
+    private ButtonBox confirm_buttons;
+    private Button confirm_button;
+    private Button cancel_button;
+    private Button reset_button;
 
-    public signal void done();
-
-    public SettingsPane(SingularityApp owner_app)
-    {
-        app = owner_app;
-
-        row_spacing = 18;
-        column_spacing = 12;
-        halign = Align.CENTER;
-
-        init_structure();
-        init_content();
-        connect_signals();
-
-        this.show_all();
-    }
-
-    public void init_structure()
+    private void init_structure()
     {
         download_box       = new Box(Orientation.HORIZONTAL, 6);
         confirm_buttons    = new ButtonBox(Orientation.HORIZONTAL);
@@ -82,7 +124,7 @@ class SettingsPane : SettingsGrid
         this.attach(confirm_buttons,    0, 3, 2, 1);
     }
 
-    public void init_content()
+    private void init_content()
     {
         link_command_entry = new Entry();
 
@@ -146,7 +188,7 @@ class SettingsPane : SettingsGrid
         confirm_buttons.set_child_secondary(reset_button, true);
     }
 
-    public void connect_signals()
+    private void connect_signals()
     {
         auto_update_combo.changed.connect(() =>
         {
@@ -193,69 +235,26 @@ class SettingsPane : SettingsGrid
         reset_button.clicked.connect(reset);
     }
 
-    public void sync()
+    private void save()
     {
-        // TODO: Integrate this with GlobalSettings
-        /* if(!app.auto_update) */
-        /*     auto_update_combo.active = 0; */
-        /* else */
-        /*     switch(app.timeout_value / 60) { */
-        /*         case 5: */
-        /*             auto_update_combo.active = 1; */
-        /*             break; */
-        /*         case 10: */
-        /*             auto_update_combo.active = 2; */
-        /*             break; */
-        /*         case 30: */
-        /*             auto_update_combo.active = 3; */
-        /*             break; */
-        /*         case 60: */
-        /*             auto_update_combo.active = 4; */
-        /*             break; */
-        /*         default: */
-        /*             auto_update_combo.active = 5; */
-        /*             break; */
-        /*     } */
-        /* start_update_switch.set_active(app.start_update); */
-        /* auto_update_time_entry.set_value(app.timeout_value / 60); */
-        /* this.get_label_for_child(auto_update_time_entry).set_sensitive(app.auto_update); */
-        /* auto_update_time_entry.set_sensitive(app.auto_update); */
-        /* read_spin.set_value(app.read_rule[0]); */
-        /* unread_spin.set_value(app.unread_rule[0]); */
-        /* read_incr_combo.set_active(app.read_rule[1]); */
-        /* unread_incr_combo.set_active(app.unread_rule[1]); */
-        /* if(app.read_rule[2] == 1) */
-        /*     read_action_combo.set_active(-1); */
-        /* else */
-        /*     read_action_combo.set_active(app.read_rule[2] / 2); // 0 or 2 becomes 0 or 1 */
-        /* unread_action_combo.set_active(app.unread_rule[2]); */
-        /* always_ask_check.set_active(app.get_location); */
-        /* download_to_button.set_current_folder(app.default_location); */
-        /* download_to_button.set_sensitive(!app.get_location); */
-        /* link_command_entry.set_text(app.link_command); */
-    }
-
-    public void save()
-    {
-        // TODO: Move this so that this gets set in the GlobalSettings object
-        /* app.auto_update = auto_update_combo.active != 0; */
-        /* app.start_update = start_update_switch.get_active(); */
-        /* app.timeout_value = (int)auto_update_time_entry.get_value() * 60; */
-        /* app.read_rule[0] = (int)read_spin.get_value(); */
-        /* app.read_rule[1] = read_incr_combo.get_active(); */
-        /* if(read_action_combo.get_active() != -1) */
-        /*     app.read_rule[2] = read_action_combo.get_active() * 2; // 0 or 1 becomes 0 or 2 */
-        /* app.unread_rule[0] = (int)unread_spin.get_value(); */
-        /* app.unread_rule[1] = unread_incr_combo.get_active(); */
-        /* app.unread_rule[2] = unread_action_combo.get_active(); */
-        /* app.get_location = always_ask_check.get_active(); */
-        /* app.default_location = download_to_button.get_filename(); */
-        /* app.link_command = link_command_entry.text; */
-        /* app.update_settings(); */
+        settings.auto_update = auto_update_combo.active != 0;
+        settings.start_update = start_update_switch.get_active();
+        /* settings.timeout_value = (int)auto_update_time_entry.get_value() * 60; */
+        settings.read_rule[0] = (int)read_spin.get_value();
+        settings.read_rule[1] = read_incr_combo.get_active();
+        if(read_action_combo.get_active() != -1)
+            settings.read_rule[2] = read_action_combo.get_active() * 2; // 0 or 1 becomes 0 or 2
+        settings.unread_rule[0] = (int)unread_spin.get_value();
+        settings.unread_rule[1] = unread_incr_combo.get_active();
+        settings.unread_rule[2] = unread_action_combo.get_active();
+        settings.ask_download_location = always_ask_check.get_active();
+        settings.default_download_location = File.new_for_path(download_to_button.get_filename());
+        settings.link_command = link_command_entry.text;
+        settings.save();
         done();
     }
 
-    public void reset()
+    private void reset()
     {
         start_update_switch.active   = true;
         auto_update_combo.active     = 2;

@@ -38,9 +38,6 @@ public class SingularityApp : Gtk.Application
     public bool init_success { get; private set; }
 
     private MainLoop ml;
-    /* string css_dat = ""; */
-    /* bool done_load = false; */
-    /* int load_counter = 0; */
     public uint timeout_value = 600;
     public bool update_running = true;
     public uint update_next = 600;

@@ -46,9 +46,9 @@ public class MainWindow : Gtk.ApplicationWindow
     private SimpleAction import_action;
     private SimpleAction export_action;
     /* private SimpleAction refresh_action; */
-    /* private SimpleAction preferences_action; */
+    private SimpleAction preferences_action;
     /* private SimpleAction mkread_action; */
-    /* private SimpleAction about_action; */
+    private SimpleAction about_action;
     /* private SimpleAction unsubscribe_action; */
 
     // Search
@@ -168,7 +168,7 @@ public class MainWindow : Gtk.ApplicationWindow
         progress_bar        = new ProgressBar();
         status_label        = new Label(null);
         m_item_view         = new ItemView(app.get_global_settings());
-        settings            = new SettingsPane(app);
+        settings            = new SettingsPane(app.get_global_settings());
         feed_settings       = new FeedSettingsPane();
         add_pane            = new AddPane();
         feed_pane           = new FeedPane(this, store);
@@ -266,12 +266,12 @@ public class MainWindow : Gtk.ApplicationWindow
     /*     column_view_display.decide_policy.connect((decision, type) => { return policy_decision(decision, type); }); */
     /*     stream_view.decide_policy.connect((decision, type) => { return policy_decision(decision, type); }); */
     /*  */
-    /*     settings.done.connect(() => */
-    /*     { */
-    /*         view_stack.set_visible_child_name(current_view); */
-    /*         preferences_action.set_enabled(true); */
-    /*     }); */
-    /*  */
+        settings.done.connect(() =>
+        {
+            view_stack.set_visible_child(m_item_view);
+            preferences_action.set_enabled(true);
+        });
+
     /*     feed_settings.done.connect(() => */
     /*     { */
     /*         view_stack.set_visible_child_name(current_view); */
@@ -388,14 +388,14 @@ public class MainWindow : Gtk.ApplicationWindow
     /*         app.update(); */
     /*     }); */
     /*     this.add_action(refresh_action); */
-    /*     preferences_action = new GLib.SimpleAction("app-preferences", null); */
-    /*     preferences_action.activate.connect(() => */
-    /*     { */
-    /*         settings.sync(); */
-    /*         view_stack.set_visible_child_name("settings"); */
-    /*         preferences_action.set_enabled(false); */
-    /*     }); */
-    /*     this.add_action(preferences_action); */
+        preferences_action = new GLib.SimpleAction("app-preferences", null);
+        preferences_action.activate.connect(() =>
+        {
+            settings.sync();
+            view_stack.set_visible_child_name("settings");
+            preferences_action.set_enabled(false);
+        });
+        this.add_action(preferences_action);
     /*     mkread_action = new GLib.SimpleAction("mark-read", null); */
     /*     mkread_action.set_enabled(false); */
     /*     mkread_action.activate.connect(() => */
@@ -403,21 +403,21 @@ public class MainWindow : Gtk.ApplicationWindow
     /*         app.markAllAsRead(); */
     /*     }); */
     /*     this.add_action(mkread_action); */
-    /*     about_action = new GLib.SimpleAction("about", null); */
-    /*     about_action.activate.connect(() => */
-    /*     { */
-    /*         Gtk.show_about_dialog(this, */
-    /*             "program-name", ("Singularity"), */
-    /*             "authors", (authorstr), */
-    /*             "website", ("http://github.com/Df458/Singularity"), */
-    /*             "website-label", ("Github"), */
-    /*             "comments", ("A simple webfeed aggregator"), */
-    /*             "version", ("0.3"), */
-    /*             "license-type", ((Gtk.License)License.GPL_3_0), */
-    /*             "copyright", ("Copyright © 2014-2016 Hugues Ross")); */
-    /*     }); */
-    /*     this.add_action(about_action); */
-    /*  */
+        about_action = new GLib.SimpleAction("about", null);
+        about_action.activate.connect(() =>
+        {
+            Gtk.show_about_dialog(this,
+                "program-name", ("Singularity"),
+                "authors", (authorstr),
+                "website", ("http://github.com/Df458/Singularity"),
+                "website-label", ("Github"),
+                "comments", ("A simple webfeed aggregator"),
+                "version", ("0.3"),
+                "license-type", ((Gtk.License)License.GPL_3_0),
+                "copyright", ("Copyright © 2014-2016 Hugues Ross"));
+        });
+        this.add_action(about_action);
+
     /*     SimpleActionGroup feed_group = new SimpleActionGroup(); */
     /*     unsubscribe_action = new GLib.SimpleAction("unsubscribe", null); */
     /*     unsubscribe_action.activate.connect(() => */
@@ -452,9 +452,9 @@ public class MainWindow : Gtk.ApplicationWindow
         menu.append_item(new GLib.MenuItem("Import Feeds\u2026", "win.import"));
         menu.append_item(new GLib.MenuItem("Export Feeds\u2026", "win.export"));
     /*     menu.append_item(new GLib.MenuItem("Refresh", "win.refresh-feeds")); */
-    /*     menu.append_item(new GLib.MenuItem("Preferences", "win.app-preferences")); */
+        menu.append_item(new GLib.MenuItem("Preferences", "win.app-preferences"));
     /*     menu.append_item(new GLib.MenuItem("Mark All as Read", "win.mark-read")); */
-    /*     menu.append_item(new GLib.MenuItem("About", "win.about")); */
+        menu.append_item(new GLib.MenuItem("About", "win.about"));
         menu_button.set_menu_model(menu);
 
     /*     GLib.Menu feed_model = new GLib.Menu(); */
