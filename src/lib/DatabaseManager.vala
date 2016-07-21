@@ -214,6 +214,48 @@ public class DatabaseManager
         unlock_command();
     }
 
+    public async void view_item(int id)
+    {
+        yield lock_command();
+        try {
+            Query view_query = new Query(db, "UPDATE items SET unread = 0 WHERE id = :id");
+            view_query[":id"] = id;
+            yield view_query.execute_async();
+        } catch(SQLHeavy.Error e) {
+            error("Error marking item: %s\n", e.message);
+        }
+
+        unlock_command();
+    }
+
+    public async void toggle_star(int id)
+    {
+        yield lock_command();
+        try {
+            Query view_query = new Query(db, "UPDATE items SET starred = 1 - starred WHERE id = :id");
+            view_query[":id"] = id;
+            yield view_query.execute_async();
+        } catch(SQLHeavy.Error e) {
+            error("Error marking item: %s\n", e.message);
+        }
+
+        unlock_command();
+    }
+
+    public async void toggle_unread(int id)
+    {
+        yield lock_command();
+        try {
+            Query view_query = new Query(db, "UPDATE items SET unread = 1 - unread WHERE id = :id");
+            view_query[":id"] = id;
+            yield view_query.execute_async();
+        } catch(SQLHeavy.Error e) {
+            error("Error marking item: %s\n", e.message);
+        }
+
+        unlock_command();
+    }
+
 //-----------------------------------------------------------------------------
 
     private CommandWrapper[] m_waitlist = null;

@@ -17,47 +17,51 @@
 */
 using Gee;
 
-namespace Singularity {
+namespace Singularity
+{
 public class StreamViewBuilder : ViewBuilder, GLib.Object
 {
     public string head;
     public static const string builder_class = "stream";
     public  string star_svg = "file:///usr/local/share/singularity/star.svg";
+    public  string read_svg = "file:///usr/local/share/singularity/read.svg";
 
-    public StreamViewBuilder(string css_data, string star_data)
+    public StreamViewBuilder(string css_data)
     {
         StringBuilder builder = new StringBuilder("<head><style>");
         builder.append_printf("%s</style></head>", css_data);
         head = builder.str;
-        star_svg = star_data;
     }
 
     public string buildHTML(Gee.List<Item> items)
     {
         StringBuilder builder = new StringBuilder("<html>");
         builder.append(head);
-        builder.append("<body>");
+        builder.append("<body onload=\"prepare()\">");
         foreach(Item i in items) {
-            StringBuilder head_builder    = new StringBuilder("<header ");
-            StringBuilder content_builder = new StringBuilder("<section ");
-            StringBuilder footer_builder  = new StringBuilder("<footer ");
+            StringBuilder head_builder    = new StringBuilder("<header>");
+            StringBuilder content_builder = new StringBuilder("<section class=\"content\">");
+            StringBuilder footer_builder  = new StringBuilder("<footer>");
 
-            head_builder.append_printf("class=\"%s\">", builder_class);
-            head_builder.append_printf("<div class=\"%s\" id=\"top\">", builder_class);
-            head_builder.append_printf("<h1 class=\"%s title\"><a href=\"%s\">%s</a></h1>", builder_class, i.link, i.title == "" ? "Untitled Post" : i.title);
-            head_builder.append_printf("<img class=\"%s star\" %s, src=\"data:image/svg;base64,%s\"/>", builder_class, i.starred ? "id=\"active\"" : "", star_svg);
+            head_builder.append("<section class=\"title\">");
+            head_builder.append_printf("<a href=\"%s\">%s</a>", i.link, i.title == "" ? "Untitled Post" : i.title);
+            head_builder.append("<div>");
+            head_builder.append_printf("<img class=\"read-button\", src=\"%s\"/>", read_svg);
+            head_builder.append_printf("<img class=\"star\", src=\"%s\"/>", star_svg);
             head_builder.append("</div>");
+            head_builder.append("</section>");
             // TODO: Posted section
-            head_builder.append_printf("<hr class=\"%s\" id=\"header-separator\"/>", builder_class);
+            head_builder.append("<hr>");
+            head_builder.append("</header>");
 
-            content_builder.append_printf("class=\"%s content\">%s</section>", builder_class, i.content != null ? i.content : "No content");
+            content_builder.append(i.content != null ? i.content : "No content");
+            content_builder.append("</section>");
 
-            footer_builder.append_printf("class=\"%s\">", builder_class);
             // TODO: Attachments
             // TODO: Tags
             footer_builder.append_printf("</footer>");
 
-            builder.append_printf("<article class=\"%s\">%s%s%s</article>", builder_class, head_builder.str, content_builder.str, footer_builder.str);
+            builder.append_printf("<article class=\"%s\" data-id=\"%d\" data-read=\"%s\" data-starred=\"%s\">%s%s%s</article>", builder_class, i.id, i.unread ? "false" : "true", i.starred ? "true" : "false", head_builder.str, content_builder.str, footer_builder.str);
         }
         builder.append("</body></html>");
 

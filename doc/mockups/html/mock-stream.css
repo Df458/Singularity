@@ -1,0 +1,47 @@
+article {
+    padding: 12px;
+    margin: 18px;
+    background: #aaaaaa;
+    border-radius: 3px;
+    border-top: 2px solid #777;
+    box-shadow: 0 0 3px #555;
+}
+
+article.unread {
+    border-top: 2px solid #36c;
+}
+
+article+article {
+    /* border-top: 3px solid #777; */
+}
+
+.title {
+    display: flex;
+    justify-content: space-between;
+    align-content: space-between;
+    flex-flow: row wrap;
+    -webkit-display: flex;
+    -webkit-justify-content: space-between;
+    -webkit-align-content: space-between;
+    -webkit-flex-flow: row wrap;
+}
+
+.post-info {
+    flex: 2
+}
+
+.title a {
+    margin-top: 0;
+    margin-bottom: 6px;
+    font-size: x-large;
+    font-weight: bold;
+}
+
+.content {
+    padding-top: 12px;
+    padding-bottom: 12px;
+}
+
+.tags-list {
+    color: #777777;
+}

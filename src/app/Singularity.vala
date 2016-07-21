@@ -199,6 +199,21 @@ public class SingularityApp : Gtk.Application
         });
     }
 
+    public void view_item(int id)
+    {
+        m_database.view_item.begin(id);
+    }
+
+    public void toggle_unread(int id)
+    {
+        m_database.toggle_unread.begin(id);
+    }
+
+    public void toggle_star(int id)
+    {
+        m_database.toggle_star.begin(id);
+    }
+
     public GlobalSettings get_global_settings() { return m_global_settings; }
 
     // Signals ----------------------------------------------------------------
@@ -241,7 +256,8 @@ public class SingularityApp : Gtk.Application
             else
                 m_feed_store.append_root_collection(m_feeds);
 
-            check_for_updates();
+            if(m_global_settings.start_update)
+                check_for_updates();
 
             load_status_changed(LoadStatus.COMPLETED);
             init_success = true;

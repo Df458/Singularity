@@ -45,11 +45,10 @@ public class MainWindow : Gtk.ApplicationWindow
     // Actions
     private SimpleAction import_action;
     private SimpleAction export_action;
-    /* private SimpleAction refresh_action; */
+    private SimpleAction refresh_action;
     private SimpleAction preferences_action;
     /* private SimpleAction mkread_action; */
     private SimpleAction about_action;
-    /* private SimpleAction unsubscribe_action; */
 
     // Search
     private SearchBar   item_search_bar;
@@ -242,6 +241,21 @@ public class MainWindow : Gtk.ApplicationWindow
             feed_popover.hide();
         });
 
+        m_item_view.item_viewed.connect((id) =>
+        {
+            app.view_item(id);
+        });
+
+        m_item_view.item_read_toggle.connect((id) =>
+        {
+            app.toggle_unread(id);
+        });
+
+        m_item_view.item_star_toggle.connect((id) =>
+        {
+            app.toggle_star(id);
+        });
+
     /*     main_paned.notify.connect((spec, prop) => */
     /*     { */
     /*         if(prop.name == "position") { */
@@ -381,13 +395,14 @@ public class MainWindow : Gtk.ApplicationWindow
             dialog.run();
         });
         this.add_action(export_action);
-    /*     refresh_action = new GLib.SimpleAction("refresh-feeds", null); */
-    /*     refresh_action.set_enabled(false); */
-    /*     refresh_action.activate.connect(() => */
-    /*     { */
-    /*         app.update(); */
-    /*     }); */
-    /*     this.add_action(refresh_action); */
+        refresh_action = new GLib.SimpleAction("refresh-feeds", null);
+        refresh_action.set_enabled(true);
+        refresh_action.activate.connect(() =>
+        {
+            app.check_for_updates();
+        });
+        this.add_action(refresh_action);
+
         preferences_action = new GLib.SimpleAction("app-preferences", null);
         preferences_action.activate.connect(() =>
         {
@@ -451,7 +466,7 @@ public class MainWindow : Gtk.ApplicationWindow
         GLib.Menu menu = new GLib.Menu();
         menu.append_item(new GLib.MenuItem("Import Feeds\u2026", "win.import"));
         menu.append_item(new GLib.MenuItem("Export Feeds\u2026", "win.export"));
-    /*     menu.append_item(new GLib.MenuItem("Refresh", "win.refresh-feeds")); */
+        menu.append_item(new GLib.MenuItem("Check for Updates", "win.refresh-feeds"));
         menu.append_item(new GLib.MenuItem("Preferences", "win.app-preferences"));
     /*     menu.append_item(new GLib.MenuItem("Mark All as Read", "win.mark-read")); */
         menu.append_item(new GLib.MenuItem("About", "win.about"));

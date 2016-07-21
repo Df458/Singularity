@@ -152,7 +152,7 @@ namespace Singularity
                 time_published = new DateTime.from_unix_utc(r.field_index("publish_time"));
                 time_updated = new DateTime.from_unix_utc(r.fetch_int(r.field_index("update_time")));
                 time_loaded = new DateTime.from_unix_utc(r.fetch_int(r.field_index("load_time")));
-                unread = r.fetch_int(r.fetch_int(r.field_index("unread"))) == 1;
+                unread = r.fetch_int(r.field_index("unread")) == 1;
                 starred = r.fetch_int(r.field_index("starred")) == 1;
                 // TODO: Decide how to retrieve owner
                 // TODO: Decide how to store authors

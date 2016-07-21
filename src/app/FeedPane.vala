@@ -121,6 +121,11 @@ public class FeedPane : Gtk.Box
         feed_menu_group.add_action(act_update);
 
         SimpleAction act_unsubscribe = new SimpleAction("unsubscribe", null);
+        act_unsubscribe.activate.connect(() => {
+            if(selected_feed != null)
+                owner.update_requested(selected_feed);
+        });
+        act_unsubscribe.set_enabled(true);
         feed_menu_group.add_action(act_unsubscribe);
 
         this.insert_action_group("feed", feed_menu_group);

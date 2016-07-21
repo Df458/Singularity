@@ -32,7 +32,7 @@ public class ItemView : Box
         this.orientation = Orientation.VERTICAL;
         this.spacing = 12;
 
-        m_view_builder = new StreamViewBuilder(css_str, star_icon_base64); // TODO: Remove the need for either of these arguments
+        m_view_builder = new StreamViewBuilder(css_str+css_str_stream); // TODO: Handle CSS more elegantly
 
         init_content();
         connect_signals();
@@ -43,8 +43,12 @@ public class ItemView : Box
     public void view_items(Gee.List<Item?> item_list)
     {
         string html = m_view_builder.buildHTML(item_list);
-        m_web_view.load_html(html, null);
+        m_web_view.load_html(html, "file://singularity");
     }
+
+    public signal void item_viewed(int id);
+    public signal void item_read_toggle(int id);
+    public signal void item_star_toggle(int id);
 
     private ViewBuilder  m_view_builder;
     private WebView      m_web_view;
@@ -106,6 +110,27 @@ public class ItemView : Box
         JavascriptAppRequest request = get_js_info(result);
         // TODO: Handle the value
         stderr.printf("Returned value is a %s: %s\n", request.returned_value.type_name(), (string)request.returned_value);
+        string command = (string)request.returned_value;
+        if(command == null)
+            return;
+        char cmd;
+        int id;
+        if(command.scanf("%c:%d", out cmd, out id) != 2)
+            return;
+
+        switch(cmd) {
+            case 'v': // Item viewed
+                item_viewed(id);
+                break;
+
+            case 's': // Star button pressed
+                item_star_toggle(id);
+                break;
+
+            case 'r': // Read button pressed
+                item_read_toggle(id);
+                break;
+        }
     }
 }
 }

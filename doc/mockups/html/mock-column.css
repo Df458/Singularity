@@ -1,0 +1,29 @@
+header.column {
+    padding: 12px;
+}
+
+.title.column {
+    margin-left: 31px;
+    margin-top: 0;
+}
+
+.footer-heading.column {
+    margin-top: 0;
+}
+
+.content.column {
+    padding: 12px;
+    margin-bottom: 152px;
+}
+
+footer.column {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 128px;
+    padding: 12px;
+    background: #666;
+
+	box-shadow: 0px 0px 10px 5px #2B2B2B;
+}

@@ -1,56 +1,233 @@
 <html>
 <head>
     <link rel="stylesheet" href="mock.css"/>
+    <link rel="stylesheet" href="mock-stream.css"/>
+    <script src="read.js"></script>
 </head>
-<body>
-    <article class="stream">
-        <header class="stream">
-            <div class="stream" id="top">
-                <h1 class="stream title"><a href="http://example.com">Post Title</a></h1>
-                <img class="stream star" id="active" src="../../../data/star.svg"/>
-            </div>
-            <section class="stream" id="posted">
-                Posted by <span class="stream author">Author</span> on <time class="stream date" datetime="2016-01-01 12:00">Jan 1, 2015</time>.
+<body onload='prepare()'>
+    <article data-id="0" data-read="false" data-starred="true">
+        <header>
+            <section class="title">
+                <a href="http://example.com">Post Title</a>
+                <div>
+                    <img class="read-button" src="../../../data/read.svg"/>
+                    <img class="star" src="../../../data/star.svg"/>
+                </div>
             </section>
-            <hr class="stream" id="header-separator">
+            <section class="post-info">
+                Posted by <span class="author">Author</span> on <time class="date" datetime="2016-01-01 12:00">Jan 1, 2015</time>.
+            </section>
+            <hr>
         </header>
-        <section class="stream content">
+        <section class="content">
             Article description
         </section>
-            <hr class="stream" id="header-separator">
-        <footer class="stream">
-            <section class="stream" id="attach-list">
-                <span class="stream attach">Attachment1</span>
+        <hr>
+        <footer>
+            <section class="attachments-list">
+                <span>Attachment1</span>
             </section>
-            <section class="stream" id="taglist">
-                <span class="stream tag">Tag1</span>, <span class="stream tag">Tag2</span>, <span class="stream tag">Tag3</span>
+            <section class="tags-list">
+                <span>Tag1</span>, <span>Tag2</span>, <span>Tag3</span>
             </section>
         </footer>
     </article>
-    <article class="stream" id="unread">
-        <header class="stream">
-            <div class="stream" id="top">
-                <h1 class="stream title"><a href="http://example.com">Post Title</a></h1>
-                <img class="stream star" src="../../../data/star.svg"/>
-            </div>
-            <section class="stream" id="posted">
-                Posted by <span class="stream author">Author</span> on <time class="stream date" datetime="2016-01-01 12:00">Jan 1, 2015</time>.
+
+    <article data-id="1" data-read="false" data-starred="false">
+        <header>
+            <section class="title">
+                <a href="http://example.com">Post Title</a>
+                <div>
+                    <img class="read-button" src="../../../data/read.svg"/>
+                    <img class="star" src="../../../data/star.svg"/>
+                </div>
             </section>
-            <hr class="stream" id="header-separator">
+            <section class="post-info">
+                Posted by <span class="author">Author</span> on <time class="date" datetime="2016-01-01 12:00">Jan 1, 2015</time>.
+            </section>
+            <hr>
         </header>
-        <section class="stream content">
+        <section class="content">
             Article description
         </section>
-            <hr class="stream" id="header-separator">
-        <footer class="stream">
-            <section class="stream" id="attach-list">
-                <span class="stream attach">Attachment1</span>
+        <hr>
+        <footer>
+            <section class="attachments-list">
+                <span>Attachment1</span>
             </section>
-            <!-- <h3 class="stream footer&#45;heading">Tags</h3> -->
-            <section class="stream" id="taglist">
-                <span class="stream tag">Tag1</span>, <span class="stream tag">Tag2</span>, <span class="stream tag">Tag3</span>
+            <section class="tags-list">
+                <span>Tag1</span>, <span>Tag2</span>, <span>Tag3</span>
             </section>
         </footer>
     </article>
+
+    <article data-id="0" data-read="false" data-starred="true">
+        <header>
+            <section class="title">
+                <a href="http://example.com">Post Title</a>
+                <div>
+                    <img class="read-button" src="../../../data/read.svg"/>
+                    <img class="star" src="../../../data/star.svg"/>
+                </div>
+            </section>
+            <section class="post-info">
+                Posted by <span class="author">Author</span> on <time class="date" datetime="2016-01-01 12:00">Jan 1, 2015</time>.
+            </section>
+            <hr>
+        </header>
+        <section class="content">
+            Article description
+        </section>
+        <hr>
+        <footer>
+            <section class="attachments-list">
+                <span>Attachment1</span>
+            </section>
+            <section class="tags-list">
+                <span>Tag1</span>, <span>Tag2</span>, <span>Tag3</span>
+            </section>
+        </footer>
+    </article>
+
+    <article data-id="0" data-read="false" data-starred="true">
+        <header>
+            <section class="title">
+                <a href="http://example.com">Post Title</a>
+                <div>
+                    <img class="read-button" src="../../../data/read.svg"/>
+                    <img class="star" src="../../../data/star.svg"/>
+                </div>
+            </section>
+            <section class="post-info">
+                Posted by <span class="author">Author</span> on <time class="date" datetime="2016-01-01 12:00">Jan 1, 2015</time>.
+            </section>
+            <hr>
+        </header>
+        <section class="content">
+            Article description
+        </section>
+        <hr>
+        <footer>
+            <section class="attachments-list">
+                <span>Attachment1</span>
+            </section>
+            <section class="tags-list">
+                <span>Tag1</span>, <span>Tag2</span>, <span>Tag3</span>
+            </section>
+        </footer>
+    </article>
+
+    <article data-id="0" data-read="false" data-starred="true">
+        <header>
+            <section class="title">
+                <a href="http://example.com">Post Title</a>
+                <div>
+                    <img class="read-button" src="../../../data/read.svg"/>
+                    <img class="star" src="../../../data/star.svg"/>
+                </div>
+            </section>
+            <section class="post-info">
+                Posted by <span class="author">Author</span> on <time class="date" datetime="2016-01-01 12:00">Jan 1, 2015</time>.
+            </section>
+            <hr>
+        </header>
+        <section class="content">
+            Article description
+        </section>
+        <hr>
+        <footer>
+            <section class="attachments-list">
+                <span>Attachment1</span>
+            </section>
+            <section class="tags-list">
+                <span>Tag1</span>, <span>Tag2</span>, <span>Tag3</span>
+            </section>
+        </footer>
+    </article>
+
+    <article data-id="0" data-read="false" data-starred="true">
+        <header>
+            <section class="title">
+                <a href="http://example.com">Post Title</a>
+                <div>
+                    <img class="read-button" src="../../../data/read.svg"/>
+                    <img class="star" src="../../../data/star.svg"/>
+                </div>
+            </section>
+            <section class="post-info">
+                Posted by <span class="author">Author</span> on <time class="date" datetime="2016-01-01 12:00">Jan 1, 2015</time>.
+            </section>
+            <hr>
+        </header>
+        <section class="content">
+            Article description
+        </section>
+        <hr>
+        <footer>
+            <section class="attachments-list">
+                <span>Attachment1</span>
+            </section>
+            <section class="tags-list">
+                <span>Tag1</span>, <span>Tag2</span>, <span>Tag3</span>
+            </section>
+        </footer>
+    </article>
+
+    <article data-id="0" data-read="false" data-starred="true">
+        <header>
+            <section class="title">
+                <a href="http://example.com">Post Title</a>
+                <div>
+                    <img class="read-button" src="../../../data/read.svg"/>
+                    <img class="star" src="../../../data/star.svg"/>
+                </div>
+            </section>
+            <section class="post-info">
+                Posted by <span class="author">Author</span> on <time class="date" datetime="2016-01-01 12:00">Jan 1, 2015</time>.
+            </section>
+            <hr>
+        </header>
+        <section class="content">
+            Article description
+        </section>
+        <hr>
+        <footer>
+            <section class="attachments-list">
+                <span>Attachment1</span>
+            </section>
+            <section class="tags-list">
+                <span>Tag1</span>, <span>Tag2</span>, <span>Tag3</span>
+            </section>
+        </footer>
+    </article>
+
+    <article data-id="0" data-read="false" data-starred="true">
+        <header>
+            <section class="title">
+                <a href="http://example.com">Post Title</a>
+                <div>
+                    <img class="read-button" src="../../../data/read.svg"/>
+                    <img class="star" src="../../../data/star.svg"/>
+                </div>
+            </section>
+            <section class="post-info">
+                Posted by <span class="author">Author</span> on <time class="date" datetime="2016-01-01 12:00">Jan 1, 2015</time>.
+            </section>
+            <hr>
+        </header>
+        <section class="content">
+            Article description
+        </section>
+        <hr>
+        <footer>
+            <section class="attachments-list">
+                <span>Attachment1</span>
+            </section>
+            <section class="tags-list">
+                <span>Tag1</span>, <span>Tag2</span>, <span>Tag3</span>
+            </section>
+        </footer>
+    </article>
+
 </body>
 </html>
