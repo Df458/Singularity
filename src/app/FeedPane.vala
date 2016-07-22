@@ -23,6 +23,7 @@ namespace Singularity
 public class FeedPane : Gtk.Box
 {
     public Feed? selected_feed { get; private set; }
+    public FeedCollection? selected_collection { get; private set; }
 
     public FeedPane(MainWindow owner_window, CollectionTreeStore store)
     {
@@ -51,7 +52,9 @@ public class FeedPane : Gtk.Box
     private CollectionTreeStore  feed_data;
     private unowned MainWindow   owner;
 
+    private Gtk.Menu base_menu;
     private Gtk.Menu feed_menu;
+    private Gtk.Menu collection_menu;
 
     private void init_structure()
     {
@@ -84,6 +87,7 @@ public class FeedPane : Gtk.Box
             feed_list.get_cursor(out path, null);
 
             selected_feed = feed_data.get_feed_from_path(path);
+            selected_collection = feed_data.get_collection_from_path(path);
 
             owner.display_node(feed_data.get_node_from_path(path));
         });
@@ -93,7 +97,6 @@ public class FeedPane : Gtk.Box
                 TreePath path;
                 feed_list.get_path_at_pos((int)event.x, (int)event.y, out path, null, null, null);
                 if(path != null) {
-                    /* feed_list.select_path(path); */
                     feed_list.set_cursor(path, null, false);
                 } else {
                     feed_list.unselect_all();
@@ -104,10 +107,15 @@ public class FeedPane : Gtk.Box
         });
         feed_list.popup_menu.connect(() =>
         {
-            /* if(feed_list.get_selected_items().length() == 0) */
-                ;/* content_menu.popup(null, null, null, 0, Gtk.get_current_event_time()); */
-            /* else */
+            TreePath path;
+            feed_list.get_cursor(out path, null);
+
+            if(selected_feed != null)
                 feed_menu.popup(null, null, null, 0, Gtk.get_current_event_time());
+            else if(selected_collection != null)
+                collection_menu.popup(null, null, null, 0, Gtk.get_current_event_time());
+            else
+                base_menu.popup(null, null, null, 0, Gtk.get_current_event_time());
             return false;
         });
     }
@@ -137,8 +145,20 @@ public class FeedPane : Gtk.Box
         feed_model.append("Check for Updates", "feed.update");
         feed_model.append("Unsubscribe", "feed.unsubscribe");
 
+        GLib.Menu collection_model = new GLib.Menu();
+        collection_model.append("Create Collection", "collection.new");
+        collection_model.append("Delete", "collection.delete");
+        collection_model.append("Rename", "collection.rename");
+
+        GLib.Menu base_model = new GLib.Menu();
+        base_model.append("Create Collection", "collection.new");
+
         feed_menu = new Gtk.Menu.from_model(feed_model);
         feed_menu.attach_to_widget(this, null);
+        collection_menu = new Gtk.Menu.from_model(collection_model);
+        collection_menu.attach_to_widget(this, null);
+        base_menu = new Gtk.Menu.from_model(base_model);
+        base_menu.attach_to_widget(this, null);
     }
 }
 }

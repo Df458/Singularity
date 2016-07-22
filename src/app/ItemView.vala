@@ -108,8 +108,6 @@ public class ItemView : Box
     private void message_received(JavascriptResult result)
     {
         JavascriptAppRequest request = get_js_info(result);
-        // TODO: Handle the value
-        stderr.printf("Returned value is a %s: %s\n", request.returned_value.type_name(), (string)request.returned_value);
         string command = (string)request.returned_value;
         if(command == null)
             return;

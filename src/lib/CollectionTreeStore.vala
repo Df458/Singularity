@@ -112,6 +112,23 @@ public class CollectionTreeStore : TreeStore
         if(type != CollectionNode.Contents.COLLECTION)
             return null;
 
+        return get_collection_from_id(id);
+    }
+
+    public FeedCollection? get_collection_from_iter(TreeIter iter)
+    {
+        int id;
+        int type;
+
+        get(iter, Column.ID, out id, Column.TYPE, out type);
+        if(type != CollectionNode.Contents.COLLECTION)
+            return null;
+
+        return get_collection_from_id(id);
+    }
+
+    public FeedCollection? get_collection_from_id(int id)
+    {
         if(node_map.has_key(id))
             return node_map.get(id).collection;
         return null;
@@ -125,6 +142,20 @@ public class CollectionTreeStore : TreeStore
         get_iter(out iter, path);
         get(iter, Column.ID, out id);
 
+        return get_node_from_id(id);
+    }
+
+    public CollectionNode? get_node_from_iter(TreeIter iter)
+    {
+        int id;
+
+        get(iter, Column.ID, out id);
+
+        return get_node_from_id(id);
+    }
+
+    public CollectionNode? get_node_from_id(int id)
+    {
         if(node_map.has_key(id))
             return node_map.get(id);
         return null;

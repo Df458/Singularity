@@ -99,6 +99,7 @@ article+article {
 .content {
     padding-top: 12px;
     padding-bottom: 12px;
+    overflow: hidden;
 }
 
 .tags-list {
