@@ -26,7 +26,8 @@ public class DatabaseManager
     private static const string schema_dir = "/usr/local/share/singularity/schemas";
     private Database db;
     private bool _open = false;
-    public int next_id = 0;
+    public int next_feed_id = 0;
+    public int next_item_id = 0;
     
     public bool open { get { return _open; } }
     
@@ -73,8 +74,6 @@ public class DatabaseManager
 
             Gee.ArrayList<FeedCollection> clist = new Gee.ArrayList<FeedCollection>();
             for(QueryResult result = yield load_query.execute_async(); !result.finished; result.next() ) {
-                if(result.fetch_int(0) >= next_id)
-                    next_id = result.fetch_int(0) + 1;
                 switch(result.get_int("type")) {
                     case CollectionNode.Contents.FEED:
                         Feed f = new Feed.from_record(result);
@@ -155,20 +154,18 @@ public class DatabaseManager
                 yield feed_query.execute_async();
 
             foreach(Item i in package.items) {
-                /* stderr.printf("Testing Item %s, for feed %s\n", i.to_string(), package.feed.to_string()); */
-                Query test_query = new Query(db, "SELECT id FROM items WHERE `parent_id` = :id AND `guid` = :guid");
+                Query test_query = new Query(db, "SELECT COUNT(), id FROM items WHERE `parent_id` = :id AND `guid` = :guid");
                 test_query[":id"] = package.feed.id;
                 test_query[":guid"] = i.guid;
                 QueryResult test_result = yield test_query.execute_async();
                 Query? q;
                 if(test_result.fetch_int(0) == 0) {
-                    i.prepare_for_db(next_id);
+                    i.prepare_for_db(next_item_id);
                     q = i.insert(db);
-                    next_id++;
+                    next_item_id++;
                 } else {
-                    i.prepare_for_db(next_id);
+                    i.prepare_for_db(test_result.fetch_int(1));
                     q = i.update(db);
-                    next_id++;
                 }
 
                 if(q != null)
@@ -185,7 +182,7 @@ public class DatabaseManager
     public async bool feed_exists(Feed f)
     {
         try {
-            Query test_query = new Query(db, "SELECT COUNT FROM feeds WHERE `link` = :link");
+            Query test_query = new Query(db, "SELECT COUNT() FROM feeds WHERE `link` = :link");
             test_query[":link"] = f.link;
             QueryResult test_result = yield test_query.execute_async();
             return test_result.fetch_int(0) != 0;
@@ -303,11 +300,29 @@ public class DatabaseManager
         return true;
     }
 
+    private async void prepare()
+    {
+        yield lock_command();
+
+        try {
+            Query fnext = new Query(db, "SELECT MAX(id) FROM feeds");
+            Query inext = new Query(db, "SELECT MAX(id) FROM items");
+            QueryResult fres = yield fnext.execute_async();
+            QueryResult ires = yield inext.execute_async();
+            next_feed_id = fres.fetch_int(0) + 1;
+            next_item_id = ires.fetch_int(0) + 1;
+        } catch(SQLHeavy.Error e) {
+            error("Error preparing database ids: %s\n", e.message);
+        }
+
+        unlock_command();
+    }
+
     private async void save_new_feed(Feed to_save)
     {
         try {
-            to_save.prepare_for_db(next_id);
-            next_id++;
+            to_save.prepare_for_db(next_feed_id);
+            next_feed_id++;
             Query q = to_save.insert(db);
             yield q.execute_async();
         } catch(SQLHeavy.Error e) {
@@ -318,8 +333,8 @@ public class DatabaseManager
     private async void save_new_collection(FeedCollection to_save)
     {
         try {
-            to_save.prepare_for_db(next_id);
-            next_id++;
+            to_save.prepare_for_db(next_feed_id);
+            next_feed_id++;
             Query q = to_save.insert(db);
             yield q.execute_async();
         } catch(SQLHeavy.Error e) {

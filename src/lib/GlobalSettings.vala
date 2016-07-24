@@ -27,6 +27,7 @@ public class GlobalSettings
     public int    unread_rule[3];
     public bool   download_attachments;
     public bool   ask_download_location;
+    public bool   display_unread_only;
     public File   default_download_location;
     public string link_command;
 
@@ -39,6 +40,7 @@ public class GlobalSettings
     {
         m_source.set_boolean("auto-update", auto_update);
         m_source.set_boolean("start-update", start_update);
+        m_source.set_boolean("unread-only", display_unread_only);
         m_source.set_uint("auto-update-freq", auto_update_freq);
         m_source.set_value("read-rule", new Variant("(iii)", read_rule[0], read_rule[1], read_rule[2]));
         m_source.set_value("unread-rule", new Variant("(iii)", unread_rule[0], unread_rule[1], unread_rule[2]));
@@ -52,6 +54,7 @@ public class GlobalSettings
     {
         auto_update               = m_source.get_boolean("auto-update");
         start_update              = m_source.get_boolean("start-update");
+        display_unread_only       = m_source.get_boolean("unread-only");
         auto_update_freq          = m_source.get_uint("auto-update-freq");
         Variant read_value        = m_source.get_value("read-rule");
         VariantIter read_iter     = read_value.iterator();

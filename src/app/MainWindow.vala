@@ -76,6 +76,8 @@ public class MainWindow : Gtk.ApplicationWindow
     private FeedSettingsPane feed_settings;
     private AddPane add_pane;
 
+    private CollectionNode? m_last_displayed_node;
+
     static const string[] authorstr = { "Hugues Ross(df458)" };
 
     private enum FeedColumn
@@ -93,6 +95,8 @@ public class MainWindow : Gtk.ApplicationWindow
         app = owner_app;
         window_position = WindowPosition.CENTER;
         set_default_size(1024, 768);
+
+        m_last_displayed_node = null;
 
         init_structure();
         init_content(owner_app.get_feed_store());
@@ -123,7 +127,8 @@ public class MainWindow : Gtk.ApplicationWindow
     // TODO: Allow filtering unread/starred
     public void display_node(CollectionNode? node)
     {
-        app.query_items.begin(node, false, false, (obj, res) =>
+        m_last_displayed_node = node;
+        app.query_items.begin(node, m_item_view.unread_only, m_item_view.unread_only, (obj, res) =>
         {
             Gee.List<Item?> item_list = app.query_items.end(res);
             m_item_view.view_items(item_list);
@@ -255,6 +260,8 @@ public class MainWindow : Gtk.ApplicationWindow
         {
             app.toggle_star(id);
         });
+
+        m_item_view.unread_mode_changed.connect((mode) => { display_node(m_last_displayed_node); });
 
     /*     main_paned.notify.connect((spec, prop) => */
     /*     { */

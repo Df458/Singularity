@@ -25,15 +25,19 @@ namespace Singularity
 
 public class ItemView : Box
 {
+    public bool unread_only { get; private set; }
+
     public ItemView(GlobalSettings gs)
     {
         m_global_settings = gs;
 
         this.orientation = Orientation.VERTICAL;
         this.spacing = 12;
+        this.unread_only = gs.display_unread_only;
 
         m_view_builder = new StreamViewBuilder(css_str+css_str_stream); // TODO: Handle CSS more elegantly
 
+        init_structure();
         init_content();
         connect_signals();
 
@@ -49,20 +53,37 @@ public class ItemView : Box
     public signal void item_viewed(int id);
     public signal void item_read_toggle(int id);
     public signal void item_star_toggle(int id);
+    public signal void unread_mode_changed(bool unread_only);
 
-    private ViewBuilder  m_view_builder;
-    private WebView      m_web_view;
+    private ViewBuilder m_view_builder;
+    private Box         m_control_box;
+    private Box         m_view_box;
+    private Switch      m_unread_switch;
+    private Label       m_unread_label;
+    private WebView     m_web_view;
     private unowned GlobalSettings m_global_settings;
     private UserContentManager m_content_manager;
 
+    private void init_structure()
+    {
+        m_view_box = new Box(Orientation.VERTICAL, 12);
+        m_control_box = new Box(Orientation.HORIZONTAL, 12);
+        m_view_box.pack_start(m_control_box, false, false);
+        this.pack_start(m_view_box, true, true);
+    }
+
     private void init_content()
     {
-
         m_content_manager = new UserContentManager();
         UserScript test_script = new UserScript(js_str, UserContentInjectedFrames.ALL_FRAMES, UserScriptInjectionTime.START, null, null);
         m_content_manager.add_script(test_script);
 
         m_web_view = new WebView.with_user_content_manager(m_content_manager);
+        m_unread_label = new Label("Display unread/starred items only");
+        m_unread_switch = new Switch();
+
+        m_unread_label.halign = Align.END;
+        m_unread_switch.active = unread_only;
 
         WebKit.Settings settings = new WebKit.Settings();
         settings.set_allow_file_access_from_file_urls(true);
@@ -77,7 +98,9 @@ public class ItemView : Box
         m_web_view.set_background_color(this.get_style_context().get_background_color(StateFlags.NORMAL));
         m_web_view.set_settings(settings);
 
-        this.pack_start(m_web_view, true, true);
+        m_control_box.pack_start(m_unread_label, true, true);
+        m_control_box.pack_start(m_unread_switch, false, false);
+        m_view_box.pack_start(m_web_view, true, true);
     }
 
     private void connect_signals()
@@ -86,6 +109,14 @@ public class ItemView : Box
 
         m_content_manager.script_message_received.connect(message_received);
         m_content_manager.register_script_message_handler("test");
+
+        m_unread_switch.state_set.connect((state) =>
+        {
+            unread_only = state;
+            unread_mode_changed(state);
+
+            return false;
+        });
     }
 
     private bool policy_decision(PolicyDecision decision, PolicyDecisionType type)

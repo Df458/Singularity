@@ -21,6 +21,13 @@
                 How often to check for updates, in minutes.
             </description>
         </key>
+        <key name="unread-only" type="b">
+            <default>true</default>
+            <summary>Display unread only</summary>
+            <description>
+                Whether or not to display unread and starred feeds only by default.
+            </description>
+        </key>
         <key name="read-rule" type="(iii)">
             <default>(6,1,1)</default>
         </key>
