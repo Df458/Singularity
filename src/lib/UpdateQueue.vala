@@ -5,7 +5,7 @@ namespace Singularity
 
 public class UpdateQueue : Object
 {
-    private AsyncQueue<Feed> m_update_requests;
+    public int length { get { return m_update_requests.length(); } }
 
     public UpdateQueue()
     {
@@ -15,10 +15,12 @@ public class UpdateQueue : Object
         m_processing_thread = new Thread<void*>(null, this.process);
     }
 
-    public void request_update(Feed f)
+    public void request_update(Feed f, bool high_priority = false)
     {
-        /* stderr.printf("Update Requested: %s\n", f.to_string()); */
-        m_update_requests.push(f);
+        if(high_priority)
+            m_update_requests.push_front(f);
+        else
+            m_update_requests.push(f);
     }
 
     public void set_paused(bool paused)
@@ -28,6 +30,8 @@ public class UpdateQueue : Object
     }
 
     public signal void update_processed(UpdatePackage update);
+
+    private AsyncQueue<Feed> m_update_requests;
 
     private Thread<void*>   m_processing_thread;
 

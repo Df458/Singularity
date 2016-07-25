@@ -41,7 +41,9 @@ namespace Singularity
         {
             time_published = new DateTime.from_unix_utc(0);
             time_updated = new DateTime.from_unix_utc(0);
-            time_loaded = new DateTime.from_unix_utc(0);
+            time_loaded = new DateTime.now_utc();
+            unread  = true;
+            starred = false;
         }
 
         public Item.from_record(SQLHeavy.Record r) { base.from_record(r); }
@@ -94,7 +96,7 @@ namespace Singularity
         public override Query? update(Queryable q)
         {
             try {
-                Query query = new Query(q, "UPDATE items SET title = :title, link = :link, content = :content, rights = :rights, publish_time = :publish_time, update_time = :update_time, load_time = :load_time, unread = :unread, starred = :starred WHERE id = :id");
+                Query query = new Query(q, "UPDATE items SET title = :title, link = :link, content = :content, rights = :rights, publish_time = :publish_time, update_time = :update_time, load_time = :load_time WHERE id = :id");
                 query[":id"] = id;
                 query[":title"] = title;
                 query[":link"] = link;
@@ -103,8 +105,6 @@ namespace Singularity
                 query[":publish_time"] = time_published.to_unix();
                 query[":update_time"] = time_updated.to_unix();
                 query[":load_time"] = time_loaded.to_unix();
-                query[":unread"] = unread ? 1 : 0;
-                query[":starred"] = starred ? 1 : 0;
                 // TODO: Decide how to store authors
                 // TODO: Decide how to store contributors
                 // TODO: Decide how to store tags

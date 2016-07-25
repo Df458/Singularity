@@ -128,7 +128,7 @@ public class MainWindow : Gtk.ApplicationWindow
     public void display_node(CollectionNode? node)
     {
         m_last_displayed_node = node;
-        app.query_items.begin(node, m_item_view.unread_only, m_item_view.unread_only, (obj, res) =>
+        app.query_items.begin(node, m_item_view.unread_only, false, (obj, res) =>
         {
             Gee.List<Item?> item_list = app.query_items.end(res);
             m_item_view.view_items(item_list);
@@ -235,9 +235,9 @@ public class MainWindow : Gtk.ApplicationWindow
             feed_popover.show_all();
         });
 
-        feed_builder.subscription_added.connect((feed, loaded) =>
+        feed_builder.subscription_added.connect((feed, loaded, items) =>
         {
-            app.subscribe_to_feed(feed, loaded);
+            app.subscribe_to_feed(feed, loaded, null, items);
             feed_popover.hide();
         });
 

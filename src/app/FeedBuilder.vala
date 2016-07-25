@@ -23,10 +23,11 @@ namespace Singularity
             title_entry.text = "";
             link_entry.text = "";
             to_build = null;
+            m_temp_items = null;
             url_changed = false;
         }
 
-        public signal void subscription_added(Feed new_sub, bool loaded);
+        public signal void subscription_added(Feed new_sub, bool loaded, Gee.List<Item?>? items);
         public signal void cancelled();
 
         private Feed to_build;
@@ -39,6 +40,8 @@ namespace Singularity
         private Entry link_entry;
         private Button subscribe_button;
         private Button cancel_button;
+
+        private Gee.List<Item?>? m_temp_items = null;
 
         private void init_structure()
         {
@@ -74,6 +77,7 @@ namespace Singularity
                 url_changed = true;
                 url_entry.secondary_icon_name = "content-loading-symbolic";
                 to_build = null;
+                m_temp_items = null;
             });
 
             cancel_button.clicked.connect(() =>
@@ -97,7 +101,7 @@ namespace Singularity
                 }
 
                 to_build.link = url_entry.text;
-                subscription_added(to_build, loaded);
+                subscription_added(to_build, loaded, m_temp_items);
                 reset_form();
             });
         }
@@ -125,7 +129,7 @@ namespace Singularity
                         title_entry.text = to_build.title;
                         if(to_build.site_link != null)
                             link_entry.text = to_build.site_link;
-                        // TODO: Preview the items
+                        m_temp_items = provider.data;
                     }
                 }
             });

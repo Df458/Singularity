@@ -151,7 +151,7 @@ public class SingularityApp : Gtk.Application
         return m_feed_store;
     }
 
-    public void subscribe_to_feed(Feed f, bool loaded, FeedCollection? parent = null)
+    public void subscribe_to_feed(Feed f, bool loaded, FeedCollection? parent = null, Gee.List<Item?>? items = null)
     {
         // TODO: Figure out a way to pass loaded items along
         CollectionNode node = new CollectionNode.with_feed(f);
@@ -164,7 +164,15 @@ public class SingularityApp : Gtk.Application
 
             m_feed_store.append_node(node, iter);
             if(!loaded) {
-                m_update_queue.request_update(f);
+                m_update_queue.request_update(f, true);
+            } else if(items != null){
+                if(node.feed == null)
+                    warning("WTF???");
+                foreach(Item i in items) {
+                    i.owner = node.feed;
+                }
+                UpdatePackage new_package = new UpdatePackage.success(node.feed, items);
+                m_database.save_updates.begin(new_package);
             }
         });
     }
@@ -233,7 +241,7 @@ public class SingularityApp : Gtk.Application
         DataLocator loc = new DataLocator(m_session_settings);
         m_global_settings.load();
 
-        m_database = new DatabaseManager(m_session_settings, loc.data_location);
+        m_database = new DatabaseManager(m_session_settings, m_global_settings, loc.data_location);
         load_status_changed(LoadStatus.STARTED);
         m_update_queue = new UpdateQueue();
 
@@ -273,7 +281,7 @@ public class SingularityApp : Gtk.Application
         window.update_requested.connect((f) =>
         {
             if(f != null)
-                m_update_queue.request_update(f);
+                m_update_queue.request_update(f, true);
         });
         this.add_window(window);
     }

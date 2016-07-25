@@ -31,8 +31,10 @@ public class DatabaseManager
     
     public bool open { get { return _open; } }
     
-    public DatabaseManager(SessionSettings settings, string default_path)
+    public DatabaseManager(SessionSettings settings, GlobalSettings global_settings, string default_path)
     {
+        m_global_settings = global_settings;
+
         try {
             if(settings.database_path != null)
                 db = new Database(settings.database_path);
@@ -55,6 +57,8 @@ public class DatabaseManager
         _open = true;
         if(settings.verbose)
             stderr.printf("Database successfully created. User version is %d.\n", db.user_version);
+
+        prepare.begin();
     }
     
     public async FeedCollection load_feeds()
@@ -123,6 +127,8 @@ public class DatabaseManager
             q_builder.append("`starred` = 1");
         }
 
+        /* stderr.printf("COMMAND: %s (%d)\n", q_builder.str, node.id); */
+
         try {
             Query q = new Query(db, q_builder.str);
             if(node != null) {
@@ -154,6 +160,8 @@ public class DatabaseManager
                 yield feed_query.execute_async();
 
             foreach(Item i in package.items) {
+                if(i == null)
+                    continue;
                 Query test_query = new Query(db, "SELECT COUNT(), id FROM items WHERE `parent_id` = :id AND `guid` = :guid");
                 test_query[":id"] = package.feed.id;
                 test_query[":guid"] = i.guid;
@@ -175,6 +183,8 @@ public class DatabaseManager
             unlock_command();
             error("Error saving item data: %s\n", e.message);
         }
+
+        yield cleanup_id(package.feed.id);
 
         unlock_command();
     }
@@ -256,6 +266,7 @@ public class DatabaseManager
 //-----------------------------------------------------------------------------
 
     private CommandWrapper[] m_waitlist = null;
+    private unowned GlobalSettings m_global_settings;
 
     /*
      * Finds and applies Create.sql file.
@@ -350,6 +361,60 @@ public class DatabaseManager
             yield;
         } else {
             m_waitlist = new CommandWrapper[0];
+        }
+    }
+
+    private async void cleanup_id(int id)
+    {
+        StringBuilder q_builder = new StringBuilder("DELETE FROM items WHERE `parent_id` = :id AND (");
+        bool delete_read = m_global_settings.read_rule[2] == 2;
+        bool delete_unread = m_global_settings.unread_rule[2] == 2;
+        DateTime read_time = new DateTime.now_utc();
+        DateTime unread_time = new DateTime.now_utc();
+
+        if(delete_read) {
+            q_builder.append("(`unread` = 0 AND `load_time` < :read_time)");
+            /*switch(m_global_settings.read_rule[1]) {
+                case 0:
+                    read_time.add_days(m_global_settings.read_rule[0] * -1);
+                    break;
+                case 1:
+                    read_time.add_months(m_global_settings.read_rule[0] * -1);
+                    break;
+                case 2:
+                    read_time.add_years(m_global_settings.read_rule[0] * -1);
+                    break;
+            }*/
+            if(delete_unread)
+                q_builder.append(" OR ");
+            else
+                q_builder.append(")");
+        }
+
+        if(delete_unread) {
+            q_builder.append_printf("(`unread` = 1 AND `load_time` < :unread_time))");
+            switch(m_global_settings.unread_rule[1]) {
+                case 0:
+                    unread_time.add_days(m_global_settings.unread_rule[0] * -1);
+                    break;
+                case 1:
+                    unread_time.add_months(m_global_settings.unread_rule[0] * -1);
+                    break;
+                case 2:
+                    unread_time.add_years(m_global_settings.unread_rule[0] * -1);
+                    break;
+            }
+        }
+
+        try {
+            Query q_clean = new Query(db, q_builder.str);
+            if(delete_read)
+                q_clean[":read_time"] = read_time.to_unix();
+            if(delete_unread)
+                q_clean[":unread_time"] = unread_time.to_unix();
+            yield q_clean.execute_async();
+        } catch(SQLHeavy.Error e) {
+            error("Can't clean up id: %s: %s", e.message, q_builder.str);
         }
     }
 

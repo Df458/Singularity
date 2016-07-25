@@ -24,7 +24,7 @@ public class CollectionNode : Object
     public FeedCollection? collection { get; construct; }
     public Contents contents { get; construct; }
     // TODO: This shouldn't work like this, it should query what it owns instead
-    public int id { get; construct; }
+    public int id { get { if(feed != null) return feed.id; else if(collection != null) return collection.id; return -1; } }
 
     public enum Contents
     {
