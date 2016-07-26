@@ -67,7 +67,7 @@ public class CollectionTreeStore : TreeStore
             title = node.feed.title;
         else if(node.contents == CollectionNode.Contents.COLLECTION)
             title = node.collection.title;
-        set(iter, Column.ID, node.id, Column.TYPE, node.contents, Column.TITLE, title);
+        set(iter, Column.ID, node.id, Column.TYPE, node.contents, Column.TITLE, title, Column.NODE, node);
         if(node.contents == CollectionNode.Contents.COLLECTION) {
             foreach(CollectionNode n in node.collection.nodes)
                 append_node(n, iter);
@@ -158,6 +158,105 @@ public class CollectionTreeStore : TreeStore
     {
         if(node_map.has_key(id))
             return node_map.get(id);
+        return null;
+    }
+
+    public void remove_node(CollectionNode n)
+    {
+        TreeIter? iter = get_iter_from_node(n);
+        if(iter != null) {
+            remove(ref iter);
+            node_map.remove(n.id);
+        }
+    }
+
+    public void remove_feed(Feed f)
+    {
+        TreeIter? iter = get_iter_from_feed(f);
+        if(iter != null) {
+            remove(ref iter);
+            node_map.remove(f.id);
+        }
+    }
+
+    public void remove_collection(FeedCollection c)
+    {
+        TreeIter? iter = get_iter_from_collection(c);
+        if(iter != null) {
+            remove(ref iter);
+            node_map.remove(c.id);
+        }
+    }
+
+    public TreeIter? get_iter_from_node(CollectionNode n, TreeIter? from = null)
+    {
+        TreeIter? it = base_iter;
+        if(from != null)
+            if(!iter_children(out it, from))
+                return null;
+        do {
+            CollectionNode n2;
+            string str;
+            get(it, Column.NODE, out n2, -1);
+            if(n2 == n) {
+                return it;
+            }
+
+            if(iter_has_child(it)) {
+                TreeIter? it2 = get_iter_from_node(n, it);
+                if(it2 != null) {
+                    return it2;
+                }
+            }
+        } while(iter_next(ref it));
+        return null;
+    }
+
+    public TreeIter? get_iter_from_feed(Feed f, TreeIter? from = null)
+    {
+        TreeIter? it = base_iter;
+        if(from != null)
+            if(!iter_children(out it, from))
+                return null;
+        do {
+            CollectionNode n2;
+            string str;
+            get(it, Column.NODE, out n2, -1);
+            if(n2 != null && n2.feed == f) {
+                return it;
+            }
+
+            if(iter_has_child(it)) {
+                TreeIter? it2 = get_iter_from_feed(f, it);
+                if(it2 != null) {
+                    return it2;
+                }
+            }
+        } while(iter_next(ref it));
+        return null;
+    }
+
+    public TreeIter? get_iter_from_collection(FeedCollection c, TreeIter? from = null)
+    {
+        TreeIter? it = base_iter;
+        if(from != null)
+            if(!iter_children(out it, from))
+                return null;
+        do {
+            CollectionNode n2;
+            string str;
+            get(it, Column.NODE, out n2, -1);
+            if(n2 != null && n2.collection == c) {
+                return it;
+            }
+
+            if(iter_has_child(it)) {
+                TreeIter? it2 = get_iter_from_collection(c, it);
+                if(it2 != null) {
+                    return it2;
+                }
+            }
+        } while(iter_next(ref it));
         return null;
     }
 

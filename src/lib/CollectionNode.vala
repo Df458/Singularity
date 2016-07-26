@@ -35,12 +35,12 @@ public class CollectionNode : Object
 
     public CollectionNode.with_feed(Feed f)
     {
-        Object(feed: f, collection: null, contents: Contents.FEED, id: f.id);
+        Object(feed: f, collection: null, contents: Contents.FEED);
     }
 
     public CollectionNode.with_collection(FeedCollection c)
     {
-        Object(feed: null, collection: c, contents: Contents.COLLECTION, id: c.id);
+        Object(feed: null, collection: c, contents: Contents.COLLECTION);
     }
 
     public void set_parent(FeedCollection p)

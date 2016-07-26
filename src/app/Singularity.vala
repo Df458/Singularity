@@ -192,7 +192,7 @@ public class SingularityApp : Gtk.Application
         });
     }
 
-    public void check_for_updates()
+    public void check_for_updates(bool force = false)
     {
         if(m_feed_store == null)
             return;
@@ -200,11 +200,15 @@ public class SingularityApp : Gtk.Application
         m_feed_store.foreach((model, path, iter) =>
         {
             Feed? feed = m_feed_store.get_feed_from_iter(iter);
-            if(feed != null && feed.get_should_update())
+            if(feed != null && (feed.get_should_update() || force)) {
                 m_update_queue.request_update(feed);
+                m_current_update_progress.updates_started();
+            } 
 
             return false;
         });
+
+        update_progress_changed(m_current_update_progress);
     }
 
     public void view_item(int id)
@@ -226,6 +230,7 @@ public class SingularityApp : Gtk.Application
 
     // Signals ----------------------------------------------------------------
     public signal void load_status_changed(LoadStatus status);
+    public signal void update_progress_changed(UpdateProgress val);
 
     // Private section --------------------------------------------------------
     private GlobalSettings         m_global_settings;
@@ -235,6 +240,7 @@ public class SingularityApp : Gtk.Application
     private CollectionTreeStore?   m_feed_store = null;
     private UpdateQueue            m_update_queue;
     private LoadStatus             m_current_load_status = LoadStatus.NOT_STARTED;
+    private UpdateProgress         m_current_update_progress;
 
     private void start_run()
     {
@@ -244,6 +250,7 @@ public class SingularityApp : Gtk.Application
         m_database = new DatabaseManager(m_session_settings, m_global_settings, loc.data_location);
         load_status_changed(LoadStatus.STARTED);
         m_update_queue = new UpdateQueue();
+        m_current_update_progress = new UpdateProgress();
 
         m_update_queue.update_processed.connect((pak) =>
         {
@@ -254,6 +261,9 @@ public class SingularityApp : Gtk.Application
             } else if(pak.contents == UpdatePackage.PackageContents.ERROR_DATA) {
                 warning("Can't update feed %s: %s", pak.feed.title, pak.message);
             }
+
+            m_current_update_progress.updates_finished();
+            update_progress_changed(m_current_update_progress);
         });
 
         m_database.load_feeds.begin((obj, res) =>
@@ -280,14 +290,79 @@ public class SingularityApp : Gtk.Application
         MainWindow window = new MainWindow(this);
         window.update_requested.connect((f) =>
         {
-            if(f != null)
+            if(f != null) {
                 m_update_queue.request_update(f, true);
+                m_current_update_progress.updates_started();
+                update_progress_changed(m_current_update_progress);
+            }
+        });
+
+        window.unsub_requested.connect((f) =>
+        {
+            if(f != null) {
+                m_database.unsubscribe.begin(f, () =>
+                {
+                    m_feed_store.remove_feed(f);
+                });
+            }
         });
         this.add_window(window);
     }
 
     private void cleanup()
     {
+    }
+}
+
+public struct UpdateProgress
+{
+    public SingularityApp.LoadStatus status { get; private set;}
+    public float percentage { get; private set;}
+    public int update_count { get; private set;}
+    public int finished_count { get; private set;}
+
+    public UpdateProgress()
+    {
+        status = SingularityApp.LoadStatus.NOT_STARTED;
+        percentage = 0;
+        update_count = 0;
+        finished_count = 0;
+    }
+
+    public void updates_started(int count = 1)
+    {
+        update_count += count;
+
+        if(status != SingularityApp.LoadStatus.STARTED) {
+            status = SingularityApp.LoadStatus.STARTED;
+            update_count = count;
+            finished_count = 0;
+            percentage = 0;
+        }
+
+        calcPercentage();
+    }
+
+    public void updates_finished(int count = 1)
+    {
+        finished_count += count;
+        if(update_count <= finished_count) {
+            update_count = finished_count;
+            status = SingularityApp.LoadStatus.COMPLETED;
+        }
+
+        calcPercentage();
+    }
+
+    private void calcPercentage()
+    {
+        float p;
+        if(update_count == 0)
+            p = 0;
+        else
+            p = (float)finished_count / (float)update_count;
+
+        percentage = p;
     }
 }
 }

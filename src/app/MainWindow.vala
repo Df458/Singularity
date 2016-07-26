@@ -67,6 +67,7 @@ public class MainWindow : Gtk.ApplicationWindow
     private ToggleButton column_view_button;
     private ToggleButton stream_view_button;
     private Label        status_label;
+    private Revealer     progress_revealer;
     private Spinner      progress_spinner;
     private ProgressBar  progress_bar;
     // Views
@@ -136,6 +137,7 @@ public class MainWindow : Gtk.ApplicationWindow
     }
     
     public signal void update_requested(Feed? feed);
+    public signal void unsub_requested(Feed? feed);
 
 
     private void init_structure()
@@ -146,6 +148,9 @@ public class MainWindow : Gtk.ApplicationWindow
         item_search_bar = new SearchBar();
         status_bar = new ActionBar();
         view_stack = new Stack();
+        progress_revealer = new Revealer();
+        progress_revealer.transition_type = RevealerTransitionType.SLIDE_RIGHT;
+        progress_revealer.reveal_child = false;
 
         top_bar.set_title("Singularity");
         main_paned.position = 128;
@@ -153,6 +158,7 @@ public class MainWindow : Gtk.ApplicationWindow
         main_paned.pack2(view_stack, true, true);
         main_box.pack_start(item_search_bar, false, false);
         main_box.pack_start(main_paned, true, true);
+        status_bar.pack_end(progress_revealer);
         main_box.pack_start(status_bar, false, false);
         this.add(main_box);
         this.set_titlebar(top_bar);
@@ -220,7 +226,7 @@ public class MainWindow : Gtk.ApplicationWindow
         status_bar.set_center_widget(status_label);
         status_bar.pack_start(view_switcher);
         status_bar.pack_end(progress_spinner);
-        //status_bar.pack_end(progress_bar);
+        progress_revealer.add(progress_bar);
         top_bar.pack_start(add_button);
         top_bar.pack_end(menu_button);
         top_bar.pack_end(item_search_toggle);
@@ -263,6 +269,12 @@ public class MainWindow : Gtk.ApplicationWindow
 
         m_item_view.unread_mode_changed.connect((mode) => { display_node(m_last_displayed_node); });
 
+        app.update_progress_changed.connect((val) =>
+        {
+            progress_bar.fraction = val.percentage;
+            progress_revealer.reveal_child = val.status == SingularityApp.LoadStatus.STARTED;
+        });
+
     /*     main_paned.notify.connect((spec, prop) => */
     /*     { */
     /*         if(prop.name == "position") { */
@@ -280,29 +292,12 @@ public class MainWindow : Gtk.ApplicationWindow
     /*         item_search_bar.search_mode_enabled = item_search_toggle.active; */
     /*     }); */
     /*  */
-    /*     //grid_view.context_menu.connect(() => { return true; }); */
-    /*     //column_view_display.context_menu.connect(() => { return true; }); */
-    /*     //stream_view.context_menu.connect(() => { return true; }); */
-    /*     grid_view.decide_policy.connect((decision, type) => { return policy_decision(decision, type); }); */
-    /*     column_view_display.decide_policy.connect((decision, type) => { return policy_decision(decision, type); }); */
-    /*     stream_view.decide_policy.connect((decision, type) => { return policy_decision(decision, type); }); */
-    /*  */
         settings.done.connect(() =>
         {
             view_stack.set_visible_child(m_item_view);
             preferences_action.set_enabled(true);
         });
 
-    /*     feed_settings.done.connect(() => */
-    /*     { */
-    /*         view_stack.set_visible_child_name(current_view); */
-    /*     }); */
-    /*      */
-    /*     add_pane.done.connect(() => */
-    /*     { */
-    /*         view_stack.set_visible_child_name(current_view); */
-    /*     }); */
-    /*  */
     /*     grid_view_button.toggled.connect(() => */
     /*     { */
     /*         if(toggle_lock) */
@@ -347,23 +342,6 @@ public class MainWindow : Gtk.ApplicationWindow
     /*         } else */
     /*             stream_view_button.active = true; */
     /*     }); */
-    /*  */
-    /*     feed_list.button_press_event.connect((event) => */
-    /*     { */
-    /*         TreePath? path; */
-    /*         TreeIter? iter; */
-    /*         feed_list.get_cursor(out path, null); */
-    /*         feed_data.get_iter(out iter, path); */
-    /*         if(event.button == 3 && path != null && iter != all_item && iter != unread_item && iter != starred_item && iter != category_all && iter != category_collection) { */
-    /*             feed_list.popup_menu(); */
-    /*         } */
-    /*         return false; */
-    /*     }); */
-    /*     feed_list.popup_menu.connect(() => */
-    /*     { */
-    /*         feed_menu.popup(null, null, null, 0, Gtk.get_current_event_time()); */
-    /*         return false; */
-    /*     }); */
     }
 
     private void add_actions()
@@ -406,7 +384,7 @@ public class MainWindow : Gtk.ApplicationWindow
         refresh_action.set_enabled(true);
         refresh_action.activate.connect(() =>
         {
-            app.check_for_updates();
+            app.check_for_updates(true);
         });
         this.add_action(refresh_action);
 
@@ -505,63 +483,6 @@ public class MainWindow : Gtk.ApplicationWindow
     /*         //top_bar.set_subtitle("You have no subscriptions"); */
     /*         //firststart = true; */
     /*     //} */
-    /* } */
-
-    /* public void add_feeds(Gee.ArrayList<Feed> feeds) */
-    /* { */
-    /*     for(int i = 0; i < feeds.size; ++i) { */
-    /*         add_feed(feeds[i], feeds[i].id); */
-    /*     } */
-    /* } */
-
-    /* public void add_feed(Feed f, int index) */
-    /* { */
-    /*     int count = 0; */
-    /*     feed_data.get(unread_item, 2, out count); */
-    /*     feed_data.set(unread_item, 2, count + f.unread_count, -1); */
-    /*     count = 0; */
-    /*     feed_data.get(starred_item, 2, out count); */
-    /*     feed_data.set(starred_item, 2, count + f.starred_count, -1); */
-    /*     TreeIter iter; */
-    /*     feed_data.append(out iter, category_all); */
-    /*     feed_data.set(iter, 1, f.title, 2, f.unread_count, 3, true, 4, index, 5, f.starred_count, -1); */
-    /*     updateSubtitle(); */
-    /*     // TODO: Redo this */
-    /*     //if(firststart) { */
-    /*         //firststart = false; */
-    /*         //refresh_action.set_enabled(true); */
-    /*         //set_content(web_view); */
-    /*     //} */
-    /* } */
-
-    /* public void updateFeedItem(Feed f, int index) */
-    /* { */
-    /*     feed_data.foreach((model, path, iter) => { */
-    /*         int id = 0; */
-    /*         feed_data.get(iter, 4, out id); */
-    /*         if(id == index) { */
-    /*             int last_count = 0; */
-    /*             int last_starred = 0; */
-    /*             feed_data.get(iter, 2, out last_count, 5, out last_starred, -1); */
-    /*             int count = 0; */
-    /*             feed_data.get(unread_item, 2, out count); */
-    /*             feed_data.set(unread_item, 2, count + (f.unread_count - last_count), -1); */
-    /*             count = 0; */
-    /*             feed_data.get(starred_item, 2, out count); */
-    /*             feed_data.set(starred_item, 2, count + (f.starred_count - last_starred), -1); */
-    /*             feed_data.set(iter, 2, f.unread_count, -1); */
-    /*             feed_data.set(iter, 5, f.starred_count, -1); */
-    /*             return true; */
-    /*         } */
-    /*         return false; */
-    /*     }); */
-    /* } */
-
-    /* public int get_unread_count() */
-    /* { */
-    /*     int count = 0; */
-    /*     feed_data.get(unread_item, 2, out count); */
-    /*     return count; */
     /* } */
 }
 }

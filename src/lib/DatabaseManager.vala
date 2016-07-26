@@ -263,6 +263,22 @@ public class DatabaseManager
         unlock_command();
     }
 
+    public async void unsubscribe(Feed f)
+    {
+        yield lock_command();
+        try {
+            Query q_ufeed = new Query(db, "DELETE FROM feeds WHERE `id` = :id");
+            q_ufeed[":id"] = f.id;
+            yield q_ufeed.execute_async();
+            Query q_uitem = new Query(db, "DELETE FROM items WHERE `parent_id` = :id");
+            q_uitem[":id"] = f.id;
+            yield q_uitem.execute_async();
+        } catch(SQLHeavy.Error e) {
+            error("Can't unsubscribe: %s", e.message);
+        }
+        unlock_command();
+    }
+
 //-----------------------------------------------------------------------------
 
     private CommandWrapper[] m_waitlist = null;
@@ -355,13 +371,13 @@ public class DatabaseManager
 
     private async void lock_command()
     {
-        if(m_waitlist != null) {
-            CommandWrapper command = new CommandWrapper(lock_command.callback);
-            m_waitlist += (owned) command;
-            yield;
-        } else {
-            m_waitlist = new CommandWrapper[0];
-        }
+        /* if(m_waitlist != null) { */
+        /*     CommandWrapper command = new CommandWrapper(lock_command.callback); */
+        /*     m_waitlist += (owned) command; */
+        /*     yield; */
+        /* } else { */
+        /*     m_waitlist = new CommandWrapper[0]; */
+        /* } */
     }
 
     private async void cleanup_id(int id)
@@ -369,45 +385,51 @@ public class DatabaseManager
         StringBuilder q_builder = new StringBuilder("DELETE FROM items WHERE `parent_id` = :id AND (");
         bool delete_read = m_global_settings.read_rule[2] == 2;
         bool delete_unread = m_global_settings.unread_rule[2] == 2;
+        if(!delete_read && !delete_unread)
+            return;
         DateTime read_time = new DateTime.now_utc();
         DateTime unread_time = new DateTime.now_utc();
 
         if(delete_read) {
             q_builder.append("(`unread` = 0 AND `load_time` < :read_time)");
-            /*switch(m_global_settings.read_rule[1]) {
+            read_time = read_time.add_minutes(-1);
+            switch(m_global_settings.read_rule[1]) {
                 case 0:
-                    read_time.add_days(m_global_settings.read_rule[0] * -1);
+                    read_time = read_time.add_days(m_global_settings.read_rule[0] * -1);
                     break;
                 case 1:
-                    read_time.add_months(m_global_settings.read_rule[0] * -1);
+                    read_time = read_time.add_months(m_global_settings.read_rule[0] * -1);
                     break;
                 case 2:
-                    read_time.add_years(m_global_settings.read_rule[0] * -1);
+                    read_time = read_time.add_years(m_global_settings.read_rule[0] * -1);
                     break;
-            }*/
+            }
             if(delete_unread)
                 q_builder.append(" OR ");
             else
                 q_builder.append(")");
+            /* stderr.printf("Deleting read before %ld (%d) \u2026\n", (long)read_time.to_unix(), id); */
         }
 
         if(delete_unread) {
             q_builder.append_printf("(`unread` = 1 AND `load_time` < :unread_time))");
             switch(m_global_settings.unread_rule[1]) {
                 case 0:
-                    unread_time.add_days(m_global_settings.unread_rule[0] * -1);
+                    unread_time = unread_time.add_days(m_global_settings.unread_rule[0] * -1);
                     break;
                 case 1:
-                    unread_time.add_months(m_global_settings.unread_rule[0] * -1);
+                    unread_time = unread_time.add_months(m_global_settings.unread_rule[0] * -1);
                     break;
                 case 2:
-                    unread_time.add_years(m_global_settings.unread_rule[0] * -1);
+                    unread_time = unread_time.add_years(m_global_settings.unread_rule[0] * -1);
                     break;
             }
+            stderr.printf("Deleting unread\u2026\n");
         }
 
         try {
             Query q_clean = new Query(db, q_builder.str);
+            q_clean[":id"] = id;
             if(delete_read)
                 q_clean[":read_time"] = read_time.to_unix();
             if(delete_unread)
@@ -420,11 +442,11 @@ public class DatabaseManager
 
     private void unlock_command()
     {
-        if(m_waitlist != null) {
-            foreach(CommandWrapper c in m_waitlist)
-                c.func();
-            m_waitlist = null;
-        }
+        /* if(m_waitlist != null) { */
+        /*     foreach(CommandWrapper c in m_waitlist) */
+        /*         c.func(); */
+        /*     m_waitlist = null; */
+        /* } */
     }
 }
 
