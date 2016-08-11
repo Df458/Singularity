@@ -99,4 +99,15 @@ public static string dump_xml_node(Xml.Node* node)
     }
     return xml_str;
 }
+
+public static string sql_str(string? str)
+{
+    if(str == null)
+        return "null";
+
+    StringBuilder sb = new StringBuilder("'");
+    sb.append_printf("%s'", str.replace("'", "''"));
+
+    return sb.str;
+}
 }

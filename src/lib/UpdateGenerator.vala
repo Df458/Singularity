@@ -55,7 +55,7 @@ namespace Singularity
                 return new UpdatePackage.failure(to_update, "Data was parsed, but the feed couldn't be updated");
             }
 
-            foreach(Item i in source.data) {
+            foreach(Item? i in source.data) {
                 i.owner = to_update;
             }
 

@@ -161,6 +161,7 @@ namespace Singularity
         protected override bool build_from_record(SQLHeavy.Record r)
         {
             try {
+                parent_id = r.fetch_int(r.field_index("parent_id"));
                 title = r.fetch_string(r.field_index("title"));
                 link = r.fetch_string(r.field_index("link"));
                 site_link = r.fetch_string(r.field_index("site_link"));

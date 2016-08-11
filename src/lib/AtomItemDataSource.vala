@@ -58,7 +58,8 @@ namespace Singularity
 
                         case "entry":
                             Item item = readAtomItem(node);
-                            _data.add(item);
+                            if(item != null)
+                                _data.add(item);
                         break;
 
                         default:
@@ -128,10 +129,10 @@ namespace Singularity
                     }
                 }
             }
-            if(new_item.guid == "") {
+            if(new_item.guid == null || new_item.guid == "") {
                 if(new_item.link != null && new_item.link.length > 0) {
                     new_item.guid = new_item.link;
-                } else if(new_item.title.length > 0) {
+                } else if(new_item.title != null && new_item.title.length > 0) {
                     new_item.guid = new_item.title;
                 } else if(new_item.content != null && new_item.content.length > 0) {
                     new_item.guid = new_item.content;

@@ -55,6 +55,8 @@ public class CollectionTreeStore : TreeStore
 
     public void append_node(CollectionNode node, TreeIter? parent)
     {
+        if(node_map.has_key(node.id))
+            return;
         if(parent == null)
             parent = base_iter;
 
@@ -166,7 +168,7 @@ public class CollectionTreeStore : TreeStore
         TreeIter? iter = get_iter_from_node(n);
         if(iter != null) {
             remove(ref iter);
-            node_map.remove(n.id);
+            node_map.unset(n.id);
         }
     }
 
@@ -175,7 +177,7 @@ public class CollectionTreeStore : TreeStore
         TreeIter? iter = get_iter_from_feed(f);
         if(iter != null) {
             remove(ref iter);
-            node_map.remove(f.id);
+            node_map.unset(f.id);
         }
     }
 
@@ -184,7 +186,7 @@ public class CollectionTreeStore : TreeStore
         TreeIter? iter = get_iter_from_collection(c);
         if(iter != null) {
             remove(ref iter);
-            node_map.remove(c.id);
+            node_map.unset(c.id);
         }
     }
 
@@ -196,7 +198,6 @@ public class CollectionTreeStore : TreeStore
                 return null;
         do {
             CollectionNode n2;
-            string str;
             get(it, Column.NODE, out n2, -1);
             if(n2 == n) {
                 return it;
@@ -220,7 +221,6 @@ public class CollectionTreeStore : TreeStore
                 return null;
         do {
             CollectionNode n2;
-            string str;
             get(it, Column.NODE, out n2, -1);
             if(n2 != null && n2.feed == f) {
                 return it;
@@ -244,7 +244,6 @@ public class CollectionTreeStore : TreeStore
                 return null;
         do {
             CollectionNode n2;
-            string str;
             get(it, Column.NODE, out n2, -1);
             if(n2 != null && n2.collection == c) {
                 return it;

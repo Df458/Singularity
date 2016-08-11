@@ -60,15 +60,10 @@ public class XmlRequest : Object
             return false;
         }
 
-        try {
-            m_session.queue_message(m_message, (s, m) =>
-            {
+        m_session.queue_message(m_message, (s, m) =>
+                {
                 loop.quit();
-            });
-        } catch(Error e) {
-            error_message = e.message;
-            return false;
-        }
+                });
 
         loop.run();
 
@@ -100,16 +95,11 @@ public class XmlRequest : Object
             return false;
         }
 
-        try {
             m_session.queue_message(m_message, (s, m) =>
             {
                 data = (string)m.response_body.data;
                 Idle.add((owned) callback);
             });
-        } catch(Error e) {
-            error_message = e.message;
-            return false;
-        }
 
         yield;
 

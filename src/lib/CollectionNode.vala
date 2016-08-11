@@ -54,6 +54,17 @@ public class CollectionNode : Object
         }
     }
 
+    public FeedCollection? get_parent()
+    {
+        if(contents == Contents.FEED) {
+            return feed.parent;
+        } else if(contents == Contents.COLLECTION) {
+            return collection.parent;
+        }
+
+        return null;
+    }
+
     public void remove_parent()
     {
         if(contents == Contents.FEED) {

@@ -8,6 +8,8 @@ namespace Singularity
         public DataLocator(SessionSettings settings)
         {
             data_location = Environment.get_user_data_dir() + "/" + data_folder_name;
+            if(settings.database_path != null)
+                data_location = settings.database_path;
             try {
                 File default_data_file = File.new_for_path(data_location);
                 if(!default_data_file.query_exists()) {

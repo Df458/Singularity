@@ -113,7 +113,17 @@ public class SingularityApp : Gtk.Application
     // TODO: Make this take a query object with more limits and settings
     public async Gee.List<Item?> query_items(CollectionNode? node, bool unread_only, bool starred_only)
     {
-        return yield m_database.load_items_for_node(node, unread_only, starred_only);
+        ItemListRequest req = new ItemListRequest(node);
+        if(unread_only) {
+            if(starred_only)
+                req.item_filter = ItemListRequest.Filter.UNREAD_AND_STARRED;
+            else
+                req.item_filter = ItemListRequest.Filter.UNREAD_ONLY;
+        } else if(starred_only)
+                req.item_filter = ItemListRequest.Filter.STARRED_ONLY;
+        yield m_database.execute_request(req);
+
+        return req.item_list;
     }
 
     public int runall()
@@ -158,7 +168,8 @@ public class SingularityApp : Gtk.Application
         if(parent != null)
             node.set_parent(parent);
 
-        m_database.save_new_node.begin(node, () =>
+        SubscribeRequest req = new SubscribeRequest(node);
+        m_database.execute_request.begin(req, RequestPriority.MEDIUM, () =>
         {
             Gtk.TreeIter? iter = null;
 
@@ -166,13 +177,12 @@ public class SingularityApp : Gtk.Application
             if(!loaded) {
                 m_update_queue.request_update(f, true);
             } else if(items != null){
-                if(node.feed == null)
-                    warning("WTF???");
                 foreach(Item i in items) {
                     i.owner = node.feed;
                 }
                 UpdatePackage new_package = new UpdatePackage.success(node.feed, items);
-                m_database.save_updates.begin(new_package);
+                UpdatePackageRequest ureq = new UpdatePackageRequest(new_package, m_global_settings, false);
+                m_database.queue_request(ureq, RequestPriority.MEDIUM);
             }
         });
     }
@@ -183,7 +193,8 @@ public class SingularityApp : Gtk.Application
         if(parent != null)
             node.set_parent(parent);
 
-        m_database.save_new_node.begin(node, () =>
+        SubscribeRequest req = new SubscribeRequest(node);
+        m_database.execute_request.begin(req, RequestPriority.MEDIUM, () =>
         {
             Gtk.TreeIter? iter = null;
 
@@ -213,17 +224,20 @@ public class SingularityApp : Gtk.Application
 
     public void view_item(int id)
     {
-        m_database.view_item.begin(id);
+        ItemViewRequest req = new ItemViewRequest(id);
+        m_database.queue_request(req);
     }
 
     public void toggle_unread(int id)
     {
-        m_database.toggle_unread.begin(id);
+        ItemToggleRequest req = new ItemToggleRequest(id, ItemToggleRequest.ToggleField.UNREAD);
+        m_database.queue_request(req);
     }
 
     public void toggle_star(int id)
     {
-        m_database.toggle_star.begin(id);
+        ItemToggleRequest req = new ItemToggleRequest(id, ItemToggleRequest.ToggleField.STARRED);
+        m_database.queue_request(req);
     }
 
     public GlobalSettings get_global_settings() { return m_global_settings; }
@@ -247,17 +261,16 @@ public class SingularityApp : Gtk.Application
         DataLocator loc = new DataLocator(m_session_settings);
         m_global_settings.load();
 
-        m_database = new DatabaseManager(m_session_settings, m_global_settings, loc.data_location);
+        m_database = new DatabaseManager.from_path(m_global_settings, loc.data_location);
         load_status_changed(LoadStatus.STARTED);
         m_update_queue = new UpdateQueue();
-        m_current_update_progress = new UpdateProgress();
+        m_current_update_progress = UpdateProgress();
 
         m_update_queue.update_processed.connect((pak) =>
         {
             if(pak.contents == UpdatePackage.PackageContents.FEED_UPDATE) {
-                lock(m_database) {
-                    m_database.save_updates.begin(pak);
-                }
+            UpdatePackageRequest req = new UpdatePackageRequest(pak, m_global_settings);
+                m_database.queue_request(req);
             } else if(pak.contents == UpdatePackage.PackageContents.ERROR_DATA) {
                 warning("Can't update feed %s: %s", pak.feed.title, pak.message);
             }
@@ -266,9 +279,10 @@ public class SingularityApp : Gtk.Application
             update_progress_changed(m_current_update_progress);
         });
 
-        m_database.load_feeds.begin((obj, res) =>
+        LoadFeedsRequest req = new LoadFeedsRequest();
+        m_database.execute_request.begin(req, RequestPriority.HIGH, () =>
         {
-            m_feeds = m_database.load_feeds.end(res);
+            m_feeds = req.feeds;
             if(m_feed_store == null)
                 m_feed_store = new CollectionTreeStore.from_collection(m_feeds);
             else
@@ -300,7 +314,8 @@ public class SingularityApp : Gtk.Application
         window.unsub_requested.connect((f) =>
         {
             if(f != null) {
-                m_database.unsubscribe.begin(f, () =>
+                UnsubscribeRequest req = new UnsubscribeRequest(f);
+                m_database.execute_request.begin(req, RequestPriority.HIGH, () =>
                 {
                     m_feed_store.remove_feed(f);
                 });
