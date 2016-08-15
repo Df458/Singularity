@@ -33,7 +33,7 @@ namespace Singularity
         {
             Query q;
             try {
-                q = new Query(db, "SELECT * FROM feeds ORDER BY id");
+                q = new Query(db, "SELECT * FROM feeds LEFT OUTER JOIN icons ON feeds.id = icons.id ORDER BY feeds.id");
             } catch(SQLHeavy.Error e) {
                 error("failed to load feeds: %s", e.message);
             }

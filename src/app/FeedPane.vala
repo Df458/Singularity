@@ -42,13 +42,22 @@ public class FeedPane : Gtk.Box
         init_menus();
     }
 
+    public void expand()
+    {
+        feed_list.expand_all();
+    }
+
     public signal void selection_changed(int selection_id);
 
     private ScrolledWindow       scroll;
     private TreeModelFilter      feed_model;
     private TreeView             feed_list;
+    private CellRendererPixbuf   icon_renderer;
     private CellRendererText     title_renderer;
+    private CellRendererText     count_renderer;
+    private TreeViewColumn       icon_column;
     private TreeViewColumn       title_column;
+    private TreeViewColumn       count_column;
     private CollectionTreeStore  feed_data;
     private unowned MainWindow   owner;
 
@@ -66,15 +75,21 @@ public class FeedPane : Gtk.Box
     private void init_content()
     {
         feed_list      = new TreeView.with_model(feed_model);
+        icon_renderer  = new CellRendererPixbuf();
         title_renderer = new CellRendererText();
+        icon_column    = new TreeViewColumn.with_attributes("Icon",  icon_renderer,  "pixbuf", CollectionTreeStore.Column.ICON,  null);
         title_column   = new TreeViewColumn.with_attributes("Title", title_renderer, "markup", CollectionTreeStore.Column.TITLE, null);
 
+        title_renderer.ellipsize = Pango.EllipsizeMode.END;
+        icon_column.sizing = TreeViewColumnSizing.FIXED;
         title_column.sizing = TreeViewColumnSizing.FIXED;
+        icon_renderer.xpad = 0;
+        title_column.fixed_width = 120;
 
+        feed_list.append_column(icon_column);
         feed_list.append_column(title_column);
-        feed_list.headers_visible   = false;
-        feed_list.fixed_height_mode = true;
-        feed_list.tooltip_column    = CollectionTreeStore.Column.TITLE;
+        feed_list.headers_visible = false;
+        feed_list.tooltip_column = CollectionTreeStore.Column.TITLE;
 
         scroll.add(feed_list);
     }

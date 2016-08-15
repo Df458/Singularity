@@ -30,7 +30,7 @@ class FeedSettingsPane : VBox
     CheckButton        dl_enable_button;
     FileChooserButton  dl_location_button;
     CheckButton        dl_always_ask;
-    Feed               current_feed;
+    /* Feed               current_feed; */
 
     public signal void done();
 

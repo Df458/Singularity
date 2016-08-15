@@ -50,6 +50,10 @@ public class StreamViewBuilder : ViewBuilder, GLib.Object
             head_builder.append_printf("<img class=\"star\", src=\"%s\"/>", star_svg);
             head_builder.append("</div>");
             head_builder.append("</section>");
+            if(i.time_published.compare(new DateTime.from_unix_utc(0)) != 0) {
+                string datestr = i.time_published.format("%A, %B %e %Y");
+                head_builder.append_printf("Posted on <time class=\"date\" datetime=\"%s\">%s</time>", datestr, datestr);
+            }
             // TODO: Posted section
             head_builder.append("<hr>");
             head_builder.append("</header>");

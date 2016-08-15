@@ -52,6 +52,14 @@ namespace Singularity
                             stored_feed.site_link = get_node_contents(node);
                         break;
 
+                        case "icon":
+                            IconRequest req = new IconRequest(get_node_contents(node));
+                            if(req.send()) {
+                                stored_feed.icon = req.buf;
+                                warning("Got icon!");
+                            }
+                        break;
+
                         case "description":
                             stored_feed.description = get_node_contents(node);
                         break;
@@ -90,6 +98,12 @@ namespace Singularity
                         case "content":
                             new_item.content = get_node_contents(dat);
                         break;
+
+                        case "summary":
+                            if(new_item.content == null || new_item.content.strip() == "")
+                                new_item.content = get_node_contents(dat);
+                        break;
+
 
                         case "id":
                         case "guid":

@@ -50,3 +50,7 @@ function prepare() {
         addEventListener('resize', generateReadCallback(i), false);
     }
 }
+
+function toggleVisible(el) {
+    
+}

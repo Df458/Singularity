@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS "main"."feeds" (
 	description	VARCHAR,
 	rights		VARCHAR,
 	generator	VARCHAR,
+    icon        INTEGER NOT NULL,
 	last_update	DATE
 );
 
@@ -26,3 +27,12 @@ CREATE TABLE IF NOT EXISTS "main"."items" (
 	starred		BOOLEAN NOT NULL DEFAULT 0,
 		FOREIGN KEY(parent_id) REFERENCES feeds(id)
 );
+
+CREATE TABLE IF NOT EXISTS "main"."icons" (
+    id          INTEGER PRIMARY KEY,
+    width       INTEGER NOT NULL,
+    height      INTEGER NOT NULL,
+    bits        INTEGER NOT NULL,
+    rowstride   INTEGER NOT NULL,
+    data        BLOB NOT NULL
+)

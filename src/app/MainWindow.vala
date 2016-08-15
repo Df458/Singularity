@@ -275,6 +275,11 @@ public class MainWindow : Gtk.ApplicationWindow
             progress_revealer.reveal_child = val.status == SingularityApp.LoadStatus.STARTED;
         });
 
+        app.load_status_changed.connect((val) =>
+        {
+            feed_pane.expand();
+        });
+
     /*     main_paned.notify.connect((spec, prop) => */
     /*     { */
     /*         if(prop.name == "position") { */

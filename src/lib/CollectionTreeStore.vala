@@ -32,6 +32,7 @@ public class CollectionTreeStore : TreeStore
         TITLE,
         ICON,
         NODE,
+        UNREAD,
         COUNT
     }
 
@@ -73,6 +74,8 @@ public class CollectionTreeStore : TreeStore
         if(node.contents == CollectionNode.Contents.COLLECTION) {
             foreach(CollectionNode n in node.collection.nodes)
                 append_node(n, iter);
+        } else {
+            set(iter, Column.ICON, node.feed.icon);
         }
     }
 

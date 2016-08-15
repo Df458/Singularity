@@ -149,7 +149,7 @@ namespace Singularity
                 link = r.fetch_string(r.field_index("link"));
                 content = r.fetch_string(r.field_index("content"));
                 rights = r.fetch_string(r.field_index("rights"));
-                time_published = new DateTime.from_unix_utc(r.field_index("publish_time"));
+                time_published = new DateTime.from_unix_utc(r.fetch_int(r.field_index("publish_time")));
                 time_updated = new DateTime.from_unix_utc(r.fetch_int(r.field_index("update_time")));
                 time_loaded = new DateTime.from_unix_utc(r.fetch_int(r.field_index("load_time")));
                 unread = r.fetch_int(r.field_index("unread")) == 1;

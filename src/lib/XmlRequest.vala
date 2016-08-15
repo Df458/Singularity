@@ -61,9 +61,9 @@ public class XmlRequest : Object
         }
 
         m_session.queue_message(m_message, (s, m) =>
-                {
-                loop.quit();
-                });
+        {
+            loop.quit();
+        });
 
         loop.run();
 

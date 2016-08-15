@@ -25,6 +25,7 @@ namespace Singularity
         public enum Status
         {
             FEED = 0,
+            ICON_INSERT,
             CRTABLE,
             CRINDEX,
             INSERT,
@@ -45,6 +46,18 @@ namespace Singularity
         public Query build_query(Database db)
         {
             switch(m_status) {
+                case Status.ICON_INSERT:
+                    StringBuilder q_builder = new StringBuilder("INSERT OR REPLACE INTO icons (id, width, height, bits, rowstride, data) VALUES ");
+                    q_builder.append_printf("(%d, %d, %d, %d, %d, :data)", package.feed.id, package.feed.icon.width, package.feed.icon.height, package.feed.icon.bits_per_sample, package.feed.icon.rowstride);
+                    Query q;
+                    try {
+                        q = new Query(db, q_builder.str);
+                        q.set_blob(":data", package.feed.icon.get_pixels_with_length());
+                    } catch(SQLHeavy.Error e) {
+                        error("Failed to save item updates: %s", e.message);
+                    }
+                    return q;
+
                 case Status.CRTABLE:
                     StringBuilder q_builder = new StringBuilder("CREATE TEMPORARY TABLE tmp AS SELECT * FROM items");
                     q_builder.append_printf(" WHERE parent_id = %d;\n", package.feed.id);
@@ -174,6 +187,8 @@ namespace Singularity
         public RequestStatus process_result(QueryResult res)
         {
             m_status += 1;
+            if(m_status == Status.ICON_INSERT && package.feed.icon == null)
+                m_status += 1;
             if(m_status == Status.CRTABLE && package.items.size == 0)
                 m_status = Status.CLEANUP;
             if((m_status == Status.CLEANUP && m_settings.read_rule[2] != 2 && m_settings.unread_rule[2] != 2) || m_status == Status.COUNT)

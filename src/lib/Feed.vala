@@ -31,7 +31,8 @@ namespace Singularity
         public string?          rights      { get; set; }
         public Collection<Tag?> tags        { get; set; }
         public string?          generator   { get; set; }
-        public Icon?            icon        { get; set; }
+        public string?          icon_url    { get; set; }
+        public Gdk.Pixbuf?            icon        { get; set; }
         public DateTime?        last_update { get; set; }
 
         public enum DBColumn
@@ -53,6 +54,7 @@ namespace Singularity
         public Feed()
         {
             last_update = new DateTime.from_unix_utc(0);
+            icon = null;
             parent_id   = -1;
         }
 
@@ -161,6 +163,9 @@ namespace Singularity
         protected override bool build_from_record(SQLHeavy.Record r)
         {
             try {
+                // FIXME: This is currently necessary due to a left outer join. See if this can be removed somehow.
+                set_id(r.fetch_int(0));
+
                 parent_id = r.fetch_int(r.field_index("parent_id"));
                 title = r.fetch_string(r.field_index("title"));
                 link = r.fetch_string(r.field_index("link"));
@@ -171,6 +176,14 @@ namespace Singularity
                 last_update = new DateTime.from_unix_utc(r.fetch_int(r.field_index("last_update")));
                 // TODO: Decide how to store icons
                 // TODO: Decide how to store tags
+                uint8[] data = r.fetch_blob(r.field_index("data"));
+                if(data != null) {
+                    int width = r.fetch_int(r.field_index("width"));
+                    int height = r.fetch_int(r.field_index("height"));
+                    int bits = r.fetch_int(r.field_index("bits"));
+                    int stride = r.fetch_int(r.field_index("rowstride"));
+                    icon = new Gdk.Pixbuf.from_data(data, Gdk.Colorspace.RGB, true, bits, width, height, stride);
+                }
                 return true;
             } catch(SQLHeavy.Error e) {
                 warning("Cannot load collection data: " + e.message);
