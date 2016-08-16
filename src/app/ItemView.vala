@@ -46,13 +46,14 @@ public class ItemView : Box
 
     public void view_items(Gee.List<Item?> item_list)
     {
-        string html = m_view_builder.buildHTML(item_list);
+        m_item_list = item_list;
+        string html = m_view_builder.buildHTML(m_item_list);
         m_web_view.load_html(html, "file://singularity");
     }
 
-    public signal void item_viewed(int id);
-    public signal void item_read_toggle(int id);
-    public signal void item_star_toggle(int id);
+    public signal void item_viewed(Item i);
+    public signal void item_read_toggle(Item i);
+    public signal void item_star_toggle(Item i);
     public signal void unread_mode_changed(bool unread_only);
 
     private ViewBuilder m_view_builder;
@@ -63,6 +64,7 @@ public class ItemView : Box
     private WebView     m_web_view;
     private unowned GlobalSettings m_global_settings;
     private UserContentManager m_content_manager;
+    private Gee.List<Item?> m_item_list;
 
     private void init_structure()
     {
@@ -149,15 +151,15 @@ public class ItemView : Box
 
         switch(cmd) {
             case 'v': // Item viewed
-                item_viewed(id);
+                item_viewed(m_item_list[id]);
                 break;
 
             case 's': // Star button pressed
-                item_star_toggle(id);
+                item_star_toggle(m_item_list[id]);
                 break;
 
             case 'r': // Read button pressed
-                item_read_toggle(id);
+                item_read_toggle(m_item_list[id]);
                 break;
         }
     }

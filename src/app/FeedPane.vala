@@ -77,17 +77,22 @@ public class FeedPane : Gtk.Box
         feed_list      = new TreeView.with_model(feed_model);
         icon_renderer  = new CellRendererPixbuf();
         title_renderer = new CellRendererText();
-        icon_column    = new TreeViewColumn.with_attributes("Icon",  icon_renderer,  "pixbuf", CollectionTreeStore.Column.ICON,  null);
-        title_column   = new TreeViewColumn.with_attributes("Title", title_renderer, "markup", CollectionTreeStore.Column.TITLE, null);
+        count_renderer = new CellRendererText();
+        icon_column    = new TreeViewColumn.with_attributes("Icon",   icon_renderer,  "pixbuf", CollectionTreeStore.Column.ICON,   null);
+        title_column   = new TreeViewColumn.with_attributes("Title",  title_renderer, "markup", CollectionTreeStore.Column.TITLE,  null);
+        count_column   = new TreeViewColumn.with_attributes("Unread", count_renderer, "text",   CollectionTreeStore.Column.UNREAD, null);
 
         title_renderer.ellipsize = Pango.EllipsizeMode.END;
         icon_column.sizing = TreeViewColumnSizing.FIXED;
         title_column.sizing = TreeViewColumnSizing.FIXED;
+        count_column.sizing = TreeViewColumnSizing.FIXED;
         icon_renderer.xpad = 0;
         title_column.fixed_width = 120;
+        title_column.expand = true;
 
         feed_list.append_column(icon_column);
         feed_list.append_column(title_column);
+        feed_list.append_column(count_column);
         feed_list.headers_visible = false;
         feed_list.tooltip_column = CollectionTreeStore.Column.TITLE;
 

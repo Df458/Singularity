@@ -38,6 +38,7 @@ public class StreamViewBuilder : ViewBuilder, GLib.Object
         StringBuilder builder = new StringBuilder("<html>");
         builder.append(head);
         builder.append("<body onload=\"prepare()\">");
+        int id = 0;
         foreach(Item i in items) {
             StringBuilder head_builder    = new StringBuilder("<header>");
             StringBuilder content_builder = new StringBuilder("<section class=\"content\">");
@@ -65,7 +66,8 @@ public class StreamViewBuilder : ViewBuilder, GLib.Object
             // TODO: Tags
             footer_builder.append_printf("</footer>");
 
-            builder.append_printf("<article class=\"%s\" data-id=\"%d\" data-read=\"%s\" data-starred=\"%s\">%s%s%s</article>", builder_class, i.id, i.unread ? "false" : "true", i.starred ? "true" : "false", head_builder.str, content_builder.str, footer_builder.str);
+            builder.append_printf("<article class=\"%s\" data-id=\"%d\" data-read=\"%s\" data-starred=\"%s\">%s%s%s</article>", builder_class, id, i.unread ? "false" : "true", i.starred ? "true" : "false", head_builder.str, content_builder.str, footer_builder.str);
+            ++id;
         }
         builder.append("</body></html>");
 

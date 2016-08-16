@@ -52,11 +52,13 @@ namespace Singularity
         public int      item_offset              = 0;
         public CollectionNode? filter_node { get; construct; }
         public Gee.List<Item>? item_list { get; private set; }
+        public Gee.HashMap<Item, int> item_id_map { get; private set; }
 
         public ItemListRequest(CollectionNode? node)
         {
             Object(filter_node: node);
             build_id_list(filter_node);
+            item_id_map = new Gee.HashMap<Item, int>();
         }
 
         public Query build_query(Database db)
@@ -165,7 +167,9 @@ namespace Singularity
             item_list = new Gee.ArrayList<Item>();
             try {
                 for(; !res.finished; res.next() ) {
-                    item_list.add(new Item.from_record(res));
+                    Item i = new Item.from_record(res);
+                    item_list.add(i);
+                    item_id_map[i] = res.get_int("parent_id");
                 }
             } catch(SQLHeavy.Error e) {
                 error("Failed to construct item list: %s", e.message);

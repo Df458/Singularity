@@ -22,18 +22,23 @@ namespace Singularity
     public class LoadFeedsRequest : DatabaseRequest, GLib.Object
     {
         public FeedCollection feeds { get; private set; }
+        public int unread_count { get; private set; }
+        public Gee.HashMap<int, int> count_map { get; private set; }
+
         public LoadFeedsRequest()
         {
             feeds = new FeedCollection.root();
             m_node_map = new Gee.HashMap<int, CollectionNode>();
+            count_map = new Gee.HashMap<int, int>();
             m_node_list = new Gee.ArrayList<CollectionNode>();
+            unread_count = 0;
         }
 
         public Query build_query(Database db)
         {
             Query q;
             try {
-                q = new Query(db, "SELECT * FROM feeds LEFT OUTER JOIN icons ON feeds.id = icons.id ORDER BY feeds.id");
+                q = new Query(db, "SELECT feeds.*, icons.*, sum(items.unread) AS unread_count FROM feeds LEFT OUTER JOIN icons ON feeds.id = icons.id LEFT OUTER JOIN items ON items.parent_id = feeds.id GROUP BY feeds.id ORDER BY feeds.id");
             } catch(SQLHeavy.Error e) {
                 error("failed to load feeds: %s", e.message);
             }
@@ -50,15 +55,18 @@ namespace Singularity
                             Feed f = new Feed.from_record(res);
                             CollectionNode n = new CollectionNode.with_feed(f);
                             m_node_map[f.id] = n;
+                            count_map[f.id] = res.get_int("unread_count");
                             m_node_list.add(n);
                         break;
                         case CollectionNode.Contents.COLLECTION:
                             FeedCollection c = new FeedCollection.from_record(res);
                             CollectionNode n = new CollectionNode.with_collection(c);
                             m_node_map[c.id] = n;
+                            count_map[c.id] = res.get_int("unread_count");
                             m_node_list.add(n);
                         break;
                     }
+                    unread_count += res.get_int("unread_count");
                 }
             } catch(SQLHeavy.Error e) {
                 error("Failed to build feed structure: %s", e.message);

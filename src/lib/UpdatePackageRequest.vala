@@ -26,15 +26,19 @@ namespace Singularity
         {
             FEED = 0,
             ICON_INSERT,
+            UNREAD_PRE,
             CRTABLE,
             CRINDEX,
             INSERT,
             COPY,
             DRTABLE,
             CLEANUP,
+            UNREAD,
             COUNT
         }
+
         public UpdatePackage package { get; construct; }
+        public int unread_count { get; private set; }
 
         public UpdatePackageRequest(UpdatePackage pak, GlobalSettings settings, bool use_owner_id = true)
         {
@@ -159,6 +163,18 @@ namespace Singularity
                         error("Failed to clean table: %s", e.message);
                     }
                     return q;
+
+                case Status.UNREAD_PRE:
+                case Status.UNREAD:
+                    Query q;
+                    StringBuilder q_builder = new StringBuilder("SELECT sum(items.unread) AS unread_count FROM items");
+                    q_builder.append_printf(" WHERE parent_id = %d", package.feed.id);
+                    try {
+                        q = new Query(db, q_builder.str);
+                    } catch(SQLHeavy.Error e) {
+                        error("Failed to clean table: %s", e.message);
+                    }
+                    return q;
             }
 
             if(m_use_owner_id) {
@@ -187,12 +203,13 @@ namespace Singularity
         public RequestStatus process_result(QueryResult res)
         {
             m_status += 1;
-            if(m_status == Status.ICON_INSERT && package.feed.icon == null)
-                m_status += 1;
             if(m_status == Status.CRTABLE && package.items.size == 0)
                 m_status = Status.CLEANUP;
-            if((m_status == Status.CLEANUP && m_settings.read_rule[2] != 2 && m_settings.unread_rule[2] != 2) || m_status == Status.COUNT)
-                return RequestStatus.DEFAULT;
+
+            if((m_status == Status.ICON_INSERT && package.feed.icon == null) ||
+               (m_status == Status.CLEANUP && m_settings.read_rule[2] != 2 && m_settings.unread_rule[2] != 2))
+                m_status += 1;
+
             if(m_status == Status.CRTABLE && !m_use_owner_id) {
                 try {
                     package.feed.prepare_for_db(res.fetch_int(res.field_index("id")));
@@ -200,6 +217,26 @@ namespace Singularity
                     error("Failed to fix id for update: %s", e.message);
                 }
             }
+
+            try {
+                if(m_status == Status.UNREAD_PRE + 1) {
+                    unread_count = res.get_int("unread_count") * -1;
+                    stderr.printf("\n\nUnread Count for %s is starting at %d\u2026\n", package.feed.to_string(), unread_count);
+                }
+
+                if(m_status == Status.UNREAD + 1) {
+                    unread_count += res.get_int("unread_count");
+                    stderr.printf("\n\nUnread Count for %s is %d now\n", package.feed.to_string(), unread_count);
+                }
+
+            } catch(SQLHeavy.Error e) {
+                error("Failed retrieve unread counts: %s", e.message);
+            }
+
+
+            if(m_status == Status.COUNT)
+                return RequestStatus.DEFAULT;
+
             return RequestStatus.CONTINUE;
         }
 

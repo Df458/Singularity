@@ -262,16 +262,37 @@ public class CollectionTreeStore : TreeStore
         return null;
     }
 
+    public void set_unread_count(int count, int id = -1, bool relative = false)
+    {
+        int orig_count = 0;
+        TreeIter? iter = base_iter;
+        if(count != 0)
+            stderr.printf("Unread: %d, %d\n", id, count);
+        if(id != -1) {
+            CollectionNode n = get_node_from_id(id);
+            if(n == null)
+                return;
+            iter = get_iter_from_node(n);
+            if(iter == null)
+                return;
+        }
+        if(relative) {
+            get(iter, Column.UNREAD, out orig_count, -1);
+        }
+
+        set(iter, Column.UNREAD, orig_count + count, -1);
+    }
+
     private TreeIter base_iter;
     private Gee.HashMap<int, CollectionNode> node_map;
 
     private void prepare()
     {
         node_map = new Gee.HashMap<int, CollectionNode>();
-        set_column_types({typeof(int), typeof(int), typeof(string), typeof(Gdk.Pixbuf), typeof(CollectionNode)});
+        set_column_types({typeof(int), typeof(int), typeof(string), typeof(Gdk.Pixbuf), typeof(CollectionNode), typeof(int)});
         set_sort_column_id(Column.TITLE, SortType.ASCENDING);
         append(out base_iter, null);
-        set(base_iter, Column.ID, -1, Column.TYPE, CollectionNode.Contents.COLLECTION, Column.TITLE, FEED_CATEGORY_STRING);
+        set(base_iter, Column.ID, -1, Column.TYPE, CollectionNode.Contents.COLLECTION, Column.TITLE, FEED_CATEGORY_STRING, Column.UNREAD, 0);
     }
 }
 

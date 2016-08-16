@@ -123,6 +123,10 @@ public class SingularityApp : Gtk.Application
                 req.item_filter = ItemListRequest.Filter.STARRED_ONLY;
         yield m_database.execute_request(req);
 
+        foreach(Item i in req.item_list) {
+            i.owner = m_feed_store.get_feed_from_id(req.item_id_map[i]);
+        }
+
         return req.item_list;
     }
 
@@ -222,22 +226,28 @@ public class SingularityApp : Gtk.Application
         update_progress_changed(m_current_update_progress);
     }
 
-    public void view_item(int id)
+    public void view_item(Item i)
     {
-        ItemViewRequest req = new ItemViewRequest(id);
+        ItemViewRequest req = new ItemViewRequest(i.id);
         m_database.queue_request(req);
+        m_feed_store.set_unread_count(-1, -1, true);
+        m_feed_store.set_unread_count(-1, i.owner.id, true);
     }
 
-    public void toggle_unread(int id)
+    public void toggle_unread(Item i)
     {
-        ItemToggleRequest req = new ItemToggleRequest(id, ItemToggleRequest.ToggleField.UNREAD);
+        ItemToggleRequest req = new ItemToggleRequest(i.id, ItemToggleRequest.ToggleField.UNREAD);
         m_database.queue_request(req);
+        m_feed_store.set_unread_count(-1, -1, true);
+        m_feed_store.set_unread_count(-1, i.owner.id, true);
     }
 
-    public void toggle_star(int id)
+    public void toggle_star(Item i)
     {
-        ItemToggleRequest req = new ItemToggleRequest(id, ItemToggleRequest.ToggleField.STARRED);
+        ItemToggleRequest req = new ItemToggleRequest(i.id, ItemToggleRequest.ToggleField.STARRED);
         m_database.queue_request(req);
+        m_feed_store.set_unread_count(-1, -1, true);
+        m_feed_store.set_unread_count(-1, i.owner.id, true);
     }
 
     public GlobalSettings get_global_settings() { return m_global_settings; }
@@ -269,14 +279,22 @@ public class SingularityApp : Gtk.Application
         m_update_queue.update_processed.connect((pak) =>
         {
             if(pak.contents == UpdatePackage.PackageContents.FEED_UPDATE) {
-            UpdatePackageRequest req = new UpdatePackageRequest(pak, m_global_settings);
-                m_database.queue_request(req);
+                UpdatePackageRequest req = new UpdatePackageRequest(pak, m_global_settings);
+                m_database.execute_request.begin(req, RequestPriority.DEFAULT, () =>
+                {
+                    m_current_update_progress.updates_finished();
+                    update_progress_changed(m_current_update_progress);
+                    if(req.unread_count != 0) {
+                        stderr.printf("S Unread: %d, %d\n", pak.feed.id, req.unread_count);
+                        m_feed_store.set_unread_count(req.unread_count, -1, true);
+                        m_feed_store.set_unread_count(req.unread_count, pak.feed.id, true);
+                    }
+                });
             } else if(pak.contents == UpdatePackage.PackageContents.ERROR_DATA) {
                 warning("Can't update feed %s: %s", pak.feed.title, pak.message);
+                m_current_update_progress.updates_finished();
+                update_progress_changed(m_current_update_progress);
             }
-
-            m_current_update_progress.updates_finished();
-            update_progress_changed(m_current_update_progress);
         });
 
         LoadFeedsRequest req = new LoadFeedsRequest();
@@ -287,6 +305,11 @@ public class SingularityApp : Gtk.Application
                 m_feed_store = new CollectionTreeStore.from_collection(m_feeds);
             else
                 m_feed_store.append_root_collection(m_feeds);
+
+            m_feed_store.set_unread_count(req.unread_count);
+            foreach(Gee.Map.Entry<int, int> e in req.count_map.entries) {
+                m_feed_store.set_unread_count(e.value, e.key);
+            }
 
             if(m_global_settings.start_update)
                 check_for_updates();

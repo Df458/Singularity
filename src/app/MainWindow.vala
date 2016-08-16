@@ -252,19 +252,19 @@ public class MainWindow : Gtk.ApplicationWindow
             feed_popover.hide();
         });
 
-        m_item_view.item_viewed.connect((id) =>
+        m_item_view.item_viewed.connect((i) =>
         {
-            app.view_item(id);
+            app.view_item(i);
         });
 
-        m_item_view.item_read_toggle.connect((id) =>
+        m_item_view.item_read_toggle.connect((i) =>
         {
-            app.toggle_unread(id);
+            app.toggle_unread(i);
         });
 
-        m_item_view.item_star_toggle.connect((id) =>
+        m_item_view.item_star_toggle.connect((i) =>
         {
-            app.toggle_star(id);
+            app.toggle_star(i);
         });
 
         m_item_view.unread_mode_changed.connect((mode) => { display_node(m_last_displayed_node); });
