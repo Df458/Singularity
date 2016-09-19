@@ -96,12 +96,12 @@ namespace Singularity
                         break;
 
                         case "content":
-                            new_item.content = get_node_contents(dat);
+                            if(new_item.content == null || new_item.content.strip() == "")
+                                new_item.content = get_node_contents(dat);
                         break;
 
                         case "summary":
-                            if(new_item.content == null || new_item.content.strip() == "")
-                                new_item.content = get_node_contents(dat);
+                            new_item.content = get_node_contents(dat);
                         break;
 
 

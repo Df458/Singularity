@@ -40,7 +40,7 @@ public class DatabaseManager
 
             while(update_schema_version());
         } catch(SQLHeavy.Error e) {
-            error("Failed to initialize the database: %s", e.message);
+            error("Failed to initialize the database at %s: %s", path, e.message);
         }
         is_open = true;
         m_requests = new AsyncQueue<DatabaseRequest>();

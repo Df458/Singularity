@@ -145,7 +145,7 @@ namespace Singularity
         {
             try {
                 guid = r.fetch_string(r.field_index("guid"));
-                title = r.fetch_string(3);
+                title = strip_htm(r.fetch_string(3));
                 link = r.fetch_string(r.field_index("link"));
                 content = r.fetch_string(r.field_index("content"));
                 rights = r.fetch_string(r.field_index("rights"));

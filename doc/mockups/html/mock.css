@@ -38,13 +38,6 @@ hr {
     float: left;
     -webkit-clip-path: inset(0 50% 0 0);
     clip-path: inset(0 50% 0 0);
-
-    opacity: 0;
-    transition: opacity 0.15s;
-}
-article:hover .star, article:hover .read-button {
-    opacity: 1;
-    transition: opacity 0.15s;
 }
 .star.active, .read-button.active{
     -webkit-clip-path: inset(0 0 0 50%);

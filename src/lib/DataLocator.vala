@@ -7,7 +7,7 @@ namespace Singularity
 
         public DataLocator(SessionSettings settings)
         {
-            data_location = Environment.get_user_data_dir() + "/" + data_folder_name;
+            data_location = Environment.get_user_data_dir() + "/" + data_folder_name + "/feeds.db";
             if(settings.database_path != null)
                 data_location = settings.database_path;
             try {

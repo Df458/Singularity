@@ -121,6 +121,7 @@ public class SingularityApp : Gtk.Application
                 req.item_filter = ItemListRequest.Filter.UNREAD_ONLY;
         } else if(starred_only)
                 req.item_filter = ItemListRequest.Filter.STARRED_ONLY;
+        req.max_items = 10;
         yield m_database.execute_request(req);
 
         foreach(Item i in req.item_list) {

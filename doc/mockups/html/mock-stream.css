@@ -26,6 +26,16 @@ article+article {
     -webkit-flex-flow: row wrap;
 }
 
+.star, .read-button {
+    opacity: 0;
+    transition: opacity 0.15s;
+}
+
+article:hover .star, article:hover .read-button {
+    opacity: 1;
+    transition: opacity 0.15s;
+}
+
 .post-info {
     flex: 2
 }

@@ -108,6 +108,9 @@ article+article {
 """;
 
 const string js_str = """
+var prep_done = false;
+setTimeout(prepare, 2000);
+
 function tryRead(element) {
     var rect = element.getBoundingClientRect();
     var in_view = rect.top <= window.innerHeight / 2 || rect.bottom <= window.innerHeight;
@@ -142,6 +145,9 @@ function generateReadCallback(el) {
 }
 
 function prepare() {
+    if(prep_done)
+        return;
+    prep_done = true;
     var items = document.getElementsByTagName('article');
     for(var j = 0; j < items.length; ++j){
         var i = items[j];

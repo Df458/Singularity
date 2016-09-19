@@ -1,28 +1,32 @@
 <html>
 <head>
     <link rel="stylesheet" href="mock.css"/>
+    <link rel="stylesheet" href="mock-column.css"/>
 </head>
 <body>
-    <article class="column">
-        <header class="column">
-            <img class="column star" id="active" src="../../../data/star.svg"/>
-            <h1 class="column title"><a href="http://example.com">Post Title</a></h1>
-            <section class="column" id="posted">
-                Posted by <span class="column author">Author</span> on <time class="column date" datetime="2016-01-01 12:00">Jan 1, 2015</time>.
+    <article data-id="false" data-read="false" data-starred="true">
+        <header>
+            <section class="title">
+                <a href="http://example.com">Post Title</a>
+                <div>
+                    <img class="read-button" src="../../../data/read.svg"/>
+                    <img class="star" src="../../../data/star.svg"/>
+                </div>
             </section>
-            <hr class="column" id="header-separator">
+            <section class="post-info">
+                Posted by <span class="author">Author</span> on <time class="date" datetime="2016-01-01 12:00">Jan 1, 2015</time>.
+            </section>
+            <hr>
         </header>
-        <section class="column content">
+        <section class="content">
             Article description
         </section>
-        <footer class="column">
-            <h3 class="column footer-heading">Attachments</h3>
-            <section class="column" id="attach-list">
-                <span class="column attach">Attachment1</span>
+        <footer>
+            <section class="attachments-list">
+                <span>Attachment1</span>
             </section>
-            <h3 class="column footer-heading">Tags</h3>
-            <section class="column" id="taglist">
-                <span class="column tag">Tag1</span>, <span class="column tag">Tag2</span>, <span class="column tag">Tag3</span>
+            <section class="tags-list">
+                <span>Tag1</span>, <span>Tag2</span>, <span>Tag3</span>
             </section>
         </footer>
     </article>

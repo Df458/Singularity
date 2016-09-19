@@ -110,4 +110,9 @@ public static string sql_str(string? str)
 
     return sb.str;
 }
+
+public static string strip_htm(string str)
+{
+    return str.replace("<", "&lt;").replace(">", "&gt;");
+}
 }

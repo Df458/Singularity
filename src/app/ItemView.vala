@@ -59,6 +59,8 @@ public class ItemView : Box
     private ViewBuilder m_view_builder;
     private Box         m_control_box;
     private Box         m_view_box;
+    private Paned       m_sidebar_pane;
+    private ListBox     m_side_column;
     private Switch      m_unread_switch;
     private Label       m_unread_label;
     private WebView     m_web_view;
@@ -70,7 +72,9 @@ public class ItemView : Box
     {
         m_view_box = new Box(Orientation.VERTICAL, 12);
         m_control_box = new Box(Orientation.HORIZONTAL, 12);
+        m_sidebar_pane = new Paned(Orientation.HORIZONTAL);
         m_view_box.pack_start(m_control_box, false, false);
+        m_view_box.pack_start(m_sidebar_pane, true, true);
         this.pack_start(m_view_box, true, true);
     }
 
@@ -87,9 +91,11 @@ public class ItemView : Box
         m_unread_label.halign = Align.END;
         m_unread_switch.active = unread_only;
 
+        m_side_column = new ListBox();
+
         WebKit.Settings settings = new WebKit.Settings();
         settings.set_allow_file_access_from_file_urls(true);
-        settings.set_enable_developer_extras(true); // For now. We may want to disable this for release builds
+        settings.set_enable_developer_extras(true); // TODO: For now. We may want to disable this for release builds
         settings.set_enable_dns_prefetching(false);
         settings.set_enable_frame_flattening(true);
         settings.set_enable_fullscreen(true);
@@ -102,7 +108,10 @@ public class ItemView : Box
 
         m_control_box.pack_start(m_unread_label, true, true);
         m_control_box.pack_start(m_unread_switch, false, false);
-        m_view_box.pack_start(m_web_view, true, true);
+        m_sidebar_pane.add1(m_side_column);
+        m_sidebar_pane.add2(m_web_view);
+
+        m_side_column.hide();
     }
 
     private void connect_signals()
