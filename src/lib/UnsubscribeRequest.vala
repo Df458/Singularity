@@ -29,9 +29,22 @@ namespace Singularity
 
         public Query build_query(Database db)
         {
-            if(items_removed) {
+            if(icon_removed) {
                 StringBuilder q_builder = new StringBuilder("DELETE FROM feeds");
-                q_builder.append_printf(" WHERE id = %d;", feed.id);
+                q_builder.append_printf(" WHERE id = %d", feed.id);
+
+                Query q;
+                try {
+                    q = new Query(db, q_builder.str);
+                } catch(SQLHeavy.Error e) {
+                    error("Failed to unsubscribe: %s", e.message);
+                }
+                return q;
+            }
+
+            if(items_removed) {
+                StringBuilder q_builder = new StringBuilder("DELETE FROM icons");
+                q_builder.append_printf(" WHERE id = %d", feed.id);
 
                 Query q;
                 try {
@@ -43,22 +56,28 @@ namespace Singularity
             }
 
             Query q;
+            StringBuilder q_builder;
             try {
-                q = new Query(db, "DELETE FROM items WHERE parent_id = %d");
+                q_builder = new StringBuilder("DELETE FROM items ");
+                q_builder.append_printf("WHERE parent_id = %d", feed.id);
+                q = new Query(db, q_builder.str);
             } catch(SQLHeavy.Error e) {
-                error("Failed to unsubscribe: %s", e.message);
+                error("Failed to unsubscribe: %s [%s]", e.message, q_builder.str);
             }
             return q;
         }
 
         public RequestStatus process_result(QueryResult res)
         {
-            if(items_removed)
+            if(icon_removed)
                 return RequestStatus.DEFAULT;
+            if(items_removed)
+                icon_removed = true;
             items_removed = true;
             return RequestStatus.CONTINUE;
         }
 
         private bool items_removed = false;
+        private bool icon_removed = false;
     }
 }

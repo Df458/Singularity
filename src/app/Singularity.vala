@@ -187,7 +187,11 @@ public class SingularityApp : Gtk.Application
                 }
                 UpdatePackage new_package = new UpdatePackage.success(node.feed, items);
                 UpdatePackageRequest ureq = new UpdatePackageRequest(new_package, m_global_settings, false);
-                m_database.queue_request(ureq, RequestPriority.MEDIUM);
+                m_database.execute_request.begin(ureq, RequestPriority.MEDIUM, () =>
+                {
+                    m_feed_store.set_unread_count(ureq.unread_count, -1, true);
+                    m_feed_store.set_unread_count(ureq.unread_count, new_package.feed.id, true);
+                });
             }
         });
     }

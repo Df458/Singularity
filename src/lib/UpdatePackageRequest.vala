@@ -206,17 +206,17 @@ namespace Singularity
             if(m_status == Status.CRTABLE && package.items.size == 0)
                 m_status = Status.CLEANUP;
 
-            if((m_status == Status.ICON_INSERT && package.feed.icon == null) ||
-               (m_status == Status.CLEANUP && m_settings.read_rule[2] != 2 && m_settings.unread_rule[2] != 2))
-                m_status += 1;
-
-            if(m_status == Status.CRTABLE && !m_use_owner_id) {
+            if(m_status == Status.ICON_INSERT && !m_use_owner_id) {
                 try {
                     package.feed.prepare_for_db(res.fetch_int(res.field_index("id")));
                 } catch(SQLHeavy.Error e) {
                     error("Failed to fix id for update: %s", e.message);
                 }
             }
+
+            if((m_status == Status.ICON_INSERT && package.feed.icon == null) ||
+               (m_status == Status.CLEANUP && m_settings.read_rule[2] != 2 && m_settings.unread_rule[2] != 2))
+                m_status += 1;
 
             try {
                 if(m_status == Status.UNREAD_PRE + 1) {
