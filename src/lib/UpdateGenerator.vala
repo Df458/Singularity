@@ -40,6 +40,7 @@ namespace Singularity
             XmlRequest.ContentType type = req.determine_content_type();
             switch(type) {
                 case XmlRequest.ContentType.INVALID:
+                    stderr.printf("\n\nUnknown content found: %s\n\n", req.doc_data);
                     return new UpdatePackage.failure(to_update, "Couldn't determine document content type");
                 case XmlRequest.ContentType.RSS:
                     source = new RSSItemDataSource();

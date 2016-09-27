@@ -19,6 +19,8 @@
 namespace Singularity
 {
 
+    static const string USER_AGENT = "Singularity RSS Reader/0.3 [http://github.com/Df458/Singularity]";
+
 public class XmlRequest : Object
 {
 
@@ -35,6 +37,7 @@ public class XmlRequest : Object
     public bool     error_exists  { get { return error_message != null; } }
     public string?  error_message { get; private set; }
     public Xml.Doc* doc           { get; private set; }
+    public string   doc_data      { get; private set; }
 
     public XmlRequest(string to_fetch)
     {
@@ -47,6 +50,7 @@ public class XmlRequest : Object
         error_message = null;
         request_sent = false;
         m_session = new Soup.Session();
+        m_session.user_agent = USER_AGENT;
         m_message = new Soup.Message("GET", uri);
     }
 
@@ -68,9 +72,11 @@ public class XmlRequest : Object
         loop.run();
 
         string data = (string)m_message.response_body.data;
+        doc_data = data;
         doc = Xml.Parser.parse_doc(data);
 
         if(doc == null && data != null) {
+            stderr.printf("\n\nUnknown content found: %s\n\n", doc_data);
             warning("Spilt then parse\u2026");
             data = data.split("<!DOCTYPE html")[0];
             doc = Xml.Parser.parse_doc(data);
@@ -107,6 +113,8 @@ public class XmlRequest : Object
             error_message = "Message data was not received";
             return false;
         }
+
+        doc_data = data;
 
         doc = Xml.Parser.parse_doc(data);
 
