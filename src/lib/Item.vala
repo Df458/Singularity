@@ -24,7 +24,7 @@ namespace Singularity
         public Feed?                        owner = null;
         public string                       title;
         public string?                      link;
-        public string?                      content;
+        public string?                      content = null;
         public string                       guid;
         public Person?                      author;
         public Gee.Collection<Tag?>         tags;

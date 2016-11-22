@@ -1,6 +1,7 @@
 const string css_str ="""
 body {
-    background-color: #bbb;
+    /*background-color: #bbb;*/
+    background-color: #323232;
     margin: 0;
 
     font-family: sans;
@@ -11,11 +12,13 @@ a {
 }
 
 .title a {
-    color: #222;
+    /*color: #222;*/
+    color: #aaa;
 }
 
 .title a:hover {
-    color: #666;
+    /*color: #666;*/
+    color: #777;
 }
 
 footer h3 {
@@ -60,10 +63,13 @@ const string css_str_stream ="""
 article {
     padding: 12px;
     margin: 18px;
-    background: #aaaaaa;
+    /*background: #aaaaaa;*/
+    background: #444444;
     border-radius: 3px;
-    border-top: 2px solid #777;
-    box-shadow: 0 0 3px #555;
+    /*border-top: 2px solid #777;*/
+    border-top: 2px solid #3a3a3a;
+    /*box-shadow: 0 0 3px #555;*/
+    box-shadow: 0 0 3px #222;
 }
 
 article.unread {
@@ -103,6 +109,7 @@ article+article {
 }
 
 .tags-list {
+    /*color: #777777;*/
     color: #777777;
 }
 """;

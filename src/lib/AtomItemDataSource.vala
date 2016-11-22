@@ -86,7 +86,7 @@ namespace Singularity
                 if(dat->type == Xml.ElementType.ELEMENT_NODE) {
                     switch(dat->name) {
                         case "title":
-                            new_item.title = get_node_contents(dat);
+                            new_item.title = get_node_contents(dat, true);
                         break;
 
                         case "link":
@@ -96,22 +96,19 @@ namespace Singularity
                         break;
 
                         case "content":
-                            if(new_item.content == null || new_item.content.strip() == "")
-                                new_item.content = get_node_contents(dat);
-                        break;
-
                         case "summary":
-                            new_item.content = get_node_contents(dat);
+                            if(new_item.content == null || new_item.content.strip() == "" || dat->get_prop("type") == "html" || dat->get_prop("type") == "xhtml")
+                                new_item.content = get_node_contents(dat, true);
                         break;
 
 
                         case "id":
                         case "guid":
-                            new_item.guid = get_node_contents(dat);
+                            new_item.guid = get_node_contents(dat, true);
                         break;
 
                         case "updated":
-                            string input = get_node_contents(dat);
+                            string input = get_node_contents(dat, true);
                             string[] date_strs = input.split(" ");
                             if(date_strs.length < 5)
                                 break;
@@ -124,7 +121,7 @@ namespace Singularity
 
                         case "author":
                         case "creator":
-                            new_item.author = Person(get_node_contents(dat));
+                            new_item.author = Person(get_node_contents(dat, true));
                         break;
 
                         case "enclosure":

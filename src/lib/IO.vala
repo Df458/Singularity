@@ -85,17 +85,17 @@ public static string dump_xml_node(Xml.Node* node)
     string xml_str = "";
 
     if(node->type == Xml.ElementType.TEXT_NODE || node->type == Xml.ElementType.CDATA_SECTION_NODE)
-	return node->children->get_content();
+        return node->children->get_content();
     xml_str += "<" + node->name;
     for(Xml.Attr* a = node->properties; a != null; a = a->next)
-	xml_str += " " + a->name + " =  \"" + a->children->get_content() + "\"";
+        xml_str += " " + a->name + " =  \"" + a->children->get_content() + "\"";
     if(node->children == null)
-	xml_str += "/>";
+        xml_str += "/>";
     else {
-	xml_str += ">";
-	for(Xml.Node* n = node->children; n != null; n = n->next)
-	    xml_str += dump_xml_node(n);
-	xml_str += "</" + node->name + ">";
+        xml_str += ">";
+        for(Xml.Node* n = node->children; n != null; n = n->next)
+            xml_str += dump_xml_node(n);
+        xml_str += "</" + node->name + ">";
     }
     return xml_str;
 }

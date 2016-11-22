@@ -242,9 +242,9 @@ public class SingularityApp : Gtk.Application
     public void toggle_unread(Item i)
     {
         ItemToggleRequest req = new ItemToggleRequest(i.id, ItemToggleRequest.ToggleField.UNREAD);
+        m_feed_store.set_unread_count(i.unread ? -1 : 1, -1, true);
+        m_feed_store.set_unread_count(i.unread ? -1 : 1, i.owner.id, true);
         m_database.queue_request(req);
-        m_feed_store.set_unread_count(-1, -1, true);
-        m_feed_store.set_unread_count(-1, i.owner.id, true);
     }
 
     public void toggle_star(Item i)
