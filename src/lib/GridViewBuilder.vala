@@ -4,15 +4,23 @@ namespace Singularity
 public class GridViewBuilder : ViewBuilder, GLib.Object
 {
     public string head;
-    public static const string builder_class = "grid";
+    public const string builder_class = "grid";
     public  string star_svg = "file:///usr/local/share/singularity/star.svg";
 
-    public GridViewBuilder(string css_data, string star_data)
+    public GridViewBuilder()
     {
-        StringBuilder builder = new StringBuilder("<head><style>");
-        builder.append_printf("%s</style></head>", css_data);
+        File css_resource = File.new_for_uri("resource:///org/df458/Singularity/default.css");
+        FileInputStream stream = css_resource.read();
+        DataInputStream data_stream = new DataInputStream(stream);
+
+        StringBuilder builder = new StringBuilder("<head><style>\n");
+        string? str = data_stream.read_line();
+        do {
+            builder.append(str + "\n");
+            str = data_stream.read_line();
+        } while(str != null);
+        builder.append_printf("</style></head>");
         head = builder.str;
-        star_svg = star_data;
     }
 
     public string buildHTML(Gee.List<Item> items)

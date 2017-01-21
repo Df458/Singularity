@@ -186,15 +186,15 @@ namespace Singularity
                                         if(cdat->type == Xml.ElementType.ELEMENT_NODE) {
                                             switch(cdat->name) {
                                                 case "title":
-                                                    /* title = get_node_contents(cdat); */
+                                                    stored_feed.title = get_node_contents(dat).strip().replace("&", "&amp;");
                                                 break;
 
                                                 case "link":
-                                                    /* link = get_node_contents(cdat); */
+                                                    stored_feed.site_link = get_node_contents(dat);
                                                 break;
 
                                                 case "description":
-                                                    /* description = get_node_contents(cdat); */
+                                                    stored_feed.description = get_node_contents(dat);
                                                 break;
                                             }
                                         }

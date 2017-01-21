@@ -19,80 +19,35 @@
 using Gtk;
 using WebKit;
 using JSHandler;
+using Singularity;
 
-namespace Singularity
+public interface ItemView : Box
 {
+    // Returns whether to only show "important" items (unread and starred)
+    public abstract bool get_important_only();
+    // Sets the items to display
+    public abstract void view_items(Gee.List<Item> items);
 
-public class ItemView : Box
-{
-    public bool unread_only { get; private set; }
-
-    public ItemView(GlobalSettings gs)
-    {
-        m_global_settings = gs;
-
-        this.orientation = Orientation.VERTICAL;
-        this.spacing = 12;
-        this.unread_only = gs.display_unread_only;
-
-        m_view_builder = new StreamViewBuilder(css_str+css_str_stream); // TODO: Handle CSS more elegantly
-
-        init_structure();
-        init_content();
-        connect_signals();
-
-        this.show_all();
-    }
-
-    public void view_items(Gee.List<Item?> item_list)
-    {
-        m_item_list = item_list;
-        string html = m_view_builder.buildHTML(m_item_list);
-        m_web_view.load_html(html, "file://singularity");
-    }
-
+    // TODO: Maybe replace these?
     public signal void item_viewed(Item i);
     public signal void item_read_toggle(Item i);
     public signal void item_star_toggle(Item i);
     public signal void unread_mode_changed(bool unread_only);
+}
 
-    private ViewBuilder m_view_builder;
-    private Box         m_control_box;
-    private Box         m_view_box;
-    private Paned       m_sidebar_pane;
-    private ListBox     m_side_column;
-    private Switch      m_unread_switch;
-    private Label       m_unread_label;
-    private WebView     m_web_view;
-    private unowned GlobalSettings m_global_settings;
-    private UserContentManager m_content_manager;
-    private Gee.List<Item?> m_item_list;
+[GtkTemplate (ui = "/org/df458/Singularity/StreamItemView.ui")]
+public class StreamItemView : Box, ItemView {
+    // Returns whether to only show "important" items (unread and starred)
+    public bool get_important_only() { return m_important_view; }
 
-    private void init_structure()
-    {
-        m_view_box = new Box(Orientation.VERTICAL, 12);
-        m_control_box = new Box(Orientation.HORIZONTAL, 12);
-        m_sidebar_pane = new Paned(Orientation.HORIZONTAL);
-        m_view_box.pack_start(m_control_box, false, false);
-        m_view_box.pack_start(m_sidebar_pane, true, true);
-        this.pack_start(m_view_box, true, true);
-    }
+    public StreamItemView(GlobalSettings app_settings) {
+        m_global_settings = app_settings;
 
-    private void init_content()
-    {
-        m_content_manager = new UserContentManager();
+        UserContentManager content_manager = new UserContentManager();
         UserScript test_script = new UserScript(js_str, UserContentInjectedFrames.ALL_FRAMES, UserScriptInjectionTime.START, null, null);
-        m_content_manager.add_script(test_script);
+        content_manager.add_script(test_script);
 
-        m_web_view = new WebView.with_user_content_manager(m_content_manager);
-        m_unread_label = new Label("Display unread/starred items only");
-        m_unread_switch = new Switch();
-
-        m_unread_label.halign = Align.END;
-        m_unread_switch.active = unread_only;
-
-        m_side_column = new ListBox();
-
+        m_web_view = new WebView.with_user_content_manager(content_manager);
         WebKit.Settings settings = new WebKit.Settings();
         settings.set_allow_file_access_from_file_urls(true);
         settings.set_enable_developer_extras(true); // TODO: For now. We may want to disable this for release builds
@@ -106,29 +61,27 @@ public class ItemView : Box
         m_web_view.set_background_color(this.get_style_context().get_background_color(StateFlags.NORMAL));
         m_web_view.set_settings(settings);
 
-        m_control_box.pack_start(m_unread_label, true, true);
-        m_control_box.pack_start(m_unread_switch, false, false);
-        m_sidebar_pane.add1(m_side_column);
-        m_sidebar_pane.add2(m_web_view);
-
-        m_side_column.hide();
-    }
-
-    private void connect_signals()
-    {
         m_web_view.decide_policy.connect(policy_decision);
 
-        m_content_manager.script_message_received.connect(message_received);
-        m_content_manager.register_script_message_handler("test");
+        content_manager.script_message_received.connect(message_received);
+        content_manager.register_script_message_handler("test");
 
-        m_unread_switch.state_set.connect((state) =>
-        {
-            unread_only = state;
-            unread_mode_changed(state);
+        m_builder = new StreamViewBuilder();
 
-            return false;
-        });
+        pack_start(m_web_view, true, true);
     }
+    // Sets the items to display
+    public void view_items(Gee.List<Item> item_list) {
+        m_item_list = item_list;
+        string html = m_builder.buildHTML(m_item_list);
+        m_web_view.load_html(html, "file://singularity");
+    }
+
+    private bool m_important_view = true;
+    private StreamViewBuilder m_builder;
+    private Gee.List<Item> m_item_list;
+    private WebKit.WebView m_web_view;
+    private GlobalSettings m_global_settings;
 
     private bool policy_decision(PolicyDecision decision, PolicyDecisionType type)
     {
@@ -147,6 +100,19 @@ public class ItemView : Box
         return false;
     }
 
+    // Called when the "Mark all as read" button is clicked
+    [GtkCallback]
+    void on_mark_all_read() {
+        // TODO
+    }
+
+    // Called when the "Toggle important" toggle is toggled
+    [GtkCallback]
+    void on_toggle_important_view() {
+        m_important_view = !m_important_view;
+        unread_mode_changed(m_important_view);
+    }
+
     private void message_received(JavascriptResult result)
     {
         JavascriptAppRequest request = get_js_info(result);
@@ -161,16 +127,15 @@ public class ItemView : Box
         switch(cmd) {
             case 'v': // Item viewed
                 item_viewed(m_item_list[id]);
-                break;
+            break;
 
             case 's': // Star button pressed
                 item_star_toggle(m_item_list[id]);
-                break;
+            break;
 
             case 'r': // Read button pressed
                 item_read_toggle(m_item_list[id]);
-                break;
+            break;
         }
     }
-}
 }

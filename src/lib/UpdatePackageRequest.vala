@@ -49,6 +49,7 @@ namespace Singularity
 
         public Query build_query(Database db)
         {
+            stderr.printf("%s update", package.feed.title);
             switch(m_status) {
                 case Status.ICON_INSERT:
                     StringBuilder q_builder = new StringBuilder("INSERT OR REPLACE INTO icons (id, width, height, bits, rowstride, data) VALUES ");
@@ -76,7 +77,7 @@ namespace Singularity
                 case Status.CRINDEX:
                     Query q;
                     try {
-                        stderr.printf("Trying %s\u2026", package.feed.to_string());
+                        stderr.printf("Trying %s[%d]\u2026\n\n\n", package.feed.to_string(), package.feed.id);
                         q = new Query(db, "CREATE UNIQUE INDEX tmpi_guid ON tmp (guid);\n");
                     } catch(SQLHeavy.Error e) {
                         error("Failed to clean table: %s", e.message);

@@ -21,10 +21,9 @@ using Gtk;
 namespace Singularity
 {
 
-// TODO: Figure out how to extract icons
 public class CollectionTreeStore : TreeStore
 {
-    public static const string FEED_CATEGORY_STRING = "All Feeds";
+    public const string FEED_CATEGORY_STRING = "All Feeds";
     public enum Column
     {
         ID = 0,

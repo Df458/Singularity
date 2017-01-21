@@ -1,6 +1,6 @@
 namespace Singularity
 {
-    public static const string data_folder_name = "singularity";
+    public const string data_folder_name = "singularity";
     public class DataLocator : Object
     {
         public string? data_location { get; private set; }

@@ -25,6 +25,7 @@ public class GlobalSettings
     public uint   auto_update_freq;
     public int    read_rule[3];
     public int    unread_rule[3];
+    public int    items_per_list;
     public bool   download_attachments;
     public bool   ask_download_location;
     public bool   display_unread_only;
@@ -66,6 +67,7 @@ public class GlobalSettings
         unread_iter.next("i", &unread_rule[0]);
         unread_iter.next("i", &unread_rule[1]);
         unread_iter.next("i", &unread_rule[2]);
+        items_per_list            = m_source.get_int("items-per-list");
         download_attachments      = m_source.get_boolean("download-attachments");
         ask_download_location     = m_source.get_boolean("ask-download-location");
         default_download_location = File.new_for_path(m_source.get_string("default-download-location"));

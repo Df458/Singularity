@@ -15,6 +15,7 @@
 	You should have received a copy of the GNU General Public License
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+using DFLib;
 using Gee;
 using SQLHeavy;
 
@@ -32,7 +33,7 @@ namespace Singularity
         public Collection<Tag?> tags        { get; set; }
         public string?          generator   { get; set; }
         public string?          icon_url    { get; set; }
-        public Gdk.Pixbuf?            icon        { get; set; }
+        public Gdk.Pixbuf?      icon        { get; set; }
         public DateTime?        last_update { get; set; }
 
         public enum DBColumn

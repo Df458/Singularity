@@ -1,48 +1,112 @@
 body {
-    background-color: #EEEEEE;
+    /*background-color: #bbb;*/
+    background-color: #323232;
+    margin: 0;
+
+    font-family: sans;
 }
 
-.feed {
-    overflow: hidden;
-    padding-bottom: 30px;
+a {
+    text-decoration: none;
 }
 
-.singularity-item {
-    background-color: white;
-    border: 1px solid #CCCCCC;
-    border-radius: 3px;
-    box-shadow: 0px 2px 5px #888888;
-    margin: 12px;
-    padding: 12px;
+.title a {
+    /*color: #222;*/
+    color: #aaa;
+}
+
+.title a:hover {
+    /*color: #666;*/
+    color: #777;
+}
+
+footer h3 {
+    margin-bottom: 0;
+}
+
+footer section {
+    margin-bottom: 12px;
+}
+
+hr {
+    border-style: none;
+    border-top: 1px dashed;
+    margin: 3px;
+}
+
+.star, .read-button {
+    align-self: flex-start;
+    -webkit-align-self: flex-start;
+    margin-right: -25px;
     float: left;
-    position: relative;
+    -webkit-clip-path: inset(0 50% 0 0);
+    clip-path: inset(0 50% 0 0);
+
+    opacity: 0;
+    transition: opacity 0.15s;
+}
+article:hover .star, article:hover .read-button {
+    opacity: 1;
+    transition: opacity 0.15s;
+}
+.star.active, .read-button.active{
+    -webkit-clip-path: inset(0 0 0 50%);
+    clip-path: inset(0 0 0 50%);
+    margin-right: 0;
+    margin-left: -25px;
+    opacity: 1;
 }
 
-.item-head {
+/* Stream */
+article {
     padding: 12px;
+    margin: 18px;
+    /*background: #aaaaaa;*/
+    background: #444444;
+    border-radius: 3px;
+    /*border-top: 2px solid #777;*/
+    border-top: 2px solid #3a3a3a;
+    /*box-shadow: 0 0 3px #555;*/
+    box-shadow: 0 0 3px #222;
 }
 
-.item-content {
-    padding: 12px;
+article.unread {
+    border-top: 2px solid #36c;
 }
 
-img, object {
-    max-width: 100%;
-    height: auto;
+article+article {
+    /* border-top: 3px solid #777; */
 }
 
-.starButton {
-    position: absolute;
-    top: 5px;
-    right: -20px;
-    clip: rect(0px, 25px, 25px, 0px);
-    overflow:hidden;
+.title {
+    display: flex;
+    justify-content: space-between;
+    align-content: space-between;
+    flex-flow: row wrap;
+    -webkit-display: flex;
+    -webkit-justify-content: space-between;
+    -webkit-align-content: space-between;
+    -webkit-flex-flow: row wrap;
 }
 
-.starButtonD {
-    position: absolute;
-    top: 5px;
-    right: 5px;
-    clip: rect(0px, 50px, 25px, 25px);
-    overflow:hidden;
+.post-info {
+    flex: 2
+}
+
+.title a {
+    margin-top: 0;
+    margin-bottom: 6px;
+    font-size: x-large;
+    font-weight: bold;
+}
+
+.content {
+    padding-top: 12px;
+    padding-bottom: 12px;
+    overflow: hidden;
+}
+
+.tags-list {
+    /*color: #777777;*/
+    color: #777777;
 }

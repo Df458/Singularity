@@ -26,7 +26,7 @@ namespace Singularity
             UNREAD = 0,
             STARRED
         }
-        public static const string[] field_names = { "unread", "starred" };
+        public const string[] field_names = { "unread", "starred" };
         public int id { get; construct; }
         public ToggleField field { get; construct; }
 

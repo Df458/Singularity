@@ -22,14 +22,23 @@ namespace Singularity
 public class StreamViewBuilder : ViewBuilder, GLib.Object
 {
     public string head;
-    public static const string builder_class = "stream";
+    public const string builder_class = "stream";
     public  string star_svg = "file:///usr/local/share/singularity/star.svg";
     public  string read_svg = "file:///usr/local/share/singularity/read.svg";
 
-    public StreamViewBuilder(string css_data)
+    public StreamViewBuilder()
     {
-        StringBuilder builder = new StringBuilder("<head><style>");
-        builder.append_printf("%s</style></head>", css_data);
+        File css_resource = File.new_for_uri("resource:///org/df458/Singularity/default.css");
+        FileInputStream stream = css_resource.read();
+        DataInputStream data_stream = new DataInputStream(stream);
+
+        StringBuilder builder = new StringBuilder("<head><style>\n");
+        string? str = data_stream.read_line();
+        do {
+            builder.append(str + "\n");
+            str = data_stream.read_line();
+        } while(str != null);
+        builder.append_printf("</style></head>");
         head = builder.str;
     }
 
@@ -55,7 +64,6 @@ public class StreamViewBuilder : ViewBuilder, GLib.Object
                 string datestr = i.time_published.format("%A, %B %e %Y");
                 head_builder.append_printf("Posted on <time class=\"date\" datetime=\"%s\">%s</time>", datestr, datestr);
             }
-            // TODO: Posted section
             head_builder.append("<hr>");
             head_builder.append("</header>");
 

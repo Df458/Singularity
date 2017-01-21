@@ -1,0 +1,11 @@
+<gresources>
+    <gresource prefix="/org/df458/Singularity">
+        <file preprocess="xml-stripblanks">MainWindow.ui</file>
+        <file preprocess="xml-stripblanks">ColumnItemView.ui</file>
+        <file preprocess="xml-stripblanks">StreamItemView.ui</file>
+        <file preprocess="xml-stripblanks">GridItemView.ui</file>
+        <file preprocess="xml-stripblanks">FeedBuilder.ui</file>
+        <file preprocess="xml-stripblanks">SettingsView.ui</file>
+        <file>default.css</file>
+    </gresource>
+</gresources>

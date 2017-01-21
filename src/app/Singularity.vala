@@ -18,7 +18,7 @@
 
 using Gee;
 
-static const string APP_ID = "org.df458.singularity";
+const string APP_ID = "org.df458.singularity";
 
 namespace Singularity
 {
@@ -41,6 +41,7 @@ public class SingularityApp : Gtk.Application
     public uint timeout_value = 600;
     public bool update_running = true;
     public uint update_next = 600;
+    public const string[] authors = { "Hugues Ross (df458)" };
 
     public SingularityApp(SessionSettings settings)
     {
@@ -121,7 +122,7 @@ public class SingularityApp : Gtk.Application
                 req.item_filter = ItemListRequest.Filter.UNREAD_ONLY;
         } else if(starred_only)
                 req.item_filter = ItemListRequest.Filter.STARRED_ONLY;
-        req.max_items = 10;
+        req.max_items = m_global_settings.items_per_list;
         yield m_database.execute_request(req);
 
         foreach(Item i in req.item_list) {
@@ -145,9 +146,6 @@ public class SingularityApp : Gtk.Application
             });
             TimeoutSource counter = new TimeoutSource(5000);
             counter.set_callback(() => {
-            // TODO: verbose
-                /* if(verbose) */
-                /*     stderr.printf("Loading %d feeds...\n", load_counter); */
                 return true;
             });
             time.attach(ml.get_context());
@@ -168,7 +166,6 @@ public class SingularityApp : Gtk.Application
 
     public void subscribe_to_feed(Feed f, bool loaded, FeedCollection? parent = null, Gee.List<Item?>? items = null)
     {
-        // TODO: Figure out a way to pass loaded items along
         CollectionNode node = new CollectionNode.with_feed(f);
         if(parent != null)
             node.set_parent(parent);
@@ -322,6 +319,50 @@ public class SingularityApp : Gtk.Application
             load_status_changed(LoadStatus.COMPLETED);
             init_success = true;
         });
+
+        GLib.SimpleAction import_action = new GLib.SimpleAction("import", null);
+        import_action.activate.connect(() => {
+            ImportDialog dialog = new ImportDialog(get_active_window());
+            dialog.import_request.connect(opml_import);
+            dialog.run();
+        });
+        add_action(import_action);
+
+        GLib.SimpleAction export_action = new GLib.SimpleAction("export", null);
+        export_action.activate.connect(() => {
+            ExportDialog dialog = new ExportDialog(get_active_window());
+            dialog.export_request.connect(opml_export);
+            dialog.run();
+        });
+        add_action(export_action);
+
+        GLib.SimpleAction update_action = new GLib.SimpleAction("check_full", null);
+        update_action.activate.connect(() => { check_for_updates(); });
+        add_action(update_action);
+
+        GLib.SimpleAction preferences_action = new GLib.SimpleAction("preferences", null);
+        preferences_action.activate.connect(() => { (get_active_window() as MainWindow).preferences(); });
+        add_action(preferences_action);
+
+        GLib.SimpleAction about_action = new GLib.SimpleAction("about", null);
+        about_action.activate.connect(() => {
+            Gtk.show_about_dialog(get_active_window(),
+                program_name: "Singularity",
+                authors: authors,
+                website: "http://github.com/Df458/Singularity",
+                website_label: ("Github"),
+                comments: "A simple webfeed aggregator",
+                version: "0.3",
+                license_type: (Gtk.License.GPL_3_0),
+                copyright: "Copyright © 2014-2017 Hugues Ross"
+            );
+        });
+        add_action(about_action);
+
+        GLib.SimpleAction quit_action = new GLib.SimpleAction("quit", null);
+        quit_action.activate.connect(this.quit);
+        set_accels_for_action("quit", { "<Control>q", null });
+        add_action(quit_action);
     }
 
     private void activate_response()

@@ -4,7 +4,7 @@ using Xml;
 // TODO: Schema validation
 namespace Singularity
 {
-    static const string OPML_VERSION = "1.1";
+    const string OPML_VERSION = "1.1";
 
     public class OPMLFeedDataSource : ReversibleDataSource<CollectionNode, Xml.Doc*>
     {

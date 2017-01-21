@@ -26,10 +26,19 @@ public class ColumnViewBuilder : ViewBuilder, GLib.Object
     public  string star_svg = "file:///usr/local/share/singularity/star.svg";
     public  string read_svg = "file:///usr/local/share/singularity/read.svg";
 
-    public ColumnViewBuilder(string css_data)
+    public ColumnViewBuilder()
     {
-        StringBuilder builder = new StringBuilder("<head><style>");
-        builder.append_printf("%s</style></head>", css_data);
+        File css_resource = File.new_for_uri("resource:///org/df458/Singularity/default.css");
+        FileInputStream stream = css_resource.read();
+        DataInputStream data_stream = new DataInputStream(stream);
+
+        StringBuilder builder = new StringBuilder("<head><style>\n");
+        string? str = data_stream.read_line();
+        do {
+            builder.append(str + "\n");
+            str = data_stream.read_line();
+        } while(str != null);
+        builder.append_printf("</style></head>");
         head = builder.str;
     }
 

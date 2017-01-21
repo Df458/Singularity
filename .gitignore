@@ -3,6 +3,7 @@
 
 # Ignore Glade backups
 *.glade~
+*.ui~
 
 # Ignore test databases
 *.db

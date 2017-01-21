@@ -34,6 +34,13 @@
         <key name="unread-rule" type="(iii)">
             <default>(0,-1,0)</default>
         </key>
+        <key name="items-per-list" type="i">
+            <default>30</default>
+            <summary>Item max count</summary>
+            <description>
+                The max number of items to display at a time.
+            </description>
+        </key>
         <key name="download-attachments" type="b">
             <default>true</default>
             <summary>Download attachments when clicked</summary>

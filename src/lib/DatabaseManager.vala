@@ -21,7 +21,7 @@ using SQLHeavy;
 namespace Singularity
 {
 
-static const string DEFAULT_SCHEMA_DIR = "/usr/local/share/singularity/schemas";
+const string DEFAULT_SCHEMA_DIR = "/usr/local/share/singularity/schemas";
 
 public class DatabaseManager
 {

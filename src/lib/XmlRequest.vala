@@ -19,150 +19,150 @@
 namespace Singularity
 {
 
-    static const string USER_AGENT = "Singularity RSS Reader/0.3 [http://github.com/Df458/Singularity]";
+    const string USER_AGENT = "Singularity RSS Reader/0.3 [http://github.com/Df458/Singularity]";
 
-public class XmlRequest : Object
-{
-
-    public enum ContentType
+    public class XmlRequest : Object
     {
-        INVALID = -1,
-        RSS,
-        ATOM,
-        COUNT
-    }
 
-    public string   uri           { get; construct; }
-    public bool     request_sent  { get; private set; }
-    public bool     error_exists  { get { return error_message != null; } }
-    public string?  error_message { get; private set; }
-    public Xml.Doc* doc           { get; private set; }
-    public string   doc_data      { get; private set; }
-
-    public XmlRequest(string to_fetch)
-    {
-        string turi = to_fetch;
-        if(!to_fetch.has_prefix("http://") && !to_fetch.has_prefix("https://") && !to_fetch.has_prefix("file://"))
-            turi = "http://" + to_fetch;
-
-        Object(uri: turi);
-        doc = null;
-        error_message = null;
-        request_sent = false;
-        m_session = new Soup.Session();
-        m_session.user_agent = USER_AGENT;
-        m_message = new Soup.Message("GET", uri);
-    }
-
-    public bool send()
-    {
-        MainLoop loop = new MainLoop();
-        request_sent = true;
-
-        if(m_message == null) {
-            error_message = "Invalid URL";
-            return false;
-        }
-
-        m_session.queue_message(m_message, (s, m) =>
+        public enum ContentType
         {
-            loop.quit();
-        });
-
-        loop.run();
-
-        string data = (string)m_message.response_body.data;
-        doc_data = data;
-        doc = Xml.Parser.parse_doc(data);
-
-        if(doc == null && data != null) {
-            stderr.printf("\n\nUnknown content found: %s\n\n", doc_data);
-            warning("Spilt then parse\u2026");
-            data = data.split("<!DOCTYPE html")[0];
-            doc = Xml.Parser.parse_doc(data);
+            INVALID = -1,
+            RSS,
+            ATOM,
+            COUNT
         }
 
-        if(doc == null) {
-            error_message = "Failed to parse document";
-            return false;
+        public string   uri           { get; construct; }
+        public bool     request_sent  { get; private set; }
+        public bool     error_exists  { get { return error_message != null; } }
+        public string?  error_message { get; private set; }
+        public Xml.Doc* doc           { get; private set; }
+        public string   doc_data      { get; private set; }
+
+        public XmlRequest(string to_fetch)
+        {
+            string turi = to_fetch;
+            if(!to_fetch.has_prefix("http://") && !to_fetch.has_prefix("https://") && !to_fetch.has_prefix("file://"))
+                turi = "http://" + to_fetch;
+
+            Object(uri: turi);
+            doc = null;
+            error_message = null;
+            request_sent = false;
+            m_session = new Soup.Session();
+            m_session.user_agent = USER_AGENT;
+            m_message = new Soup.Message("GET", uri);
         }
 
-        return true;
-    }
+        public bool send()
+        {
+            MainLoop loop = new MainLoop();
+            request_sent = true;
 
-    public async bool send_async()
-    {
-        SourceFunc callback = this.send_async.callback;
-        request_sent = true;
-        string? data = null;
-
-        if(m_message == null) {
-            error_message = "Invalid URL";
-            return false;
-        }
+            if(m_message == null) {
+                error_message = "Invalid URL";
+                return false;
+            }
 
             m_session.queue_message(m_message, (s, m) =>
-            {
-                data = (string)m.response_body.data;
-                Idle.add((owned) callback);
-            });
+                    {
+                    loop.quit();
+                    });
 
-        yield;
+            loop.run();
 
-        if(data == null) {
-            error_message = "Message data was not received";
-            return false;
-        }
-
-        doc_data = data;
-
-        doc = Xml.Parser.parse_doc(data);
-
-        if(doc == null && data != null) {
-            warning("Spilt then parse\u2026");
-            data = data.split("<!DOCTYPE html")[0];
+            string data = (string)m_message.response_body.data;
+            doc_data = data;
             doc = Xml.Parser.parse_doc(data);
+
+            if(doc == null && data != null) {
+                stderr.printf("\n\nUnknown content found: %s\n\n", doc_data);
+                warning("Spilt then parse\u2026");
+                data = data.split("<!DOCTYPE html")[0];
+                doc = Xml.Parser.parse_doc(data);
+            }
+
+            if(doc == null) {
+                error_message = "Failed to parse document";
+                return false;
+            }
+
+            return true;
         }
 
-        if(doc == null) {
-            error_message = "Failed to parse document";
-            return false;
-        }
-
-        return true;
-    }
-
-    public ContentType determine_content_type()
-    {
-        if(doc == null)
-            return ContentType.INVALID;
-
-        Xml.Node* node = doc->get_root_element();
-
-        while(node != null) {
-            if(node->name == "rss" || node->name == "RDF")
-                return ContentType.RSS;
-            else if(node->name == "feed")
-                return ContentType.ATOM;
-            node = node->next;
-        }
-        return ContentType.INVALID;
-    }
-
-    public FeedProvider? get_provider_from_request()
-    {
-        switch(determine_content_type())
+        public async bool send_async()
         {
-            case ContentType.RSS:
-                return new RSSItemDataSource();
-            case ContentType.ATOM:
-                return new AtomItemDataSource();
-            default:
-                return null;
-        }
-    }
+            SourceFunc callback = this.send_async.callback;
+            request_sent = true;
+            string? data = null;
 
-    private Soup.Session m_session;
-    private Soup.Message? m_message;
-}
+            if(m_message == null) {
+                error_message = "Invalid URL";
+                return false;
+            }
+
+            m_session.queue_message(m_message, (s, m) =>
+                    {
+                    data = (string)m.response_body.data;
+                    Idle.add((owned) callback);
+                    });
+
+            yield;
+
+            if(data == null) {
+                error_message = "Message data was not received";
+                return false;
+            }
+
+            doc_data = data;
+
+            doc = Xml.Parser.parse_doc(data);
+
+            if(doc == null && data != null) {
+                warning("Spilt then parse\u2026");
+                data = data.split("<!DOCTYPE html")[0];
+                doc = Xml.Parser.parse_doc(data);
+            }
+
+            if(doc == null) {
+                error_message = "Failed to parse document";
+                return false;
+            }
+
+            return true;
+        }
+
+        public ContentType determine_content_type()
+        {
+            if(doc == null)
+                return ContentType.INVALID;
+
+            Xml.Node* node = doc->get_root_element();
+
+            while(node != null) {
+                if(node->name == "rss" || node->name == "RDF")
+                    return ContentType.RSS;
+                else if(node->name == "feed")
+                    return ContentType.ATOM;
+                node = node->next;
+            }
+            return ContentType.INVALID;
+        }
+
+        public FeedProvider? get_provider_from_request()
+        {
+            switch(determine_content_type())
+            {
+                case ContentType.RSS:
+                    return new RSSItemDataSource();
+                case ContentType.ATOM:
+                    return new AtomItemDataSource();
+                default:
+                    return null;
+            }
+        }
+
+        private Soup.Session m_session;
+        private Soup.Message? m_message;
+    }
 }

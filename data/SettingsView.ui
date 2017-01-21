@@ -1,0 +1,577 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Generated with glade 3.20.0 -->
+<interface>
+  <requires lib="gtk+" version="3.20"/>
+  <object class="GtkAdjustment" id="adjustment1">
+    <property name="upper">100</property>
+    <property name="step_increment">1</property>
+    <property name="page_increment">10</property>
+  </object>
+  <object class="GtkAdjustment" id="adjustment2">
+    <property name="lower">1</property>
+    <property name="upper">1000</property>
+    <property name="step_increment">1</property>
+    <property name="page_increment">10</property>
+  </object>
+  <object class="GtkAdjustment" id="adjustment3">
+    <property name="lower">1</property>
+    <property name="upper">1000</property>
+    <property name="step_increment">1</property>
+    <property name="page_increment">10</property>
+  </object>
+  <template class="SettingsView" parent="GtkBox">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="halign">center</property>
+    <property name="valign">center</property>
+    <property name="margin_top">24</property>
+    <property name="margin_bottom">24</property>
+    <property name="orientation">vertical</property>
+    <property name="spacing">18</property>
+    <child>
+      <object class="GtkListBox">
+        <property name="visible">True</property>
+        <property name="can_focus">False</property>
+        <property name="valign">start</property>
+        <property name="selection_mode">none</property>
+        <child>
+          <object class="GtkListBoxRow">
+            <property name="width_request">100</property>
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <child>
+              <object class="GtkBox">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="margin_left">18</property>
+                <property name="margin_right">18</property>
+                <property name="margin_top">18</property>
+                <property name="margin_bottom">18</property>
+                <property name="spacing">18</property>
+                <child>
+                  <object class="GtkLabel">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="label" translatable="yes">Update on Startup</property>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkSwitch" id="start_update_switch">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="pack_type">end</property>
+                    <property name="position">1</property>
+                  </packing>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkListBoxRow">
+            <property name="width_request">100</property>
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <child>
+              <object class="GtkBox">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="margin_left">18</property>
+                <property name="margin_right">18</property>
+                <property name="margin_top">18</property>
+                <property name="margin_bottom">18</property>
+                <property name="spacing">18</property>
+                <child>
+                  <object class="GtkLabel">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="label" translatable="yes">Auto-Update</property>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkComboBoxText" id="auto_update_combo">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="active">0</property>
+                    <items>
+                      <item translatable="yes">Never</item>
+                      <item translatable="yes">Every 5 minutes</item>
+                      <item translatable="yes">Every 10 minutes</item>
+                      <item translatable="yes">Every 30 minutes</item>
+                      <item translatable="yes">Every hour</item>
+                      <item translatable="yes">Custom…</item>
+                    </items>
+                    <signal name="changed" handler="on_update_combo_changed" swapped="no"/>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="pack_type">end</property>
+                    <property name="position">1</property>
+                  </packing>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkListBoxRow">
+            <property name="width_request">100</property>
+            <property name="can_focus">True</property>
+            <child>
+              <object class="GtkBox">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="margin_left">18</property>
+                <property name="margin_right">18</property>
+                <property name="margin_top">18</property>
+                <property name="margin_bottom">18</property>
+                <property name="spacing">18</property>
+                <child>
+                  <object class="GtkLabel" id="auto_update_time_label">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="label" translatable="yes">Update Time (Minutes)</property>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkSpinButton" id="auto_update_time_entry">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="text" translatable="yes">0</property>
+                    <property name="adjustment">adjustment1</property>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="pack_type">end</property>
+                    <property name="position">1</property>
+                  </packing>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkListBoxRow">
+            <property name="width_request">100</property>
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <child>
+              <object class="GtkBox">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="margin_left">18</property>
+                <property name="margin_right">18</property>
+                <property name="margin_top">18</property>
+                <property name="margin_bottom">18</property>
+                <property name="spacing">18</property>
+                <child>
+                  <object class="GtkLabel">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="label" translatable="yes">Always Ask Where to Download to</property>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkSwitch" id="always_ask_check">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="active">True</property>
+                    <signal name="state-set" handler="should_always_ask" swapped="no"/>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="pack_type">end</property>
+                    <property name="position">1</property>
+                  </packing>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkListBoxRow">
+            <property name="width_request">100</property>
+            <property name="can_focus">True</property>
+            <child>
+              <object class="GtkBox">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="margin_left">18</property>
+                <property name="margin_right">18</property>
+                <property name="margin_top">18</property>
+                <property name="margin_bottom">18</property>
+                <property name="spacing">18</property>
+                <child>
+                  <object class="GtkLabel" id="download_to_label">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="label" translatable="yes">Default Download Location</property>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkFileChooserButton" id="download_to_button">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="action">select-folder</property>
+                    <property name="title" translatable="yes"/>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="pack_type">end</property>
+                    <property name="position">1</property>
+                  </packing>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkListBoxRow">
+            <property name="width_request">100</property>
+            <property name="height_request">80</property>
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <child>
+              <object class="GtkBox">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="margin_left">18</property>
+                <property name="margin_right">18</property>
+                <property name="margin_top">18</property>
+                <property name="margin_bottom">18</property>
+                <property name="spacing">18</property>
+                <child>
+                  <object class="GtkLabel">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="label" translatable="yes">Open Links With</property>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkEntry" id="link_command_entry">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="text" translatable="yes">xdg-open %s</property>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="pack_type">end</property>
+                    <property name="position">1</property>
+                  </packing>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkListBoxRow">
+            <property name="width_request">100</property>
+            <property name="height_request">80</property>
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <child>
+              <object class="GtkBox">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="margin_left">18</property>
+                <property name="margin_right">18</property>
+                <property name="margin_top">18</property>
+                <property name="margin_bottom">18</property>
+                <property name="spacing">18</property>
+                <child>
+                  <object class="GtkLabel">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="label" translatable="yes">Read Item Rule</property>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkBox" id="box1">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <child>
+                      <object class="GtkSpinButton" id="read_spin">
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="text" translatable="yes">1</property>
+                        <property name="adjustment">adjustment2</property>
+                        <property name="value">1</property>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">0</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkComboBoxText" id="read_incr_combo">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="active">1</property>
+                        <items>
+                          <item translatable="yes">Days</item>
+                          <item translatable="yes">Months</item>
+                          <item translatable="yes">Years</item>
+                        </items>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">1</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkComboBoxText" id="read_action_combo">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="active">1</property>
+                        <items>
+                          <item translatable="yes">Do Nothing</item>
+                          <item translatable="yes">Delete</item>
+                        </items>
+                        <signal name="changed" handler="read_action_changed" swapped="no"/>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">2</property>
+                      </packing>
+                    </child>
+                    <style>
+                      <class name="linked"/>
+                    </style>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="pack_type">end</property>
+                    <property name="position">1</property>
+                  </packing>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkListBoxRow">
+            <property name="width_request">100</property>
+            <property name="height_request">80</property>
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <child>
+              <object class="GtkBox">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="margin_left">18</property>
+                <property name="margin_right">18</property>
+                <property name="margin_top">18</property>
+                <property name="margin_bottom">18</property>
+                <property name="spacing">18</property>
+                <child>
+                  <object class="GtkLabel">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="label" translatable="yes">Unread Item Rule</property>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkBox" id="box2">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <child>
+                      <object class="GtkSpinButton" id="unread_spin">
+                        <property name="visible">True</property>
+                        <property name="sensitive">False</property>
+                        <property name="can_focus">True</property>
+                        <property name="text" translatable="yes">1</property>
+                        <property name="adjustment">adjustment3</property>
+                        <property name="value">1</property>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">0</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkComboBoxText" id="unread_incr_combo">
+                        <property name="visible">True</property>
+                        <property name="sensitive">False</property>
+                        <property name="can_focus">False</property>
+                        <items>
+                          <item translatable="yes">Days</item>
+                          <item translatable="yes">Months</item>
+                          <item translatable="yes">Years</item>
+                        </items>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">1</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkComboBoxText" id="unread_action_combo">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <items>
+                          <item translatable="yes">Do Nothing</item>
+                          <item translatable="yes">Mark Read</item>
+                          <item translatable="yes">Delete</item>
+                        </items>
+                        <signal name="changed" handler="unread_action_changed" swapped="no"/>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">2</property>
+                      </packing>
+                    </child>
+                    <style>
+                      <class name="linked"/>
+                    </style>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="pack_type">end</property>
+                    <property name="position">1</property>
+                  </packing>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+        <style>
+          <class name="frame"/>
+        </style>
+      </object>
+      <packing>
+        <property name="expand">False</property>
+        <property name="fill">True</property>
+        <property name="position">0</property>
+      </packing>
+    </child>
+    <child>
+      <object class="GtkBox">
+        <property name="visible">True</property>
+        <property name="can_focus">False</property>
+        <property name="spacing">12</property>
+        <child>
+          <object class="GtkButton">
+            <property name="label" translatable="yes">Confirm</property>
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="receives_default">True</property>
+            <signal name="clicked" handler="save" swapped="no"/>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkButton">
+            <property name="label" translatable="yes">Cancel</property>
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="receives_default">True</property>
+            <signal name="clicked" handler="cancel" swapped="no"/>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="position">1</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkButton">
+            <property name="label" translatable="yes">Reset</property>
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="receives_default">True</property>
+            <signal name="clicked" handler="reset" swapped="no"/>
+            <style>
+              <class name="destructive-action"/>
+            </style>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="pack_type">end</property>
+            <property name="position">2</property>
+          </packing>
+        </child>
+      </object>
+      <packing>
+        <property name="expand">False</property>
+        <property name="fill">True</property>
+        <property name="position">1</property>
+      </packing>
+    </child>
+  </template>
+  <object class="GtkSizeGroup">
+    <widgets>
+      <widget name="auto_update_combo"/>
+      <widget name="auto_update_time_entry"/>
+      <widget name="download_to_button"/>
+      <widget name="link_command_entry"/>
+    </widgets>
+  </object>
+  <object class="GtkSizeGroup">
+    <widgets>
+      <widget name="box1"/>
+      <widget name="box2"/>
+    </widgets>
+  </object>
+</interface>
