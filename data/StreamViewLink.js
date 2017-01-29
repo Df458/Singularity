@@ -1,4 +1,3 @@
-const string js_str = """
 var prep_done = false;
 setTimeout(prepare, 2000);
 
@@ -59,4 +58,3 @@ function prepare() {
         addEventListener('resize', generateReadCallback(i), false);
     }
 }
-""";

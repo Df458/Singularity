@@ -76,8 +76,6 @@ namespace Singularity
             doc = Xml.Parser.parse_doc(data);
 
             if(doc == null && data != null) {
-                stderr.printf("\n\nUnknown content found: %s\n\n", doc_data);
-                warning("Spilt then parse\u2026");
                 data = data.split("<!DOCTYPE html")[0];
                 doc = Xml.Parser.parse_doc(data);
             }

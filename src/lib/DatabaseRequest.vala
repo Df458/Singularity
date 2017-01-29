@@ -18,31 +18,28 @@
 
 using SQLHeavy;
 
-namespace Singularity
+public enum RequestPriority
 {
-    public enum RequestPriority
-    {
-        INVALID = -1,
-        LOW,
-        MEDIUM,
-        HIGH,
-        COUNT,
-        DEFAULT = LOW
-    }
+    INVALID = -1,
+    LOW,
+    MEDIUM,
+    HIGH,
+    COUNT,
+    DEFAULT = LOW
+}
 
-    public enum RequestStatus
-    {
-        COMPLETED = 0,
-        FAILED,
-        CONTINUE,
-        COUNT,
-        DEFAULT = COMPLETED
-    }
+public enum RequestStatus
+{
+    COMPLETED = 0,
+    FAILED,
+    CONTINUE,
+    COUNT,
+    DEFAULT = COMPLETED
+}
 
-    public interface DatabaseRequest : GLib.Object
-    {
-        public abstract Query build_query(Database db);
-        public abstract RequestStatus process_result(QueryResult res);
-        public signal void processing_complete();
-    }
+public interface DatabaseRequest : GLib.Object
+{
+    public abstract Query build_query(Database db);
+    public abstract RequestStatus process_result(QueryResult res);
+    public signal void processing_complete();
 }

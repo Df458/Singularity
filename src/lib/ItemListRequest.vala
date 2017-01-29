@@ -191,8 +191,5 @@ namespace Singularity
                 foreach(CollectionNode i in node.collection.nodes)
                     build_id_list(i);
         }
-        
-        // TODO: Remove this when done
-        // SELECT items.*, feeds.title FROM items LEFT OUTER JOIN `feeds` ON items.parent_id = feeds.id WHERE items.parent_id IN (3, 4) ORDER BY `update_time` DESC LIMIT 10 OFFSET 5
     }
 }

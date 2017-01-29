@@ -27,14 +27,12 @@
       </packing>
     </child>
     <child>
-      <object class="GtkLabel">
+      <object class="GtkLabel" id="title_label">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
         <property name="halign">start</property>
         <property name="label" translatable="yes">Item Title</property>
-        <attributes>
-          <attribute name="weight" value="bold"/>
-        </attributes>
+        <property name="ellipsize">end</property>
       </object>
       <packing>
         <property name="left_attach">3</property>
@@ -42,13 +40,16 @@
       </packing>
     </child>
     <child>
-      <object class="GtkLabel">
+      <object class="GtkLabel" id="description_label">
         <property name="visible">True</property>
         <property name="sensitive">False</property>
         <property name="can_focus">False</property>
         <property name="halign">start</property>
         <property name="valign">start</property>
         <property name="label" translatable="yes">Item Description</property>
+        <property name="wrap">True</property>
+        <property name="ellipsize">end</property>
+        <property name="lines">3</property>
       </object>
       <packing>
         <property name="left_attach">3</property>
@@ -56,13 +57,21 @@
       </packing>
     </child>
     <child>
-      <object class="GtkImage">
+      <object class="GtkRevealer" id="unread_icon">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
         <property name="halign">end</property>
         <property name="valign">center</property>
-        <property name="icon_name">mail-unread</property>
-        <property name="icon_size">3</property>
+        <property name="transition_type">none</property>
+        <child>
+          <object class="GtkImage">
+            <property name="can_focus">False</property>
+            <property name="halign">end</property>
+            <property name="valign">center</property>
+            <property name="icon_name">mail-unread</property>
+            <property name="icon_size">3</property>
+          </object>
+        </child>
       </object>
       <packing>
         <property name="left_attach">4</property>

@@ -21,7 +21,7 @@ using WebKit;
 using JSHandler;
 using Singularity;
 
-public interface ItemView : Box
+public interface ItemView : Widget
 {
     // Returns whether to only show "important" items (unread and starred)
     public abstract bool get_important_only();
@@ -44,8 +44,20 @@ public class StreamItemView : Box, ItemView {
         m_global_settings = app_settings;
 
         UserContentManager content_manager = new UserContentManager();
-        UserScript test_script = new UserScript(js_str, UserContentInjectedFrames.ALL_FRAMES, UserScriptInjectionTime.START, null, null);
-        content_manager.add_script(test_script);
+
+        File userscript_resource = File.new_for_uri("resource:///org/df458/Singularity/StreamViewLink.js");
+        FileInputStream stream = userscript_resource.read();
+        DataInputStream data_stream = new DataInputStream(stream);
+
+        // Load the linking JS and inject it
+        StringBuilder builder = new StringBuilder();
+        string? str = data_stream.read_line();
+        do {
+            builder.append(str + "\n");
+            str = data_stream.read_line();
+        } while(str != null);
+        UserScript link_script = new UserScript(builder.str, UserContentInjectedFrames.ALL_FRAMES, UserScriptInjectionTime.START, null, null);
+        content_manager.add_script(link_script);
 
         m_web_view = new WebView.with_user_content_manager(content_manager);
         WebKit.Settings settings = new WebKit.Settings();
@@ -58,7 +70,6 @@ public class StreamItemView : Box, ItemView {
         settings.set_enable_smooth_scrolling(true);
         settings.set_enable_write_console_messages_to_stdout(false);
 
-        m_web_view.set_background_color(this.get_style_context().get_background_color(StateFlags.NORMAL));
         m_web_view.set_settings(settings);
 
         m_web_view.decide_policy.connect(policy_decision);
@@ -137,5 +148,102 @@ public class StreamItemView : Box, ItemView {
                 item_read_toggle(m_item_list[id]);
             break;
         }
+    }
+}
+
+[GtkTemplate (ui = "/org/df458/Singularity/ColumnItemView.ui")]
+public class ColumnItemView : Paned, ItemView {
+    // Returns whether to only show "important" items (unread and starred)
+    public bool get_important_only() { return false; }
+
+    public ColumnItemView(GlobalSettings app_settings) {
+        m_global_settings = app_settings;
+
+        m_row_list = new Gee.ArrayList<ListBoxRow>();
+
+        m_web_view = new WebView();
+        WebKit.Settings settings = new WebKit.Settings();
+        settings.set_allow_file_access_from_file_urls(true);
+        settings.set_enable_developer_extras(true); // TODO: For now. We may want to disable this for release builds
+        settings.set_enable_dns_prefetching(false);
+        settings.set_enable_frame_flattening(true);
+        settings.set_enable_fullscreen(true);
+        settings.set_enable_page_cache(false);
+        settings.set_enable_smooth_scrolling(true);
+        settings.set_enable_write_console_messages_to_stdout(false);
+
+        m_web_view.set_settings(settings);
+
+        m_web_view.decide_policy.connect(policy_decision);
+
+        m_builder = new ColumnViewBuilder();
+
+        item_box.set_header_func(listbox_header_separator);
+
+        webview_box.pack_start(m_web_view, true, true);
+    }
+    // Sets the items to display
+    public void view_items(Gee.List<Item> item_list) {
+        foreach(ListBoxRow row in m_row_list)
+            item_box.remove(row);
+        m_row_list.clear();
+
+        m_item_list = item_list;
+        foreach(Item i in item_list) {
+            ListBoxRow row = new ListBoxRow();
+            row.add(new ItemListEntry(i));
+            item_box.add(row);
+            m_row_list.add(row);
+        }
+        this.show_all();
+    }
+
+    [GtkChild]
+    private ListBox item_box;
+    [GtkChild]
+    private Box webview_box;
+    private ColumnViewBuilder m_builder;
+    private Gee.List<Item> m_item_list;
+    private Gee.List<ListBoxRow> m_row_list;
+    private WebKit.WebView m_web_view;
+    private GlobalSettings m_global_settings;
+
+    private bool policy_decision(PolicyDecision decision, PolicyDecisionType type)
+    {
+        if(type == PolicyDecisionType.NAVIGATION_ACTION) {
+            NavigationPolicyDecision nav_dec = (NavigationPolicyDecision) decision;
+            if(nav_dec.get_navigation_action().get_navigation_type() == NavigationType.LINK_CLICKED) {
+                try {
+                    GLib.Process.spawn_command_line_async(m_global_settings.link_command.printf(nav_dec.get_navigation_action().get_request().uri));
+                    nav_dec.ignore();
+                } catch(Error e) {
+                    warning("Error opening external link: %s", e.message);
+                }
+            }
+            return true;
+        }
+        return false;
+    }
+
+    // Called when the "Mark all as read" button is clicked
+    [GtkCallback]
+    void on_mark_all_read() {
+        // TODO
+    }
+
+    [GtkCallback]
+    void on_item_selected(ListBoxRow? row) {
+        if(row == null)
+            return;
+
+        ItemListEntry entry = row.get_child() as ItemListEntry;
+        Item item = entry.item;
+        entry.viewed();
+        if(item.unread)
+            item_viewed(item);
+
+        m_builder.page = m_item_list.index_of(item);
+        string html = m_builder.buildHTML(m_item_list);
+        m_web_view.load_html(html, "file://singularity");
     }
 }

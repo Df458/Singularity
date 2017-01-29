@@ -49,7 +49,6 @@ namespace Singularity
 
         public Query build_query(Database db)
         {
-            stderr.printf("%s update", package.feed.title);
             switch(m_status) {
                 case Status.ICON_INSERT:
                     StringBuilder q_builder = new StringBuilder("INSERT OR REPLACE INTO icons (id, width, height, bits, rowstride, data) VALUES ");
@@ -222,12 +221,10 @@ namespace Singularity
             try {
                 if(m_status == Status.UNREAD_PRE + 1) {
                     unread_count = res.get_int("unread_count") * -1;
-                    stderr.printf("\n\nUnread Count for %s is starting at %d\u2026\n", package.feed.to_string(), unread_count);
                 }
 
                 if(m_status == Status.UNREAD + 1) {
                     unread_count += res.get_int("unread_count");
-                    stderr.printf("\n\nUnread Count for %s is %d now\n", package.feed.to_string(), unread_count);
                 }
 
             } catch(SQLHeavy.Error e) {

@@ -17,9 +17,7 @@
 */
 
 using SQLHeavy;
-
-namespace Singularity
-{
+using Singularity;
 
 const string DEFAULT_SCHEMA_DIR = "/usr/local/share/singularity/schemas";
 
@@ -30,6 +28,7 @@ public class DatabaseManager
     public DatabaseManager.from_path(GlobalSettings settings, string path)
     {
         m_settings = settings;
+        m_database_mutex = new Mutex();
 
         try {
             m_database = new Database(path);
@@ -43,46 +42,39 @@ public class DatabaseManager
             error("Failed to initialize the database at %s: %s", path, e.message);
         }
         is_open = true;
-        m_requests = new AsyncQueue<DatabaseRequest>();
 
-        // TODO: Eventually, we'll probably want to make id grabbing a bit less sequential
-        /* try { */
-        /*     Query q_ids = new Query(m_database, Q_ID_PREPARATION); */
-        /*     QueryResult r_ids = q_ids.execute(); */
-        /*     m_next_feed_id = r_ids.fetch_int(0) + 1; */
-        /*     m_next_item_id = r_ids.fetch_int(1) + 1; */
-        /* } catch(SQLHeavy.Error e) { */
-        /*     error("Failed to prepare database ids: %s", e.message); */
-        /* } */
-        m_processing_thread = new Thread<void*>(null, process);
+        processors = {};
+        for(int i = 0; i < RequestPriority.COUNT; ++i) {
+            processors[i] = new DatabaseRequestProcessor(m_database_mutex, m_database);
+        }
     }
 
     public void queue_request(DatabaseRequest req, RequestPriority prio = RequestPriority.DEFAULT)
     {
-        m_requests.push(req);
+        processors[prio].requests.push(req);
     }
 
     public async void execute_request(DatabaseRequest req, RequestPriority prio = RequestPriority.DEFAULT)
     {
         SourceFunc func = execute_request.callback;
         req.processing_complete.connect(() => {Idle.add(func);});
-        m_requests.push(req);
+        processors[prio].requests.push(req);
 
         yield;
     }
 
-    public signal void query_complete(DatabaseRequest req, bool success = true);
+    /* public signal void query_complete(DatabaseRequest req, bool success = true); */
 
     //-------------------------------------------------------------------------
 
     private Database m_database;
+    private Mutex    m_database_mutex;
     private unowned GlobalSettings m_settings;
+    private DatabaseRequestProcessor[] processors;
 
     // TODO: Use priority
-    private AsyncQueue<DatabaseRequest> m_requests;
-    private Thread<void*> m_processing_thread;
-
-    /* private static string Q_ID_PREPARATION = "SELECT MAX(id) FROM feeds UNION SELECT MAX(id) FROM items"; */
+    private AsyncQueue<DatabaseRequest>[] m_requests;
+    private Thread<void*>[] m_processing_thread;
 
     private bool update_schema_version(string schema_dir = DEFAULT_SCHEMA_DIR)
     {
@@ -116,25 +108,26 @@ public class DatabaseManager
         }
     }
 
-    private void* process()
-    {
-        while(true) {
-            DatabaseRequest req = m_requests.pop();
-            RequestStatus status = RequestStatus.CONTINUE;
-                do {
-                    Query q = req.build_query(m_database);
-                    try {
-                        QueryResult res = q.execute();
-                        status = req.process_result(res);
-                    } catch(SQLHeavy.Error e) {
-                        error("Failed to process request: %s. Query is [%s]", e.message, q.sql);
-                    }
-                } while(status == RequestStatus.CONTINUE);
-
-            query_complete(req, status == RequestStatus.COMPLETED);
-            req.processing_complete();
-        }
-    }
+    /* private void* process(RequestPriority priority) */
+    /* { */
+    /*     stderr.printf("HANDLING REQUESTS ON %d", priority); */
+    /*     while(true) { */
+    /*         DatabaseRequest req = m_requests[priority].pop(); */
+    /*         RequestStatus status = RequestStatus.CONTINUE; */
+    /*             do { */
+    /*                 Query q = req.build_query(m_database); */
+    /*                 try { */
+    /*                     QueryResult res = q.execute(); */
+    /*                     status = req.process_result(res); */
+    /*                 } catch(SQLHeavy.Error e) { */
+    /*                     error("Failed to process request: %s. Query is [%s]", e.message, q.sql); */
+    /*                 } */
+    /*             } while(status == RequestStatus.CONTINUE); */
+    /*  */
+    /*         query_complete(req, status == RequestStatus.COMPLETED); */
+    /*         req.processing_complete(); */
+    /*     } */
+    /* } */
 
 /*     private async void cleanup_id(int id) */
 /*     { */
@@ -195,4 +188,40 @@ public class DatabaseManager
 /*         } */
 /*     } */
 }
+
+public class DatabaseRequestProcessor
+{
+    public AsyncQueue<DatabaseRequest> requests { get; set; }
+
+    public DatabaseRequestProcessor(Mutex m, Database db) {
+        requests = new AsyncQueue<DatabaseRequest>();
+        processing_thread = new Thread<void*>(null, process);
+        data_mutex = m;
+        database = db;
+    }
+
+    private Thread<void*> processing_thread;
+    private unowned Mutex data_mutex;
+    private unowned Database database;
+
+    private void* process()
+    {
+        while(true) {
+            DatabaseRequest req = requests.pop();
+            RequestStatus status = RequestStatus.CONTINUE;
+            data_mutex.lock();
+            do {
+                Query q = req.build_query(database);
+                try {
+                    QueryResult res = q.execute();
+                    status = req.process_result(res);
+                } catch(SQLHeavy.Error e) {
+                    error("Failed to process request: %s. Query is [%s]", e.message, q.sql);
+                }
+            } while(status == RequestStatus.CONTINUE);
+            data_mutex.unlock();
+
+            req.processing_complete();
+        }
+    }
 }

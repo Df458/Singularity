@@ -38,9 +38,40 @@ public class MainWindow : Gtk.ApplicationWindow
 
         m_last_displayed_node = null;
 
-        m_item_view = new StreamItemView(owner_app.get_global_settings());
+        StreamItemView stream_view = new StreamItemView(app.get_global_settings());
+        stream_view.item_viewed.connect((i) =>
+        {
+            app.view_item(i);
+        });
+        stream_view.item_read_toggle.connect((i) =>
+        {
+            app.toggle_unread(i);
+        });
+        stream_view.item_star_toggle.connect((i) =>
+        {
+            app.toggle_star(i);
+        });
+        stream_view.unread_mode_changed.connect((mode) => { display_node(m_last_displayed_node); });
+        view_stack.add_named(stream_view, "items_stream");
+
+        ColumnItemView column_view = new ColumnItemView(app.get_global_settings());
+        column_view.item_viewed.connect((i) =>
+        {
+            app.view_item(i);
+        });
+        column_view.item_read_toggle.connect((i) =>
+        {
+            app.toggle_unread(i);
+        });
+        column_view.item_star_toggle.connect((i) =>
+        {
+            app.toggle_star(i);
+        });
+        column_view.unread_mode_changed.connect((mode) => { display_node(m_last_displayed_node); });
+        view_stack.add_named(column_view, "items_column");
+
+        m_item_view = stream_view;
         m_settings_view = new SettingsView(app.get_global_settings());
-        view_stack.add_named(m_item_view, "items");
         view_stack.add_named(m_settings_view, "settings");
         feed_pane = new FeedPane(this, app.get_feed_store());
         view_pane.pack_start(feed_pane, true, true);
@@ -55,7 +86,7 @@ public class MainWindow : Gtk.ApplicationWindow
 
         app.load_status_changed.connect((val) =>
         {
-            feed_pane.expand();
+            feed_pane.expand_all();
             view_stack.set_visible_child(m_item_view);
         });
 
@@ -69,20 +100,6 @@ public class MainWindow : Gtk.ApplicationWindow
         {
             m_feed_builder.hide();
         });
-
-        m_item_view.item_viewed.connect((i) =>
-        {
-            app.view_item(i);
-        });
-        m_item_view.item_read_toggle.connect((i) =>
-        {
-            app.toggle_unread(i);
-        });
-        m_item_view.item_star_toggle.connect((i) =>
-        {
-            app.toggle_star(i);
-        });
-        m_item_view.unread_mode_changed.connect((mode) => { display_node(m_last_displayed_node); });
 
         m_settings_view.done.connect(() =>
         {
@@ -127,6 +144,27 @@ public class MainWindow : Gtk.ApplicationWindow
         m_feed_builder.show_all();
     }
 
+    [GtkCallback]
+    public void stream_view_selected() {
+        view_stack.set_visible_child_name("items_stream");
+        m_item_view = view_stack.get_child_by_name("items_stream") as ItemView;
+        display_node(m_last_displayed_node);
+    }
+
+    [GtkCallback]
+    public void column_view_selected() {
+        view_stack.set_visible_child_name("items_column");
+        m_item_view = view_stack.get_child_by_name("items_column") as ItemView;
+        display_node(m_last_displayed_node);
+    }
+
+    [GtkCallback]
+    public void grid_view_selected() {
+        view_stack.set_visible_child_name("items_grid");
+        m_item_view = view_stack.get_child_by_name("items_grid") as ItemView;
+        display_node(m_last_displayed_node);
+    }
+
     public void preferences() {
         m_settings_view.sync();
         view_stack.set_visible_child_name("settings");
@@ -146,7 +184,9 @@ public class MainWindow : Gtk.ApplicationWindow
     private SingularityApp app;
     private FeedPane feed_pane;
     private SettingsView m_settings_view;
+
     private ItemView m_item_view;
+
     private FeedBuilder m_feed_builder;
 
     private CollectionNode? m_last_displayed_node;

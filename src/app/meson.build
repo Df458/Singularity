@@ -1,4 +1,4 @@
-appsrc = ['AddPane.vala', 'FeedBuilder.vala', 'FeedPane.vala', 'FeedSettingsPane.vala', 'ItemView.vala', 'JSStr.vala', 'MainWindow.vala', 'RuleEntry.vala', 'SettingsView.vala', 'Singularity.vala', 'main.vala', 'ImportDialog.vala']
+appsrc = ['AddPane.vala', 'FeedBuilder.vala', 'FeedPane.vala', 'ItemView.vala', 'MainWindow.vala', 'SettingsView.vala', 'Singularity.vala', 'main.vala', 'ImportDialog.vala', 'ItemListEntry.vala']
 appdeps = deps
 appinc = [include_directories(meson.current_build_dir() + '/../lib'), include_directories(meson.current_source_dir() + '/../lib')]
 apptarget = executable('singularity', appsrc + resources,

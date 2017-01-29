@@ -16,15 +16,15 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 using Gee;
+using Singularity;
 
-namespace Singularity
-{
 public class ColumnViewBuilder : ViewBuilder, GLib.Object
 {
     public string head;
-    public static const string builder_class = "column";
-    public  string star_svg = "file:///usr/local/share/singularity/star.svg";
-    public  string read_svg = "file:///usr/local/share/singularity/read.svg";
+    public const string builder_class = "column";
+    public string star_svg = "file:///usr/local/share/singularity/star.svg";
+    public string read_svg = "file:///usr/local/share/singularity/read.svg";
+    public int page = 0;
 
     public ColumnViewBuilder()
     {
@@ -44,11 +44,13 @@ public class ColumnViewBuilder : ViewBuilder, GLib.Object
 
     public string buildHTML(Gee.List<Item> items)
     {
+        if(page > items.size)
+            return "";
         StringBuilder builder = new StringBuilder("<html>");
         builder.append(head);
         builder.append("<body>");
         int id = 0;
-        Item i = items[0];
+        Item i = items[page];
 
         StringBuilder head_builder    = new StringBuilder("<header>");
         StringBuilder content_builder = new StringBuilder("<section class=\"content\">");
@@ -82,5 +84,4 @@ public class ColumnViewBuilder : ViewBuilder, GLib.Object
 
         return builder.str;
     }
-}
 }

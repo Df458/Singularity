@@ -120,8 +120,13 @@ public class SingularityApp : Gtk.Application
                 req.item_filter = ItemListRequest.Filter.UNREAD_AND_STARRED;
             else
                 req.item_filter = ItemListRequest.Filter.UNREAD_ONLY;
-        } else if(starred_only)
-                req.item_filter = ItemListRequest.Filter.STARRED_ONLY;
+        } else if(starred_only) {
+            req.item_filter = ItemListRequest.Filter.STARRED_ONLY;
+        } else {
+            warning("Sort update");
+            req.primary_sort = ItemListRequest.SortType.UNREAD;
+            req.secondary_sort = ItemListRequest.SortType.FEED;
+        }
         req.max_items = m_global_settings.items_per_list;
         yield m_database.execute_request(req);
 
@@ -265,7 +270,6 @@ public class SingularityApp : Gtk.Application
     private FeedCollection         m_feeds;
     private CollectionTreeStore?   m_feed_store = null;
     private UpdateQueue            m_update_queue;
-    private LoadStatus             m_current_load_status = LoadStatus.NOT_STARTED;
     private UpdateProgress         m_current_update_progress;
 
     private void start_run()
@@ -293,7 +297,7 @@ public class SingularityApp : Gtk.Application
                     }
                 });
             } else if(pak.contents == UpdatePackage.PackageContents.ERROR_DATA) {
-                warning("Can't update feed %s: %s", pak.feed.title, pak.message);
+                warning("Can't update feed %s: %s", pak.feed.to_string(), pak.message);
                 m_current_update_progress.updates_finished();
                 update_progress_changed(m_current_update_progress);
             }
