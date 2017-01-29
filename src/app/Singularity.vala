@@ -123,8 +123,8 @@ public class SingularityApp : Gtk.Application
         } else if(starred_only) {
             req.item_filter = ItemListRequest.Filter.STARRED_ONLY;
         } else {
-            warning("Sort update");
             req.primary_sort = ItemListRequest.SortType.UNREAD;
+            req.primary_sort_ascending = false;
             req.secondary_sort = ItemListRequest.SortType.FEED;
         }
         req.max_items = m_global_settings.items_per_list;
