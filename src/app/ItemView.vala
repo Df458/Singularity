@@ -28,7 +28,6 @@ public interface ItemView : Widget
     // Sets the items to display
     public abstract void view_items(Gee.List<Item> items);
 
-    // TODO: Maybe replace these?
     public signal void item_viewed(Item i);
     public signal void item_read_toggle(Item i);
     public signal void item_star_toggle(Item i);
@@ -45,19 +44,23 @@ public class StreamItemView : Box, ItemView {
 
         UserContentManager content_manager = new UserContentManager();
 
-        File userscript_resource = File.new_for_uri("resource:///org/df458/Singularity/StreamViewLink.js");
-        FileInputStream stream = userscript_resource.read();
-        DataInputStream data_stream = new DataInputStream(stream);
+        try {
+            File userscript_resource = File.new_for_uri("resource:///org/df458/Singularity/StreamViewLink.js");
+            FileInputStream stream = userscript_resource.read();
+            DataInputStream data_stream = new DataInputStream(stream);
 
-        // Load the linking JS and inject it
-        StringBuilder builder = new StringBuilder();
-        string? str = data_stream.read_line();
-        do {
-            builder.append(str + "\n");
-            str = data_stream.read_line();
-        } while(str != null);
-        UserScript link_script = new UserScript(builder.str, UserContentInjectedFrames.ALL_FRAMES, UserScriptInjectionTime.START, null, null);
-        content_manager.add_script(link_script);
+            // Load the linking JS and inject it
+            StringBuilder builder = new StringBuilder();
+            string? str = data_stream.read_line();
+            do {
+                builder.append(str + "\n");
+                str = data_stream.read_line();
+            } while(str != null);
+            UserScript link_script = new UserScript(builder.str, UserContentInjectedFrames.ALL_FRAMES, UserScriptInjectionTime.START, null, null);
+            content_manager.add_script(link_script);
+        } catch(Error e) {
+            error("Can't read JS resources: %s", e.message);
+        }
 
         m_web_view = new WebView.with_user_content_manager(content_manager);
         WebKit.Settings settings = new WebKit.Settings();
@@ -231,6 +234,7 @@ public class ColumnItemView : Paned, ItemView {
         // TODO
     }
 
+    // Called when the user selects an item in the left column
     [GtkCallback]
     void on_item_selected(ListBoxRow? row) {
         if(row == null)
@@ -239,8 +243,10 @@ public class ColumnItemView : Paned, ItemView {
         ItemListEntry entry = row.get_child() as ItemListEntry;
         Item item = entry.item;
         entry.viewed();
-        if(item.unread)
+        if(item.unread) {
             item_viewed(item);
+            item.unread = false;
+        }
 
         m_builder.page = m_item_list.index_of(item);
         string html = m_builder.buildHTML(m_item_list);

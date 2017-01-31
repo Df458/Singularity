@@ -102,15 +102,6 @@ public class SingularityApp : Gtk.Application
         }
     }
 
-    public void update_feed_settings(Feed f)
-    {
-        // TODO: Re-enable once feed rules are updated
-        //string outrule = "%d %d %d\n%d %d %d\n%d %d %d\n%d %d %d".printf(f.unread_unstarred_rule[0], f.unread_unstarred_rule[1], f.unread_unstarred_rule[2], f.unread_starred_rule[0], f.unread_starred_rule[1], f.unread_starred_rule[2], f.read_unstarred_rule[0], f.read_unstarred_rule[1], f.read_unstarred_rule[2], f.read_starred_rule[0], f.read_starred_rule[1], f.read_starred_rule[2]);
-        //if(!f.override_rules)
-            //outrule = "";
-        //m_database.updateFeedSettings.begin(f, outrule);
-    }
-
     // TODO: Make this take a query object with more limits and settings
     public async Gee.List<Item?> query_items(CollectionNode? node, bool unread_only, bool starred_only)
     {
@@ -210,7 +201,6 @@ public class SingularityApp : Gtk.Application
             Gtk.TreeIter? iter = null;
 
             m_feed_store.append_node(node, iter);
-            // TODO: Figure out how to get the new feeds and update them
         });
     }
 
