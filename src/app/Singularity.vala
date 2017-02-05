@@ -103,29 +103,15 @@ public class SingularityApp : Gtk.Application
     }
 
     // TODO: Make this take a query object with more limits and settings
-    public async Gee.List<Item?> query_items(CollectionNode? node, bool unread_only, bool starred_only)
+    public async Gee.List<Item?> query_items(ItemListRequest r)
     {
-        ItemListRequest req = new ItemListRequest(node);
-        if(unread_only) {
-            if(starred_only)
-                req.item_filter = ItemListRequest.Filter.UNREAD_AND_STARRED;
-            else
-                req.item_filter = ItemListRequest.Filter.UNREAD_ONLY;
-        } else if(starred_only) {
-            req.item_filter = ItemListRequest.Filter.STARRED_ONLY;
-        } else {
-            req.primary_sort = ItemListRequest.SortType.UNREAD;
-            req.primary_sort_ascending = false;
-            req.secondary_sort = ItemListRequest.SortType.FEED;
-        }
-        req.max_items = m_global_settings.items_per_list;
-        yield m_database.execute_request(req);
+        yield m_database.execute_request(r);
 
-        foreach(Item i in req.item_list) {
-            i.owner = m_feed_store.get_feed_from_id(req.item_id_map[i]);
+        foreach(Item i in r.item_list) {
+            i.owner = m_feed_store.get_feed_from_id(r.item_id_map[i]);
         }
 
-        return req.item_list;
+        return r.item_list;
     }
 
     public int runall()

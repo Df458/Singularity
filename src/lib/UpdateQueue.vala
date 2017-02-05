@@ -26,12 +26,6 @@ public class UpdateQueue : Object
             m_update_requests.push(f);
     }
 
-    public void set_paused(bool paused)
-    {
-        // TODO: Implement this
-        warning("UpdateQueue.set_paused: unimplemented");
-    }
-
     public signal void update_processed(UpdatePackage update);
 
     private AsyncQueue<Feed> m_update_requests;

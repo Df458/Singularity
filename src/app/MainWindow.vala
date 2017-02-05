@@ -128,7 +128,16 @@ public class MainWindow : Gtk.ApplicationWindow
     public void display_node(CollectionNode? node)
     {
         m_last_displayed_node = node;
-        app.query_items.begin(node, m_item_view.get_important_only(), false, (obj, res) =>
+        ItemListRequest request = new ItemListRequest(node);
+        /* request.max_items = app.get_global_settings().items_per_list; */
+        if(m_item_view.get_important_only())
+            request.item_filter = ItemListRequest.Filter.UNREAD_AND_STARRED;
+        else {
+            request.primary_sort = ItemListRequest.SortType.UNREAD;
+            request.primary_sort_ascending = false;
+            request.secondary_sort = ItemListRequest.SortType.FEED;
+        }
+        app.query_items.begin(request, (obj, res) =>
         {
             Gee.List<Item?> item_list = app.query_items.end(res);
             m_item_view.view_items(item_list);

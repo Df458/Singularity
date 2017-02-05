@@ -86,8 +86,9 @@ public class StreamItemView : Box, ItemView {
     }
     // Sets the items to display
     public void view_items(Gee.List<Item> item_list) {
+        page_cursor = 0;
         m_item_list = item_list;
-        string html = m_builder.buildHTML(m_item_list);
+        string html = m_builder.buildPageHTML(m_item_list, m_global_settings.items_per_list);
         m_web_view.load_html(html, "file://singularity");
     }
 
@@ -97,8 +98,9 @@ public class StreamItemView : Box, ItemView {
     private WebKit.WebView m_web_view;
     private GlobalSettings m_global_settings;
 
-    private bool policy_decision(PolicyDecision decision, PolicyDecisionType type)
-    {
+    private int page_cursor = 0;
+
+    private bool policy_decision(PolicyDecision decision, PolicyDecisionType type) {
         if(type == PolicyDecisionType.NAVIGATION_ACTION) {
             NavigationPolicyDecision nav_dec = (NavigationPolicyDecision) decision;
             if(nav_dec.get_navigation_action().get_navigation_type() == NavigationType.LINK_CLICKED) {
@@ -127,15 +129,14 @@ public class StreamItemView : Box, ItemView {
         unread_mode_changed(m_important_view);
     }
 
-    private void message_received(JavascriptResult result)
-    {
+    private void message_received(JavascriptResult result) {
         JavascriptAppRequest request = get_js_info(result);
         string command = (string)request.returned_value;
         if(command == null)
             return;
         char cmd;
         int id;
-        if(command.scanf("%c:%d", out cmd, out id) != 2)
+        if(command.scanf("%c:%d", out cmd, out id) != 2 && cmd != 'p')
             return;
 
         switch(cmd) {
@@ -150,7 +151,25 @@ public class StreamItemView : Box, ItemView {
             case 'r': // Read button pressed
                 item_read_toggle(m_item_list[id]);
             break;
+
+            case 'p':
+                add_items();
+            break;
         }
+    }
+
+    private void add_items() {
+        page_cursor += m_global_settings.items_per_list;
+        if(page_cursor > m_item_list.size)
+            return;
+        StringBuilder sb = new StringBuilder("document.body.innerHTML += String.raw`");
+        int starting_id = m_item_list.size;
+        for(int i = 0; i < m_global_settings.items_per_list && i < m_item_list.size; ++i) {
+            sb.append(m_builder.buildItemHTML(m_item_list[page_cursor + i], page_cursor + i));
+        }
+        sb.append_printf("`; prepareItems(%d);", starting_id);
+
+        m_web_view.run_javascript(sb.str, null);
     }
 }
 
@@ -184,35 +203,40 @@ public class ColumnItemView : Paned, ItemView {
         item_box.set_header_func(listbox_header_separator);
 
         webview_box.pack_start(m_web_view, true, true);
+
+        m_item_list = new Gee.ArrayList<Item>();
+        column_scroll.edge_reached.connect((p) => {
+            if(p == PositionType.BOTTOM) {
+                add_items();
+            }
+        });
     }
     // Sets the items to display
     public void view_items(Gee.List<Item> item_list) {
+        page_cursor = 0;
+        column_scroll.vadjustment.set_value(0);
         foreach(ListBoxRow row in m_row_list)
             item_box.remove(row);
         m_row_list.clear();
-
         m_item_list = item_list;
-        foreach(Item i in item_list) {
-            ListBoxRow row = new ListBoxRow();
-            row.add(new ItemListEntry(i));
-            item_box.add(row);
-            m_row_list.add(row);
-        }
-        this.show_all();
+        add_items();
     }
 
     [GtkChild]
     private ListBox item_box;
     [GtkChild]
     private Box webview_box;
+    [GtkChild]
+    private ScrolledWindow column_scroll;
     private ColumnViewBuilder m_builder;
     private Gee.List<Item> m_item_list;
     private Gee.List<ListBoxRow> m_row_list;
     private WebKit.WebView m_web_view;
     private GlobalSettings m_global_settings;
 
-    private bool policy_decision(PolicyDecision decision, PolicyDecisionType type)
-    {
+    private int page_cursor = 0;
+
+    private bool policy_decision(PolicyDecision decision, PolicyDecisionType type) {
         if(type == PolicyDecisionType.NAVIGATION_ACTION) {
             NavigationPolicyDecision nav_dec = (NavigationPolicyDecision) decision;
             if(nav_dec.get_navigation_action().get_navigation_type() == NavigationType.LINK_CLICKED) {
@@ -249,7 +273,20 @@ public class ColumnItemView : Paned, ItemView {
         }
 
         m_builder.page = m_item_list.index_of(item);
-        string html = m_builder.buildHTML(m_item_list);
+        string html = m_builder.buildPageHTML(m_item_list, 0);
         m_web_view.load_html(html, "file://singularity");
+    }
+
+    public void add_items() {
+        int i = 0;
+        for(i = 0; i < m_global_settings.items_per_list && i + page_cursor < m_item_list.size; ++i) {
+            ListBoxRow row = new ListBoxRow();
+            row.add(new ItemListEntry(m_item_list[page_cursor + i]));
+            item_box.add(row);
+            m_row_list.add(row);
+        }
+
+        page_cursor += i;
+        this.show_all();
     }
 }

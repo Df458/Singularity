@@ -23,23 +23,15 @@ public class GridViewBuilder : ViewBuilder, GLib.Object
         head = builder.str;
     }
 
-    public string buildHTML(Gee.List<Item> items)
+    public string buildPageHTML(Gee.List<Item> items, int limit)
     {
-        StringBuilder builder = new StringBuilder("<html>");
-//        builder.append(head);
-//        builder.append_printf("<body class=\"%s\">", builder_class);
-//        foreach(Item i in items) {
-//            builder.append_printf("<article class=\"%s\">", builder_class);
-//            builder.append_printf("<div class=\"%s\" id=\"preview\">", builder_class);
-//            builder.append_printf("<h1 class=\"%s title\"><a href=\"%s\">%s</a></h1>", builder_class, i.link, i.title);
-//            builder.append("</div>");
-//            // TODO: Tags
-//            builder.append("</article>");
-//        }
-//
-//        builder.append("</body></html>");
+        error("buildPageHTML: Unimplemented");
+    }
 
-        return builder.str;
+    public string buildItemHTML(Item item, int id)
+    {
+        error("buildItemHTML: Unimplemented");
+        return "";
     }
 }
 }

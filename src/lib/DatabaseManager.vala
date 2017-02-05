@@ -28,7 +28,7 @@ public class DatabaseManager
     public DatabaseManager.from_path(GlobalSettings settings, string path)
     {
         m_settings = settings;
-        m_database_mutex = new Mutex();
+        m_database_mutex = Mutex();
 
         try {
             m_database = new Database(path);
@@ -72,10 +72,6 @@ public class DatabaseManager
     private unowned GlobalSettings m_settings;
     private DatabaseRequestProcessor[] processors;
 
-    // TODO: Use priority
-    private AsyncQueue<DatabaseRequest>[] m_requests;
-    private Thread<void*>[] m_processing_thread;
-
     private bool update_schema_version(string schema_dir = DEFAULT_SCHEMA_DIR)
     {
         StringBuilder builder = new StringBuilder(schema_dir);
@@ -107,27 +103,6 @@ public class DatabaseManager
             error("Cannot create database: %s", e.message);
         }
     }
-
-    /* private void* process(RequestPriority priority) */
-    /* { */
-    /*     stderr.printf("HANDLING REQUESTS ON %d", priority); */
-    /*     while(true) { */
-    /*         DatabaseRequest req = m_requests[priority].pop(); */
-    /*         RequestStatus status = RequestStatus.CONTINUE; */
-    /*             do { */
-    /*                 Query q = req.build_query(m_database); */
-    /*                 try { */
-    /*                     QueryResult res = q.execute(); */
-    /*                     status = req.process_result(res); */
-    /*                 } catch(SQLHeavy.Error e) { */
-    /*                     error("Failed to process request: %s. Query is [%s]", e.message, q.sql); */
-    /*                 } */
-    /*             } while(status == RequestStatus.CONTINUE); */
-    /*  */
-    /*         query_complete(req, status == RequestStatus.COMPLETED); */
-    /*         req.processing_complete(); */
-    /*     } */
-    /* } */
 
 /*     private async void cleanup_id(int id) */
 /*     { */

@@ -1,11 +1,13 @@
 var prep_done = false;
+var wants_more = false;
+var items;
 setTimeout(prepare, 2000);
 
 function tryRead(element) {
     var rect = element.getBoundingClientRect();
     var in_view = rect.top <= window.innerHeight / 2 || rect.bottom <= window.innerHeight;
     if(in_view && element.dataset.read_set == 'false' && element.dataset.read != 'true') {
-        console.log(element.dataset);
+        // console.log(element.dataset);
         webkit.messageHandlers.test.postMessage("v:" + element.dataset.id);
         element.dataset.read = 'true';
         element.classList.remove('unread');
@@ -34,12 +36,21 @@ function generateReadCallback(el) {
     return function() { tryRead(el); }
 }
 
-function prepare() {
-    if(prep_done)
-        return;
-    prep_done = true;
-    var items = document.getElementsByTagName('article');
-    for(var j = 0; j < items.length; ++j){
+function checkScroll() {
+    for(var j = 0; j < items.length; ++j) {
+        tryRead(items[j]);
+    }
+
+    if(window.pageYOffset + window.innerHeight > document.documentElement.clientHeight - 300 && wants_more) {
+        webkit.messageHandlers.test.postMessage("p:");
+        wants_more = false;
+    }
+}
+
+function prepareItems(starting_id) {
+    items = document.getElementsByTagName('article');
+
+    for(var j = starting_id; j < items.length; ++j){
         var i = items[j];
         var readbutton = i.children[0].children[0].children[1].children[0];
         var starbutton = i.children[0].children[0].children[1].children[1];
@@ -54,7 +65,18 @@ function prepare() {
         starbutton.onclick = function() {toggleStar(this);}
 
         tryRead(i);
-        addEventListener('scroll', generateReadCallback(i), false);
-        addEventListener('resize', generateReadCallback(i), false);
     }
+
+    wants_more = true;
 }
+
+function prepare() {
+    if(prep_done)
+        return;
+    prep_done = true;
+
+    prepareItems(0);
+}
+
+window.addEventListener('scroll', checkScroll);
+window.addEventListener('resize', checkScroll);

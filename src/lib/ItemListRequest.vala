@@ -48,8 +48,6 @@ namespace Singularity
         public SortType secondary_sort           = SortType.POST_DATE;
         public bool     secondary_sort_ascending = true;
 
-        public int      max_items                = -1;
-        public int      item_offset              = 0;
         public CollectionNode? filter_node { get; construct; }
         public Gee.List<Item>? item_list { get; private set; }
         public Gee.HashMap<Item, int> item_id_map { get; private set; }
@@ -146,10 +144,6 @@ namespace Singularity
                     else
                         q_builder.append(" DESC");
                 }
-            }
-
-            if(max_items > 0) {
-                q_builder.append_printf(" LIMIT %d OFFSET %d", max_items, item_offset);
             }
 
             Query query;

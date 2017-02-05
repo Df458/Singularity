@@ -22,9 +22,6 @@ string get_node_contents(Xml.Node* node, bool atom = false)
 {
     string output = "";
     if(node == null || node->children == null){
-            // TODO: verbose
-        /* if(verbose) */
-        /*     stderr.printf("Unexpected null pointer. Ignoring...\n"); */
         return output;
     }
     if(atom && node->has_prop("type") != null && node->has_prop("type")->children->content != "text") {

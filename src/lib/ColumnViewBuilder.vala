@@ -42,45 +42,49 @@ public class ColumnViewBuilder : ViewBuilder, GLib.Object
         head = builder.str;
     }
 
-    public string buildHTML(Gee.List<Item> items)
+    public string buildPageHTML(Gee.List<Item> items, int limit)
     {
         if(page > items.size)
             return "";
         StringBuilder builder = new StringBuilder("<html>");
         builder.append(head);
-        builder.append("<body>");
-        int id = 0;
-        Item i = items[page];
+        builder.append_printf("<body>%s</body></html>", buildItemHTML(items[page], 0));
+
+        return builder.str;
+    }
+
+    public string buildItemHTML(Item item, int id)
+    {
+        StringBuilder builder = new StringBuilder();
 
         StringBuilder head_builder    = new StringBuilder("<header>");
         StringBuilder content_builder = new StringBuilder("<section class=\"content\">");
         StringBuilder footer_builder  = new StringBuilder("<footer>");
 
         head_builder.append("<section class=\"title\">");
-        head_builder.append_printf("<a href=\"%s\">%s</a>", i.link, i.title == "" ? "Untitled Post" : i.title);
+        head_builder.append_printf("<a href=\"%s\">%s</a>", item.link, item.title == "" ? "Untitled Post" : item.title);
         head_builder.append("<div>");
         head_builder.append_printf("<img class=\"read-button\", src=\"%s\"/>", read_svg);
         head_builder.append_printf("<img class=\"star\", src=\"%s\"/>", star_svg);
         head_builder.append("</div>");
         head_builder.append("</section>");
-        if(i.time_published.compare(new DateTime.from_unix_utc(0)) != 0) {
-            string datestr = i.time_published.format("%A, %B %e %Y");
+        if(item.time_published.compare(new DateTime.from_unix_utc(0)) != 0) {
+            string datestr = item.time_published.format("%A, %B %e %Y");
             head_builder.append_printf("Posted on <time class=\"date\" datetime=\"%s\">%s</time>", datestr, datestr);
         }
         // TODO: Posted section
         head_builder.append("<hr>");
         head_builder.append("</header>");
 
-        content_builder.append(i.content != null ? i.content : "No content");
+        content_builder.append(item.content != null ? item.content : "No content");
         content_builder.append("</section>");
 
         // TODO: Attachments
         // TODO: Tags
         footer_builder.append_printf("</footer>");
 
-        builder.append_printf("<article class=\"%s\" data-id=\"%d\" data-read=\"%s\" data-starred=\"%s\">%s%s%s</article>", builder_class, id, i.unread ? "false" : "true", i.starred ? "true" : "false", head_builder.str, content_builder.str, footer_builder.str);
+        builder.append_printf("<article class=\"%s\" data-id=\"%d\" data-read=\"%s\" data-starred=\"%s\">%s%s%s</article>", builder_class, id, item.unread ? "false" : "true", item.starred ? "true" : "false", head_builder.str, content_builder.str, footer_builder.str);
         ++id;
-        builder.append("</body></html>");
 
         return builder.str;
     }
