@@ -43,7 +43,6 @@ namespace Singularity
             Query q;
             try {
                 q = new Query(db, q_builder.str);
-                stderr.printf("Q:%s\n", q.sql);
             } catch(SQLHeavy.Error e) {
                 error("Failed to toggle %s: %s", field_names[field], e.message);
             }

@@ -56,7 +56,6 @@ namespace Singularity
                             IconRequest req = new IconRequest(get_node_contents(node));
                             if(req.send()) {
                                 stored_feed.icon = req.buf;
-                                warning("Got icon!");
                             }
                         break;
 
@@ -92,6 +91,19 @@ namespace Singularity
                         case "link":
                             if(dat->has_prop("rel") == null || dat->has_prop("rel")->children->content == "alternate") {
                                 new_item.link = dat->has_prop("href")->children->content;
+                            } else if(dat->has_prop("rel")->children->content == "enclosure") {
+                                Attachment a = Attachment();
+                                a.url = dat->has_prop("href")->children->content;
+                                if(dat->has_prop("title") != null)
+                                    a.name = dat->has_prop("title")->children->content;
+                                else
+                                    a.name = a.url.substring(a.url.last_index_of_char('/') + 1);
+                                if(dat->has_prop("length") != null)
+                                    a.size = int.parse(dat->has_prop("length")->children->content);
+                                if(dat->has_prop("type") != null)
+                                    a.mimetype = dat->has_prop("type")->children->content;
+
+                                new_item.attachments.add(a);
                             }
                         break;
 

@@ -43,11 +43,15 @@ namespace Singularity
             time_published = new DateTime.from_unix_utc(0);
             time_updated = new DateTime.from_unix_utc(0);
             time_loaded = new DateTime.now_utc();
+            attachments = new Gee.ArrayList<Attachment?>();
             unread  = true;
             starred = false;
         }
 
-        public Item.from_record(SQLHeavy.Record r) { base.from_record(r); }
+        public Item.from_record(SQLHeavy.Record r) {
+            base.from_record(r);
+            attachments = new Gee.ArrayList<Attachment?>();
+        }
 
         public enum DBColumn
         {
@@ -86,7 +90,6 @@ namespace Singularity
                 // TODO: Decide how to store authors
                 // TODO: Decide how to store contributors
                 // TODO: Decide how to store tags
-                // TODO: Decide how to store attachments
                 return query;
             } catch(SQLHeavy.Error e) {
                 warning("Cannot insert item data: " + e.message);

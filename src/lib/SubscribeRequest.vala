@@ -44,9 +44,7 @@ namespace Singularity
 
                 Query q;
                 try {
-                    stderr.printf("Query: %s\n", q_builder.str);
                     q = new Query(db, q_builder.str);
-                    stderr.printf("Q:%s\n", q.sql);
                 } catch(SQLHeavy.Error e) {
                     error("Failed to subscribe: %s", e.message);
                 }

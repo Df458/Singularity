@@ -94,6 +94,11 @@ namespace Singularity
             request_sent = true;
             string? data = null;
 
+            if(m_session == null) {
+                error_message = "Broken Session";
+                return false;
+            }
+
             if(m_message == null) {
                 error_message = "Invalid URL";
                 return false;
@@ -117,7 +122,6 @@ namespace Singularity
             doc = Xml.Parser.parse_doc(data);
 
             if(doc == null && data != null) {
-                warning("Spilt then parse\u2026");
                 data = data.split("<!DOCTYPE html")[0];
                 doc = Xml.Parser.parse_doc(data);
             }

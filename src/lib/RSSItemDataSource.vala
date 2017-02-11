@@ -62,7 +62,6 @@ namespace Singularity
                                             IconRequest req = new IconRequest(get_node_contents(imgd));
                                             if(req.send()) {
                                                 stored_feed.icon = req.buf;
-                                                warning("Got icon!");
                                             }
                                         }
                                     }
@@ -143,13 +142,17 @@ namespace Singularity
                         break;
 
                         case "enclosure":
-                            // TODO: Reimplement after adding attachments
-                            /* if(dat->has_prop("url") != null) */
-                            /*     enclosure_url = dat->has_prop("url")->children->content; */
-                            /* if(dat->has_prop("length") != null) */
-                            /*     enclosure_length = int.parse(dat->has_prop("length")->children->content); */
-                            /* if(dat->has_prop("type") != null) */
-                            /*     enclosure_type = dat->has_prop("type")->children->content; */
+                            if(dat->has_prop("url") != null) {
+                                Attachment a = Attachment();
+                                a.url = dat->has_prop("url")->children->content;
+                                a.name = a.url.substring(a.url.last_index_of_char('/') + 1);
+                                if(dat->has_prop("length") != null)
+                                    a.size = int.parse(dat->has_prop("length")->children->content);
+                                if(dat->has_prop("type") != null)
+                                    a.mimetype = dat->has_prop("type")->children->content;
+
+                                new_item.attachments.add(a);
+                            }
                         break;
 
                         default:

@@ -267,7 +267,6 @@ public class SingularityApp : Gtk.Application
                     m_current_update_progress.updates_finished();
                     update_progress_changed(m_current_update_progress);
                     if(req.unread_count != 0) {
-                        stderr.printf("S Unread: %d, %d\n", pak.feed.id, req.unread_count);
                         m_feed_store.set_unread_count(req.unread_count, -1, true);
                         m_feed_store.set_unread_count(req.unread_count, pak.feed.id, true);
                     }

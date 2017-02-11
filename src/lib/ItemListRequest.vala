@@ -42,6 +42,12 @@ namespace Singularity
             COUNT,
         }
 
+        public enum Status
+        {
+            GET_ITEMS,
+            GET_ENCLOSURES
+        }
+
         public Filter   item_filter              = Filter.DEFAULT;
         public SortType primary_sort             = SortType.FEED;
         public bool     primary_sort_ascending   = true;
@@ -61,96 +67,121 @@ namespace Singularity
 
         public Query build_query(Database db)
         {
-            StringBuilder q_builder = new StringBuilder("SELECT items.*");
-            bool needs_feed_data = primary_sort == SortType.FEED || secondary_sort == SortType.FEED;
-            if(needs_feed_data)
-                q_builder.append(", feeds.title");
-            q_builder.append(" FROM items");
-            if(needs_feed_data)
-                q_builder.append(" LEFT OUTER JOIN feeds ON items.parent_id = feeds.id");
+            if(m_status == Status.GET_ITEMS)
+            {
+                StringBuilder q_builder = new StringBuilder("SELECT items.*");
+                bool needs_feed_data = primary_sort == SortType.FEED || secondary_sort == SortType.FEED;
+                if(needs_feed_data)
+                    q_builder.append(", feeds.title");
+                q_builder.append(" FROM items");
+                if(needs_feed_data)
+                    q_builder.append(" LEFT OUTER JOIN feeds ON items.parent_id = feeds.id");
 
-            if(item_filter != Filter.DEFAULT) {
-                switch(item_filter)
-                {
-                    case Filter.UNREAD_ONLY:
-                        q_builder.append(" WHERE items.unread = 1");
-                    break;
-                    case Filter.STARRED_ONLY:
-                        q_builder.append(" WHERE items.starred = 1");
-                    break;
-                    case Filter.UNREAD_AND_STARRED:
-                        q_builder.append(" WHERE items.unread = 1 OR items.starred = 1");
-                    break;
+                if(item_filter != Filter.DEFAULT) {
+                    switch(item_filter)
+                    {
+                        case Filter.UNREAD_ONLY:
+                            q_builder.append(" WHERE items.unread = 1");
+                        break;
+                        case Filter.STARRED_ONLY:
+                            q_builder.append(" WHERE items.starred = 1");
+                        break;
+                        case Filter.UNREAD_AND_STARRED:
+                            q_builder.append(" WHERE items.unread = 1 OR items.starred = 1");
+                        break;
+                    }
+                    if(filter_node != null)
+                        q_builder.append(" AND");
                 }
-                if(filter_node != null)
-                    q_builder.append(" AND");
-            }
-            if(filter_node != null) {
-                if(item_filter == Filter.DEFAULT)
-                    q_builder.append(" WHERE");
-                q_builder.append_printf(" items.parent_id IN (%d", m_id_list[0]);
-                for(int i = 1; i < m_id_list.length; i++)
-                    q_builder.append_printf(", %d", m_id_list[i]);
-                q_builder.append(")");
-            }
-
-            if(primary_sort != SortType.NOTHING) {
-                switch(primary_sort)
-                {
-                    case SortType.UNREAD:
-                        q_builder.append(" ORDER BY items.unread");
-                    break;
-                    case SortType.STARRED:
-                        q_builder.append(" ORDER BY items.starred");
-                    break;
-                    case SortType.POST_DATE:
-                        q_builder.append(" ORDER BY items.update_time");
-                    break;
-                    case SortType.TITLE:
-                        q_builder.append(" ORDER BY items.title");
-                    break;
-                    case SortType.FEED:
-                        q_builder.append(" ORDER BY feeds.title");
-                    break;
+                if(filter_node != null) {
+                    if(item_filter == Filter.DEFAULT)
+                        q_builder.append(" WHERE");
+                    q_builder.append_printf(" items.parent_id IN (%d", m_id_list[0]);
+                    for(int i = 1; i < m_id_list.length; i++)
+                        q_builder.append_printf(", %d", m_id_list[i]);
+                    q_builder.append(")");
                 }
 
-                if(primary_sort_ascending)
-                    q_builder.append(" ASC");
-                else
-                    q_builder.append(" DESC");
-
-                if(secondary_sort != SortType.NOTHING) {
-                    switch(secondary_sort)
+                if(primary_sort != SortType.NOTHING) {
+                    switch(primary_sort)
                     {
                         case SortType.UNREAD:
-                            q_builder.append(", items.unread");
+                            q_builder.append(" ORDER BY items.unread");
                         break;
                         case SortType.STARRED:
-                            q_builder.append(", items.starred");
+                            q_builder.append(" ORDER BY items.starred");
                         break;
                         case SortType.POST_DATE:
-                            q_builder.append(", items.update_time");
+                            q_builder.append(" ORDER BY items.update_time");
                         break;
                         case SortType.TITLE:
-                            q_builder.append(", items.title");
+                            q_builder.append(" ORDER BY items.title");
                         break;
                         case SortType.FEED:
-                            q_builder.append(", feeds.title");
+                            q_builder.append(" ORDER BY feeds.title");
                         break;
                     }
 
-                    if(secondary_sort_ascending)
+                    if(primary_sort_ascending)
                         q_builder.append(" ASC");
                     else
                         q_builder.append(" DESC");
+
+                    if(secondary_sort != SortType.NOTHING) {
+                        switch(secondary_sort)
+                        {
+                            case SortType.UNREAD:
+                                q_builder.append(", items.unread");
+                            break;
+                            case SortType.STARRED:
+                                q_builder.append(", items.starred");
+                            break;
+                            case SortType.POST_DATE:
+                                q_builder.append(", items.update_time");
+                            break;
+                            case SortType.TITLE:
+                                q_builder.append(", items.title");
+                            break;
+                            case SortType.FEED:
+                                q_builder.append(", feeds.title");
+                            break;
+                        }
+
+                        if(secondary_sort_ascending)
+                            q_builder.append(" ASC");
+                        else
+                            q_builder.append(" DESC");
+                    }
                 }
+
+                Query query;
+                try {
+                    query = new Query(db, q_builder.str);
+                } catch(SQLHeavy.Error e) {
+                    error("Can't request item list: %s", e.message);
+                }
+
+                return query;
             }
+
+            StringBuilder q_builder = new StringBuilder("SELECT * FROM enclosures WHERE ");
+            q_builder.append_printf("item_id IN (");
+            bool first_iter = true;
+            foreach(Item i in item_list)
+            {
+                if(first_iter)
+                    q_builder.append_printf("%d", i.id);
+                else
+                    q_builder.append_printf(", %d", i.id);
+                first_iter = false;
+            }
+            q_builder.append(")");
 
             Query query;
             try {
                 query = new Query(db, q_builder.str);
             } catch(SQLHeavy.Error e) {
-                error("Can't request item list: %s", e.message);
+                error("Can't request item enclosures: %s", e.message);
             }
 
             return query;
@@ -158,21 +189,40 @@ namespace Singularity
 
         public RequestStatus process_result(QueryResult res)
         {
-            item_list = new Gee.ArrayList<Item>();
+            if(m_status == Status.GET_ITEMS)
+            {
+                m_status = Status.GET_ENCLOSURES;
+                item_list = new Gee.ArrayList<Item>();
+                try {
+                    for(; !res.finished; res.next() ) {
+                        Item i = new Item.from_record(res);
+                        item_list.add(i);
+                        item_id_map[i] = res.get_int("parent_id");
+                    }
+                } catch(SQLHeavy.Error e) {
+                    error("Failed to construct item list: %s", e.message);
+                }
+                return item_list.size > 0 ? RequestStatus.CONTINUE : RequestStatus.COMPLETED;
+            }
+
             try {
                 for(; !res.finished; res.next() ) {
-                    Item i = new Item.from_record(res);
-                    item_list.add(i);
-                    item_id_map[i] = res.get_int("parent_id");
+                    foreach(Item i in item_list)
+                    {
+                        if(i.id == res.get_int("item_id")) {
+                            i.attachments.add(Attachment.from_record(res));
+                        }
+                    }
                 }
             } catch(SQLHeavy.Error e) {
-                error("Failed to construct item list: %s", e.message);
+                error("Failed to construct item enclosures: %s", e.message);
             }
 
             return RequestStatus.COMPLETED;
         }
 
         private int[] m_id_list;
+        private Status m_status = Status.GET_ITEMS;
 
         private void build_id_list(CollectionNode? node)
         {

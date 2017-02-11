@@ -164,7 +164,7 @@ public class StreamItemView : Box, ItemView {
             return;
         StringBuilder sb = new StringBuilder("document.body.innerHTML += String.raw`");
         int starting_id = m_item_list.size;
-        for(int i = 0; i < m_global_settings.items_per_list && i < m_item_list.size; ++i) {
+        for(int i = 0; i < m_global_settings.items_per_list && page_cursor + i < m_item_list.size; ++i) {
             sb.append(m_builder.buildItemHTML(m_item_list[page_cursor + i], page_cursor + i));
         }
         sb.append_printf("`; prepareItems(%d);", starting_id);

@@ -23,9 +23,17 @@ CREATE TABLE items (
     "pubdate" INTEGER,
     "source" TEXT,
     "comments_url" TEXT,
-    "attachments" TEXT,
     "tags" TEXT,
     "savedate" INTEGER,
     "unread" INTEGER,
     "starred" INTEGER);
+CREATE TABLE enclosures (
+    "item_id" TEXT NOT NULL,
+    "guid" TEXT NOT NULL UNIQUE,
+    "uri" TEXT NOT NULL,
+    "name" TEXT,
+    "length" INTEGER,
+    "mimetype" TEXT);
+CREATE TABLE tags (
+);
 PRAGMA user_version = 1;

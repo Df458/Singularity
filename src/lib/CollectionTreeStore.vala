@@ -266,7 +266,6 @@ public class CollectionTreeStore : TreeStore
         int orig_count = 0;
         TreeIter? iter = base_iter;
         if(count != 0)
-            stderr.printf("Unread: %d, %d\n", id, count);
         if(id != -1) {
             CollectionNode n = get_node_from_id(id);
             if(n == null)

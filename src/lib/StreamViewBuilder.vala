@@ -77,13 +77,21 @@ public class StreamViewBuilder : ViewBuilder, GLib.Object
             string datestr = item.time_published.format("%A, %B %e %Y");
             head_builder.append_printf("Posted on <time class=\"date\" datetime=\"%s\">%s</time>", datestr, datestr);
         }
+        // TODO: Posted by section
         head_builder.append("<hr>");
         head_builder.append("</header>");
 
         content_builder.append(item.content != null ? item.content : "No content");
         content_builder.append("</section>");
 
-        // TODO: Attachments
+        if(item.attachments.size > 0) {
+            footer_builder.append("<section class=\"attachments-list\">");
+            foreach(Attachment a in item.attachments) {
+                footer_builder.append_printf("<span class=\"attachment\"><a href=\"%s\">%s</a> (%s, %d)</span> ", a.url, a.name, a.mimetype, a.size);
+            }
+            footer_builder.append("</section>");
+        }
+
         // TODO: Tags
         footer_builder.append_printf("</footer>");
 

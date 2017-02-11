@@ -29,6 +29,7 @@ namespace Singularity
             UNREAD_PRE,
             CRTABLE,
             CRINDEX,
+            INSERT_ENCLOSURE,
             INSERT,
             COPY,
             DRTABLE,
@@ -76,7 +77,6 @@ namespace Singularity
                 case Status.CRINDEX:
                     Query q;
                     try {
-                        stderr.printf("Trying %s[%d]\u2026\n\n\n", package.feed.to_string(), package.feed.id);
                         q = new Query(db, "CREATE UNIQUE INDEX tmpi_guid ON tmp (guid);\n");
                     } catch(SQLHeavy.Error e) {
                         error("Failed to clean table: %s", e.message);
@@ -93,6 +93,26 @@ namespace Singularity
                         q = new Query(db, q_builder.str);
                     } catch(SQLHeavy.Error e) {
                         error("Failed to save item updates: %s", e.message);
+                    }
+                    return q;
+
+                case Status.INSERT_ENCLOSURE:
+                    StringBuilder q_builder = new StringBuilder("INSERT OR IGNORE INTO enclosures (item_id, guid, uri, name, length, mimetype) VALUES ");
+                    bool first = true;
+                    foreach(Item i in package.items) {
+                        foreach(Attachment a in i.attachments) {
+                            if(!first)
+                                q_builder.append(",\n");
+                            q_builder.append_printf("((SELECT id FROM tmp WHERE guid = %s), (SELECT id FROM tmp WHERE guid = %s) || %s, %s, %s, %d, %s)", sql_str(i.guid), sql_str(i.guid), sql_str(a.url), sql_str(a.url), sql_str(a.name), a.size, sql_str(a.mimetype));
+                            first = false;
+                        }
+                    }
+                    string final = q_builder.str;
+                    Query q;
+                    try {
+                        q = new Query(db, q_builder.str);
+                    } catch(SQLHeavy.Error e) {
+                        error("Failed to save item enclosures: %s", e.message);
                     }
                     return q;
 
@@ -205,6 +225,14 @@ namespace Singularity
             m_status += 1;
             if(m_status == Status.CRTABLE && package.items.size == 0)
                 m_status = Status.CLEANUP;
+
+            if(m_status == Status.INSERT_ENCLOSURE) {
+                int count = 0;
+                foreach(Item i in package.items)
+                    count += i.attachments.size;
+                if(count == 0)
+                    m_status += 1;
+            }
 
             if(m_status == Status.ICON_INSERT && !m_use_owner_id) {
                 try {
