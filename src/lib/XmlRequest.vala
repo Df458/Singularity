@@ -18,9 +18,6 @@
 
 namespace Singularity
 {
-
-    const string USER_AGENT = "Singularity RSS Reader/0.3 [http://github.com/Df458/Singularity]";
-
     public class XmlRequest : Object
     {
 
@@ -39,7 +36,7 @@ namespace Singularity
         public Xml.Doc* doc           { get; private set; }
         public string   doc_data      { get; private set; }
 
-        public XmlRequest(string to_fetch)
+        public XmlRequest(string to_fetch, Soup.Session s)
         {
             string turi = to_fetch;
             if(!to_fetch.has_prefix("http://") && !to_fetch.has_prefix("https://") && !to_fetch.has_prefix("file://"))
@@ -49,8 +46,7 @@ namespace Singularity
             doc = null;
             error_message = null;
             request_sent = false;
-            m_session = new Soup.Session();
-            m_session.user_agent = USER_AGENT;
+            m_session = s;
             m_message = new Soup.Message("GET", uri);
         }
 
@@ -65,9 +61,9 @@ namespace Singularity
             }
 
             m_session.queue_message(m_message, (s, m) =>
-                    {
-                    loop.quit();
-                    });
+            {
+                loop.quit();
+            });
 
             loop.run();
 
@@ -164,7 +160,7 @@ namespace Singularity
             }
         }
 
-        private Soup.Session m_session;
+        private Soup.Session? m_session = null;
         private Soup.Message? m_message;
     }
 }

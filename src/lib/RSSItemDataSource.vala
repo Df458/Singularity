@@ -107,7 +107,7 @@ namespace Singularity
                         break;
 
                         case "guid":
-                            new_item.guid = get_node_contents(dat);
+                            new_item.weak_guid = get_node_contents(dat);
                         break;
 
                         case "pubDate":
@@ -143,7 +143,7 @@ namespace Singularity
 
                         case "enclosure":
                             if(dat->has_prop("url") != null) {
-                                Attachment a = Attachment();
+                                Attachment a = new Attachment();
                                 a.url = dat->has_prop("url")->children->content;
                                 a.name = a.url.substring(a.url.last_index_of_char('/') + 1);
                                 if(dat->has_prop("length") != null)
@@ -152,7 +152,8 @@ namespace Singularity
                                     a.mimetype = dat->has_prop("type")->children->content;
 
                                 new_item.attachments.add(a);
-                            }
+                            } else
+                                warning("Failed to load attachment: No URL");
                         break;
 
                         default:
@@ -161,13 +162,13 @@ namespace Singularity
                     }
                 }
             }
-            if(new_item.guid == null || new_item.guid == "") {
+            if(new_item.weak_guid == null || new_item.weak_guid == "") {
                 if(new_item.link != null && new_item.link.length > 0) {
-                    new_item.guid = new_item.link;
+                    new_item.weak_guid = new_item.link;
                 } else if(new_item.title.length > 0) {
-                    new_item.guid = new_item.title;
+                    new_item.weak_guid = new_item.title;
                 } else if(new_item.content != null && new_item.content.length > 0) {
-                    new_item.guid = new_item.content;
+                    new_item.weak_guid = new_item.content;
                 } else {
                     warning("Could not establish GUID for feed, as it has no guid, title, link, or content");
                     return null;
@@ -189,15 +190,15 @@ namespace Singularity
                                         if(cdat->type == Xml.ElementType.ELEMENT_NODE) {
                                             switch(cdat->name) {
                                                 case "title":
-                                                    stored_feed.title = get_node_contents(dat).strip().replace("&", "&amp;");
+                                                    stored_feed.title = get_node_contents(cdat).strip().replace("&", "&amp;");
                                                 break;
 
                                                 case "link":
-                                                    stored_feed.site_link = get_node_contents(dat);
+                                                    stored_feed.site_link = get_node_contents(cdat);
                                                 break;
 
                                                 case "description":
-                                                    stored_feed.description = get_node_contents(dat);
+                                                    stored_feed.description = get_node_contents(cdat);
                                                 break;
                                             }
                                         }

@@ -3,6 +3,16 @@ var wants_more = false;
 var items;
 setTimeout(prepare, 2000);
 
+function readAll() {
+    items = document.getElementsByTagName('article');
+
+    for(var j = 0; j < items.length; ++j){
+        var i = items[j];
+        i.dataset.read = 'true';
+        i.classList.remove('unread');
+    }
+}
+
 function tryRead(element) {
     var rect = element.getBoundingClientRect();
     var in_view = rect.top <= window.innerHeight / 2 || rect.bottom <= window.innerHeight;

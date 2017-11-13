@@ -1,6 +1,6 @@
 /*
 	Singularity - A web newsfeed aggregator
-	Copyright (C) 2016  Hugues Ross <hugues.ross@gmail.com>
+	Copyright (C) 2017  Hugues Ross <hugues.ross@gmail.com>
 
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -16,64 +16,59 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+using DFLib;
 namespace Singularity
 {
-public class CollectionNode : Object
-{
-    public Feed? feed { get; construct; }
-    public FeedCollection? collection { get; construct; }
-    public Contents contents { get; construct; }
-    // TODO: This shouldn't work like this, it should query what it owns instead
-    public int id { get { if(feed != null) return feed.id; else if(collection != null) return collection.id; return -1; } }
-
-    public enum Contents
+    // DataEntry holding common data for both the Feed and Collection classes
+    public abstract class FeedDataEntry : DataEntry
     {
-        NONE = -1,
-        FEED,
-        COLLECTION
-    }
+        public string title { get; set; }
+        public int parent_id = -1;
+        public FeedCollection?  parent = null;
 
-    public CollectionNode.with_feed(Feed f)
-    {
-        Object(feed: f, collection: null, contents: Contents.FEED);
-    }
+        public void set_parent(FeedCollection? p)
+        {
+            parent = p;
 
-    public CollectionNode.with_collection(FeedCollection c)
-    {
-        Object(feed: null, collection: c, contents: Contents.COLLECTION);
-    }
-
-    public void set_parent(FeedCollection p)
-    {
-        if(contents == Contents.FEED) {
-            feed.parent = p;
-            feed.parent_id = p.id;
-        } else if(contents == Contents.COLLECTION) {
-            collection.parent = p;
-            collection.parent_id = (int)p.id;
-        }
-    }
-
-    public FeedCollection? get_parent()
-    {
-        if(contents == Contents.FEED) {
-            return feed.parent;
-        } else if(contents == Contents.COLLECTION) {
-            return collection.parent;
+            if(p == null)
+                parent_id = -1;
+            else
+                parent_id = p.id;
         }
 
-        return null;
+        public abstract Gee.List<Item> get_items();
     }
 
-    public void remove_parent()
+    // Represents a node within a CollectionTreeStore, and wraps FeedDataEntry
+    // with information about parents and helper functions to help prevent extra
+    // type-checking code elsewhere
+    public class CollectionNode : Object
     {
-        if(contents == Contents.FEED) {
-            feed.parent = null;
-            feed.parent_id = -1;
-        } else if(contents == Contents.COLLECTION) {
-            collection.parent = null;
-            collection.parent_id = -1;
+        public FeedDataEntry data { get; construct; }
+        public int id { get { return data.id; } }
+
+        public CollectionNode(FeedDataEntry entry)
+        {
+            Object(data: entry);
+        }
+
+        // Returns a list containing all of the node's children.
+        // If this node wraps a Feed, an empty list is returned.
+        public Gee.List<CollectionNode> get_children()
+        {
+            if(data is FeedCollection)
+                return (data as FeedCollection).nodes;
+
+            return new Gee.ArrayList<CollectionNode>();
+        }
+
+        // Represents the a FeedDataEntry's type in the database.
+        // TODO: Refactor out if possible, find a more elegant way to describe
+        //       the Feed/FeedCollection type difference
+        public enum Contents
+        {
+            FEED,
+            COLLECTION
         }
     }
-}
 }

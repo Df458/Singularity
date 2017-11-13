@@ -19,31 +19,25 @@ using SQLHeavy;
 
 namespace Singularity
 {
-    public class ItemViewRequest : DatabaseRequest, GLib.Object
+    public class RenameRequest : DatabaseRequest, GLib.Object
     {
-        public string[] guid { get; construct; }
-
-        public ItemViewRequest(string[] i)
+        public CollectionNode node { get; construct; }
+        public string title { get; construct; }
+        public RenameRequest(CollectionNode n, string t)
         {
-            Object(guid: i);
+            Object(node: n, title: t);
         }
 
         public Query build_query(Database db)
         {
-            StringBuilder q_builder = new StringBuilder("UPDATE items SET 'unread' = 0");
-            q_builder.append(" WHERE guid IN (");
-            for(int i = 0; i < guid.length; ++i) {
-                if(i != 0)
-                    q_builder.append(", ");
-                q_builder.append_printf("%s", sql_str(guid[i]));
-            }
-            q_builder.append(")");
+            StringBuilder q_builder = new StringBuilder("UPDATE feeds SET 'title' = ");
+            q_builder.append_printf("%s WHERE id = %d", sql_str(title), node.data.id);
 
             Query q;
             try {
                 q = new Query(db, q_builder.str);
             } catch(SQLHeavy.Error e) {
-                error("Failed to view item: %s [%s]", e.message, q_builder.str);
+                error("Failed to rename node: %s [%s]", e.message, q_builder.str);
             }
             return q;
         }

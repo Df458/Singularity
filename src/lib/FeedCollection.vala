@@ -21,11 +21,8 @@ using SQLHeavy;
 
 namespace Singularity
 {
-    public class FeedCollection : DataEntry
+    public class FeedCollection : FeedDataEntry
     {
-        public int              parent_id   { get; set; }
-        public FeedCollection?  parent      { get; set; }
-        public string title { get; protected set; }
         public Icon? icon   { get; protected set; }
         public Gee.List<CollectionNode> nodes { get; protected set; }
 
@@ -36,20 +33,33 @@ namespace Singularity
             COUNT
         }
 
-        public FeedCollection(string new_title) { title = new_title; parent = null; parent_id = -1; nodes = new Gee.ArrayList<CollectionNode>(); }
-        public FeedCollection.from_record(Record r) { parent = null; parent_id = -1; nodes = new Gee.ArrayList<CollectionNode>(); base.from_record(r); }
-        public FeedCollection.root() { parent = null; parent_id = -1; nodes = new Gee.ArrayList<CollectionNode>(); }
+        public FeedCollection(string new_title)
+        {
+            title = new_title;
+            nodes = new Gee.ArrayList<CollectionNode>();
+        }
+
+        public FeedCollection.from_record(Record r)
+        {
+            base.from_record(r);
+            nodes = new Gee.ArrayList<CollectionNode>();
+        }
+
+        public FeedCollection.root()
+        {
+            nodes = new Gee.ArrayList<CollectionNode>();
+        }
 
         public void add_node(CollectionNode c)
         {
             nodes.add(c);
-            c.set_parent(this);
+            c.data.set_parent(this);
         }
 
         public void remove_node(CollectionNode c)
         {
             nodes.remove(c);
-            c.remove_parent();
+            c.data.set_parent(null);
         }
 
         public override Query? insert(Queryable q)
@@ -98,7 +108,10 @@ namespace Singularity
         protected override bool build_from_record(SQLHeavy.Record r)
         {
             try {
-                title = r.fetch_string(DBColumn.TITLE);
+                set_id(r.fetch_int(0));
+
+                parent_id = r.fetch_int(r.field_index("parent_id"));
+                title = r.get_string("title");
                 // TODO: Decide how to store icons
                 return true;
             } catch(SQLHeavy.Error e) {
@@ -110,6 +123,16 @@ namespace Singularity
         public void prepare_for_db(int new_id)
         {
             set_id(new_id);
+        }
+
+        public override Gee.List<Item> get_items()
+        {
+            Gee.List<Item> items = new Gee.ArrayList<Item>();
+            foreach(CollectionNode node in nodes) {
+                items.add_all(node.data.get_items());
+            }
+
+            return items;
         }
     }
 }

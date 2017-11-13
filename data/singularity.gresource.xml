@@ -7,6 +7,9 @@
         <file preprocess="xml-stripblanks">FeedBuilder.ui</file>
         <file preprocess="xml-stripblanks">SettingsView.ui</file>
         <file preprocess="xml-stripblanks">ItemListEntry.ui</file>
+        <file preprocess="xml-stripblanks">UpdateFeedEntry.ui</file>
+        <file preprocess="xml-stripblanks">UpdatePopover.ui</file>
+        <file preprocess="xml-stripblanks">PropertiesWindow.ui</file>
         <file>default.css</file>
         <file>StreamViewLink.js</file>
     </gresource>

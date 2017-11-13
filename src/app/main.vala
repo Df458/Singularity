@@ -19,12 +19,12 @@ using Singularity;
 
 public static int main (string[] args)
 {
-    SessionSettings settings = new SessionSettings(args);
-
-    if(!settings.is_valid)
+    if(!AppSettings.Arguments.parse(args)) {
+        stderr.printf("Run %s --help to see all valid arguments", args[0]);
         return 1;
+    }
 
-    SingularityApp app = new SingularityApp(settings);
+    SingularityApp app = new SingularityApp();
 
     return app.run();
 }

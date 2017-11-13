@@ -38,7 +38,8 @@ public class FeedBuilder : Popover
     {
         url_changed = false;
 
-        XmlRequest request = new XmlRequest(url_entry.text);
+        Soup.Session session = new Soup.Session();
+        XmlRequest request = new XmlRequest(url_entry.text, session);
         request.send_async.begin((obj, ret) =>
         {
             bool success = request.send_async.end(ret);

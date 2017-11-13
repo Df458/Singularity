@@ -34,43 +34,44 @@ namespace Singularity
 
         public Query build_query(Database db)
         {
-            if(id_prepared) {
-                StringBuilder q_builder = new StringBuilder("INSERT OR IGNORE INTO feeds (id, parent_id, type, title, link, site_link, description, rights, generator, last_update) VALUES");
-                if(m_node_list.size > 0) {
-                    insert_node(q_builder, m_node_list[0], true);
-                    for(int i = 1; i < m_node_list.size; i++)
-                        insert_node(q_builder, m_node_list[i], false);
-                }
-
+            if(insert_done) {
                 Query q;
                 try {
-                    q = new Query(db, q_builder.str);
+                    q = new Query(db, "SELECT MAX(id) FROM feeds");
                 } catch(SQLHeavy.Error e) {
-                    error("Failed to subscribe: %s", e.message);
+                    error("Failed to check ids: %s", e.message);
                 }
                 return q;
             }
 
+            StringBuilder q_builder = new StringBuilder("INSERT OR IGNORE INTO feeds (parent_id, type, title, link, site_link, description, rights, generator, last_update) VALUES");
+            if(m_node_list.size > 0) {
+                insert_node(q_builder, m_node_list[0], true);
+                for(int i = 1; i < m_node_list.size; i++)
+                    insert_node(q_builder, m_node_list[i], false);
+            }
+
             Query q;
             try {
-                q = new Query(db, "SELECT * FROM SQLITE_SEQUENCE WHERE name = 'feeds'");
+                q = new Query(db, q_builder.str);
             } catch(SQLHeavy.Error e) {
-                error("Failed to check ids: %s", e.message);
+                error("Failed to subscribe: %s", e.message);
             }
             return q;
         }
 
         public RequestStatus process_result(QueryResult res)
         {
-            if(!id_prepared) {
+            if(insert_done) {
                 try {
-                    id_prepared = true;
-                    next_id = res.fetch_int(res.field_index("seq")) + 1;
+                    next_id = res.fetch_int(0);
                     prepare_node_map(node);
-                    return RequestStatus.CONTINUE;
                 } catch(SQLHeavy.Error e) {
                     error("Failed to get ids: %s", e.message);
                 }
+            } else {
+                insert_done = true;
+                return RequestStatus.CONTINUE;
             }
             return RequestStatus.DEFAULT;
         }
@@ -78,13 +79,13 @@ namespace Singularity
         private Gee.ArrayList<CollectionNode> m_node_list;
         private Gee.HashMap<FeedCollection, int> m_node_map;
         private int next_id;
-        private bool id_prepared = false;
+        private bool insert_done = false;
 
         private void prepare_node_list(CollectionNode n)
         {
             m_node_list.add(n);
-            if(n.contents == CollectionNode.Contents.COLLECTION) {
-                foreach(CollectionNode n2 in n.collection.nodes) {
+            if(n.data is FeedCollection) {
+                foreach(CollectionNode n2 in (n.data as FeedCollection).nodes) {
                     prepare_node_list(n2);
                 }
             }
@@ -92,15 +93,16 @@ namespace Singularity
 
         private void prepare_node_map(CollectionNode n)
         {
-            if(n.contents == CollectionNode.Contents.COLLECTION) {
-                m_node_map.set(n.collection, next_id);
-                n.collection.prepare_for_db(next_id);
+            if(n.data is FeedCollection) {
+                FeedCollection c = n.data as FeedCollection;
+                m_node_map.set(c, next_id);
+                c.prepare_for_db(next_id);
                 next_id++;
-                foreach(CollectionNode n2 in n.collection.nodes) {
+                foreach(CollectionNode n2 in c.nodes) {
                     prepare_node_map(n2);
                 }
-            } else if(n.contents == CollectionNode.Contents.FEED) {
-                n.feed.prepare_for_db(next_id);
+            } else {
+                (n.data as Feed).prepare_for_db(next_id);
                 next_id++;
             }
         }
@@ -110,18 +112,18 @@ namespace Singularity
             int p_id = -1;
             if(!first)
                 q_builder.append(",");
-            if(n.get_parent() != null) {
-                if(m_node_map.has_key(n.get_parent()))
-                     p_id = m_node_map[n.get_parent()];
+            if(n.data.parent != null) {
+                if(m_node_map.has_key(n.data.parent))
+                     p_id = m_node_map[n.data.parent];
                 else
-                     p_id = n.get_parent().id;
+                     p_id = n.data.parent_id;
             }
-            if(n.contents == CollectionNode.Contents.FEED) {
-                Feed f = n.feed;
-                q_builder.append_printf(" (%d, %d, %d, %s, %s, %s, %s, %s, %s, %lld)", f.id, p_id, (int)CollectionNode.Contents.FEED, sql_str(f.title), sql_str(f.link), sql_str(f.site_link), sql_str(f.description), sql_str(f.rights), sql_str(f.generator), f.last_update.to_unix());
-            } else if(n.contents == CollectionNode.Contents.COLLECTION) {
-                FeedCollection c = n.collection;
-                q_builder.append_printf(" (%d, %d, %d, %s, null, null, null, null, null, null)", c.id, p_id, (int)CollectionNode.Contents.COLLECTION, sql_str(c.title));
+            if(n.data is Feed) {
+                Feed f = n.data as Feed;
+                q_builder.append_printf(" (%d, %d, %s, %s, %s, %s, %s, %s, %lld)", p_id, (int)CollectionNode.Contents.FEED, sql_str(f.title), sql_str(f.link), sql_str(f.site_link), sql_str(f.description), sql_str(f.rights), sql_str(f.generator), f.last_update.to_unix());
+            } else {
+                FeedCollection c = n.data as FeedCollection;
+                q_builder.append_printf(" (%d, %d, %s, null, null, null, null, null, null)", p_id, (int)CollectionNode.Contents.COLLECTION, sql_str(c.title));
             }
         }
     }

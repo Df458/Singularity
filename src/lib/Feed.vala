@@ -21,11 +21,8 @@ using SQLHeavy;
 
 namespace Singularity
 {
-    public class Feed : DataEntry
+    public class Feed : FeedDataEntry
     {
-        public int              parent_id   { get; set; }
-        public FeedCollection?  parent      { get; set; }
-        public string           title       { get; set; }
         public string?          description { get; set; }
         public string           link        { get; set; }
         public string?          site_link   { get; set; }
@@ -35,6 +32,8 @@ namespace Singularity
         public string?          icon_url    { get; set; }
         public Gdk.Pixbuf?      icon        { get; set; }
         public DateTime?        last_update { get; set; }
+
+        public Gee.List<Item> items = new Gee.ArrayList<Item>();
 
         public enum DBColumn
         {
@@ -56,15 +55,16 @@ namespace Singularity
         {
             last_update = new DateTime.from_unix_utc(0);
             icon = null;
-            parent_id   = -1;
         }
 
-        public Feed.from_record(Record r) { base.from_record(r); }
+        public Feed.from_record(Record r)
+        {
+            base.from_record(r);
+        }
 
         public bool get_should_update()
         {
-            // TODO: base this on actual update times
-            return last_update.add_minutes(30).compare(new DateTime.now_utc()) <= 0;
+            return last_update.add_minutes((int)AppSettings.auto_update_freq).compare(new DateTime.now_utc()) <= 0;
         }
 
         public bool update_contents(FeedProvider provider)
@@ -72,25 +72,23 @@ namespace Singularity
             if(provider.stored_feed == null)
                 return false;
 
-            if(provider.stored_feed.title != title)
-                title = provider.stored_feed.title;
+            title = provider.stored_feed.title == "" ? "Untitled Feed" : provider.stored_feed.title;
 
-            if(provider.stored_feed.description != null && provider.stored_feed.description != description)
+            if(provider.stored_feed.description != null)
                 description = provider.stored_feed.description;
 
-            if(provider.stored_feed.site_link != null && provider.stored_feed.site_link != site_link)
+            if(provider.stored_feed.site_link != null)
                 site_link = provider.stored_feed.site_link;
 
-            if(provider.stored_feed.rights != null && provider.stored_feed.rights != rights)
+            if(provider.stored_feed.rights != null)
                 rights = provider.stored_feed.rights;
 
             // TODO: Update tags
 
-            if(provider.stored_feed.generator != null && provider.stored_feed.generator != generator)
+            if(provider.stored_feed.generator != null)
                 generator = provider.stored_feed.generator;
 
-            if(provider.stored_feed.icon != icon)
-                icon = provider.stored_feed.icon;
+            icon = provider.stored_feed.icon;
 
             last_update = provider.stored_feed.last_update;
 
@@ -156,9 +154,7 @@ namespace Singularity
 
         public string to_string()
         {
-            StringBuilder sb = new StringBuilder();
-            sb.append_printf("%d (%d): %s [%s | %s]", id, parent_id, title, link, site_link);
-            return sb.str;
+            return "%d (%d): %s [%s | %s]".printf(id, parent_id, title, link, site_link);
         }
 
         protected override bool build_from_record(SQLHeavy.Record r)
@@ -183,7 +179,8 @@ namespace Singularity
                     int height = r.fetch_int(r.field_index("height"));
                     int bits = r.fetch_int(r.field_index("bits"));
                     int stride = r.fetch_int(r.field_index("rowstride"));
-                    icon = new Gdk.Pixbuf.from_data(data, Gdk.Colorspace.RGB, true, bits, width, height, stride);
+                    bool has_alpha = r.fetch_int(r.field_index("alpha")) == 1;
+                    icon = new Gdk.Pixbuf.from_data(data, Gdk.Colorspace.RGB, has_alpha, bits, width, height, stride);
                 }
                 return true;
             } catch(SQLHeavy.Error e) {
@@ -195,6 +192,22 @@ namespace Singularity
         public void prepare_for_db(int new_id)
         {
             set_id(new_id);
+        }
+
+        public override Gee.List<Item> get_items()
+        {
+            return items;
+        }
+
+        public Item get_item(string guid)
+        {
+            return items.first_match((i) => { return i.guid == guid; });
+        }
+
+        public void add_item(Item i)
+        {
+            i.owner = this;
+            items.add(i);
         }
     }
 }

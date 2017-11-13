@@ -22,7 +22,8 @@ namespace Singularity
     {
         public PackageContents contents { get; construct; }
         public Feed feed { get; construct; }
-        public Gee.List<Item?>? items { get; construct; }
+        public Gee.List<Item?>? new_items { get; construct; }
+        public Gee.List<Item?>? changed_items { get; construct; }
         public string? message { get; construct; }
 
         public enum PackageContents
@@ -32,14 +33,14 @@ namespace Singularity
             ERROR_DATA,
         }
 
-        public UpdatePackage.success(Feed f, Gee.List<Item?> i)
+        public UpdatePackage.success(Feed f, Gee.List<Item?> i_new, Gee.List<Item?> i_change)
         {
-            Object(contents: PackageContents.FEED_UPDATE, feed: f, items: i, message: null);
+            Object(contents: PackageContents.FEED_UPDATE, feed: f, new_items: i_new, changed_items: i_change, message: null);
         }
 
         public UpdatePackage.failure(Feed f, string m)
         {
-            Object(contents: PackageContents.ERROR_DATA, feed: f, items: null, message: m);
+            Object(contents: PackageContents.ERROR_DATA, feed: f, new_items: null, changed_items: null, message: m);
         }
     }
 }

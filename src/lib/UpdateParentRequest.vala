@@ -19,31 +19,26 @@ using SQLHeavy;
 
 namespace Singularity
 {
-    public class ItemViewRequest : DatabaseRequest, GLib.Object
+    public class UpdateParentRequest : DatabaseRequest, GLib.Object
     {
-        public string[] guid { get; construct; }
+        public FeedDataEntry entry { get; construct; }
+        public int parent_id { get; construct; }
 
-        public ItemViewRequest(string[] i)
+        public UpdateParentRequest(FeedDataEntry e, int p)
         {
-            Object(guid: i);
+            Object(entry: e, parent_id: p);
         }
 
         public Query build_query(Database db)
         {
-            StringBuilder q_builder = new StringBuilder("UPDATE items SET 'unread' = 0");
-            q_builder.append(" WHERE guid IN (");
-            for(int i = 0; i < guid.length; ++i) {
-                if(i != 0)
-                    q_builder.append(", ");
-                q_builder.append_printf("%s", sql_str(guid[i]));
-            }
-            q_builder.append(")");
+            StringBuilder q_builder = new StringBuilder("UPDATE feeds SET 'parent_id' = ");
+            q_builder.append_printf("%d WHERE id = %d", parent_id, entry.id);
 
             Query q;
             try {
                 q = new Query(db, q_builder.str);
             } catch(SQLHeavy.Error e) {
-                error("Failed to view item: %s [%s]", e.message, q_builder.str);
+                error("Failed to reparent node: %s [%s]", e.message, q_builder.str);
             }
             return q;
         }

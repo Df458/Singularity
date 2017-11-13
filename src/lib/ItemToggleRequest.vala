@@ -27,18 +27,18 @@ namespace Singularity
             STARRED
         }
         public const string[] field_names = { "unread", "starred" };
-        public int id { get; construct; }
+        public string guid { get; construct; }
         public ToggleField field { get; construct; }
 
-        public ItemToggleRequest(int i, ToggleField f)
+        public ItemToggleRequest(string i, ToggleField f)
         {
-            Object(id: i, field: f);
+            Object(guid: i, field: f);
         }
 
         public Query build_query(Database db)
         {
             StringBuilder q_builder = new StringBuilder("UPDATE items");
-            q_builder.append_printf(" SET %s = 1 - %s WHERE id = %d", field_names[field], field_names[field], id);
+            q_builder.append_printf(" SET %s = 1 - %s WHERE guid = %s", field_names[field], field_names[field], sql_str(guid));
 
             Query q;
             try {

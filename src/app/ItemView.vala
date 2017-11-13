@@ -26,9 +26,9 @@ public interface ItemView : Widget
     // Returns whether to only show "important" items (unread and starred)
     public abstract bool get_important_only();
     // Sets the items to display
-    public abstract void view_items(Gee.List<Item> items);
+    public abstract void view_items(Gee.Traversable<Item> items, string title, string? desc);
 
-    public signal void item_viewed(Item i);
+    public signal void items_viewed(Item[] i);
     public signal void item_read_toggle(Item i);
     public signal void item_star_toggle(Item i);
     public signal void unread_mode_changed(bool unread_only);
@@ -39,9 +39,7 @@ public class StreamItemView : Box, ItemView {
     // Returns whether to only show "important" items (unread and starred)
     public bool get_important_only() { return m_important_view; }
 
-    public StreamItemView(GlobalSettings app_settings) {
-        m_global_settings = app_settings;
-
+    public StreamItemView() {
         UserContentManager content_manager = new UserContentManager();
 
         try {
@@ -85,18 +83,28 @@ public class StreamItemView : Box, ItemView {
         pack_start(m_web_view, true, true);
     }
     // Sets the items to display
-    public void view_items(Gee.List<Item> item_list) {
+    public void view_items(Gee.Traversable<Item> item_list, string title, string? desc) {
         page_cursor = 0;
-        m_item_list = item_list;
-        string html = m_builder.buildPageHTML(m_item_list, m_global_settings.items_per_list);
+
+        m_item_list = new Gee.ArrayList<Item>();
+        item_list.foreach((i) => { m_item_list.add(i); return true; });
+
+        string html = m_builder.buildPageHTML(m_item_list, AppSettings.items_per_list);
         m_web_view.load_html(html, "file://singularity");
+
+        title_label.label = title;
+        desc_label.label = desc == null ? "" : desc;
     }
 
     private bool m_important_view = true;
     private StreamViewBuilder m_builder;
     private Gee.List<Item> m_item_list;
     private WebKit.WebView m_web_view;
-    private GlobalSettings m_global_settings;
+
+    [GtkChild]
+    private Label title_label;
+    [GtkChild]
+    private Label desc_label;
 
     private int page_cursor = 0;
 
@@ -105,7 +113,7 @@ public class StreamItemView : Box, ItemView {
             NavigationPolicyDecision nav_dec = (NavigationPolicyDecision) decision;
             if(nav_dec.get_navigation_action().get_navigation_type() == NavigationType.LINK_CLICKED) {
                 try {
-                    GLib.Process.spawn_command_line_async(m_global_settings.link_command.printf(nav_dec.get_navigation_action().get_request().uri));
+                    GLib.Process.spawn_command_line_async(AppSettings.link_command.printf(nav_dec.get_navigation_action().get_request().uri));
                     nav_dec.ignore();
                 } catch(Error e) {
                     warning("Error opening external link: %s", e.message);
@@ -119,7 +127,9 @@ public class StreamItemView : Box, ItemView {
     // Called when the "Mark all as read" button is clicked
     [GtkCallback]
     void on_mark_all_read() {
-        // TODO
+        m_web_view.run_javascript.begin("readAll();", null);
+
+        items_viewed(m_item_list.to_array());
     }
 
     // Called when the "Toggle important" toggle is toggled
@@ -141,7 +151,7 @@ public class StreamItemView : Box, ItemView {
 
         switch(cmd) {
             case 'v': // Item viewed
-                item_viewed(m_item_list[id]);
+                items_viewed({m_item_list[id]});
             break;
 
             case 's': // Star button pressed
@@ -159,17 +169,17 @@ public class StreamItemView : Box, ItemView {
     }
 
     private void add_items() {
-        page_cursor += m_global_settings.items_per_list;
+        page_cursor += AppSettings.items_per_list;
         if(page_cursor > m_item_list.size)
             return;
         StringBuilder sb = new StringBuilder("document.body.innerHTML += String.raw`");
-        int starting_id = m_item_list.size;
-        for(int i = 0; i < m_global_settings.items_per_list && page_cursor + i < m_item_list.size; ++i) {
+        int starting_id = page_cursor;
+        for(int i = 0; i < AppSettings.items_per_list && page_cursor + i < m_item_list.size; ++i) {
             sb.append(m_builder.buildItemHTML(m_item_list[page_cursor + i], page_cursor + i));
         }
         sb.append_printf("`; prepareItems(%d);", starting_id);
 
-        m_web_view.run_javascript(sb.str, null);
+        m_web_view.run_javascript.begin(sb.str, null);
     }
 }
 
@@ -178,9 +188,7 @@ public class ColumnItemView : Paned, ItemView {
     // Returns whether to only show "important" items (unread and starred)
     public bool get_important_only() { return false; }
 
-    public ColumnItemView(GlobalSettings app_settings) {
-        m_global_settings = app_settings;
-
+    public ColumnItemView() {
         m_row_list = new Gee.ArrayList<ListBoxRow>();
 
         m_web_view = new WebView();
@@ -212,13 +220,16 @@ public class ColumnItemView : Paned, ItemView {
         });
     }
     // Sets the items to display
-    public void view_items(Gee.List<Item> item_list) {
+    public void view_items(Gee.Traversable<Item> item_list, string title, string? desc) {
         page_cursor = 0;
         column_scroll.vadjustment.set_value(0);
+
+        m_item_list = new Gee.ArrayList<Item>();
+        item_list.foreach((i) => { m_item_list.add(i); return true; });
+
         foreach(ListBoxRow row in m_row_list)
             item_box.remove(row);
         m_row_list.clear();
-        m_item_list = item_list;
         add_items();
     }
 
@@ -232,7 +243,6 @@ public class ColumnItemView : Paned, ItemView {
     private Gee.List<Item> m_item_list;
     private Gee.List<ListBoxRow> m_row_list;
     private WebKit.WebView m_web_view;
-    private GlobalSettings m_global_settings;
 
     private int page_cursor = 0;
 
@@ -241,7 +251,7 @@ public class ColumnItemView : Paned, ItemView {
             NavigationPolicyDecision nav_dec = (NavigationPolicyDecision) decision;
             if(nav_dec.get_navigation_action().get_navigation_type() == NavigationType.LINK_CLICKED) {
                 try {
-                    GLib.Process.spawn_command_line_async(m_global_settings.link_command.printf(nav_dec.get_navigation_action().get_request().uri));
+                    GLib.Process.spawn_command_line_async(AppSettings.link_command.printf(nav_dec.get_navigation_action().get_request().uri));
                     nav_dec.ignore();
                 } catch(Error e) {
                     warning("Error opening external link: %s", e.message);
@@ -268,7 +278,7 @@ public class ColumnItemView : Paned, ItemView {
         Item item = entry.item;
         entry.viewed();
         if(item.unread) {
-            item_viewed(item);
+            items_viewed({item});
             item.unread = false;
         }
 
@@ -279,7 +289,7 @@ public class ColumnItemView : Paned, ItemView {
 
     public void add_items() {
         int i = 0;
-        for(i = 0; i < m_global_settings.items_per_list && i + page_cursor < m_item_list.size; ++i) {
+        for(i = 0; i < AppSettings.items_per_list && i + page_cursor < m_item_list.size; ++i) {
             ListBoxRow row = new ListBoxRow();
             row.add(new ItemListEntry(m_item_list[page_cursor + i]));
             item_box.add(row);

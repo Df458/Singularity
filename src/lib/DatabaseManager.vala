@@ -19,19 +19,19 @@
 using SQLHeavy;
 using Singularity;
 
-const string DEFAULT_SCHEMA_DIR = "/usr/local/share/singularity/schemas";
+/* const string DEFAULT_SCHEMA_DIR = "/usr/local/share/singularity/schemas"; */
+const string DEFAULT_SCHEMA_DIR = "../data/schemas";
 
 public class DatabaseManager
 {
     public bool is_open { get; private set; }
 
-    public DatabaseManager.from_path(GlobalSettings settings, string path)
+    public DatabaseManager.from_path(string path)
     {
-        m_settings = settings;
         m_database_mutex = Mutex();
 
         try {
-            m_database = new Database(path);
+            m_database = new Database(path, FileMode.READ | FileMode.WRITE | FileMode.CREATE);
             if(m_database.schema_version == 0) {
                 info("Initializing database\u2026");
                 init_schema();
@@ -69,7 +69,6 @@ public class DatabaseManager
 
     private Database m_database;
     private Mutex    m_database_mutex;
-    private unowned GlobalSettings m_settings;
     private DatabaseRequestProcessor[] processors;
 
     private bool update_schema_version(string schema_dir = DEFAULT_SCHEMA_DIR)

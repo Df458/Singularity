@@ -20,13 +20,14 @@ using SQLHeavy;
 
 namespace Singularity
 {
-    public class Item : DataEntry
+    public class Item : DataEntryGuid
     {
         public Feed?                        owner = null;
         public string                       title;
         public string?                      link;
         public string?                      content = null;
-        public string                       guid;
+        /* public string                       guid; */
+        public string                       weak_guid;
         public Person?                      author;
         public Gee.Collection<Tag?>         tags;
         public Gee.Collection<Attachment?>  attachments;
@@ -48,7 +49,8 @@ namespace Singularity
             starred = false;
         }
 
-        public Item.from_record(SQLHeavy.Record r) {
+        public Item.from_record(SQLHeavy.Record r)
+        {
             base.from_record(r);
             attachments = new Gee.ArrayList<Attachment?>();
         }
@@ -74,10 +76,10 @@ namespace Singularity
         public override Query? insert(Queryable q)
         {
             try {
-                Query query = new Query(q, "INSERT INTO items (id, parent_id, guid, title, link, content, rights, publish_time, update_time, load_time, unread, starred) VALUES (:id, :parent_id, :guid, :title, :link, :content, :rights, :publish_time, :update_time, :load_time, :unread, :starred)");
-                query[":id"] = id;
+                Query query = new Query(q, "INSERT INTO items (parent_id, guid, weak_guid, title, link, content, rights, publish_time, update_time, load_time, unread, starred) VALUES (:parent_id, :guid, :title, :link, :content, :rights, :publish_time, :update_time, :load_time, :unread, :starred)");
                 query[":parent_id"] = owner.id;
                 query[":guid"] = guid;
+                query[":weak_guid"] = weak_guid;
                 query[":title"] = title;
                 query[":link"] = link;
                 query[":content"] = content;
@@ -100,8 +102,8 @@ namespace Singularity
         public override Query? update(Queryable q)
         {
             try {
-                Query query = new Query(q, "UPDATE items SET title = :title, link = :link, content = :content, rights = :rights, publish_time = :publish_time, update_time = :update_time, load_time = :load_time WHERE id = :id");
-                query[":id"] = id;
+                Query query = new Query(q, "UPDATE items SET title = :title, link = :link, content = :content, rights = :rights, publish_time = :publish_time, update_time = :update_time, load_time = :load_time WHERE guid = :guid");
+                query[":guid"] = guid;
                 query[":title"] = title;
                 query[":link"] = link;
                 query[":content"] = content;
@@ -123,8 +125,8 @@ namespace Singularity
         public override Query? remove(Queryable q)
         {
             try {
-                Query query = new Query(q, "DELETE FROM items WHERE `id` = :id");
-                query[":id"] = id;
+                Query query = new Query(q, "DELETE FROM items WHERE `guid` = :guid");
+                query[":guid"] = guid;
                 return query;
             } catch(SQLHeavy.Error e) {
                 warning("Cannot remove item data: " + e.message);
@@ -132,23 +134,32 @@ namespace Singularity
             }
         }
 
-        public void prepare_for_db(int new_id)
+        public void prepare_for_db()
         {
-            set_id(new_id);
+            set_guid(md5_guid(owner.link+weak_guid));
         }
 
         public string to_string()
         {
             StringBuilder sb = new StringBuilder();
-            sb.append_printf("%d: %s [%s]", id, title, link != null ? link : "null");
+            sb.append_printf("%s: %s [%s]", guid, title, link != null ? link : "null");
 
             return sb.str;
+        }
+
+        public bool equals(Item i2)
+        {
+            // TODO: Maybe check everything else?
+            if(time_updated == i2.time_updated)
+                return false;
+
+            return true;
         }
 
         protected override bool build_from_record(SQLHeavy.Record r)
         {
             try {
-                guid = r.fetch_string(r.field_index("guid"));
+                weak_guid = r.fetch_string(r.field_index("weak_guid"));
                 title = strip_htm(r.fetch_string(3));
                 link = r.fetch_string(r.field_index("link"));
                 content = r.fetch_string(r.field_index("content"));
@@ -162,10 +173,9 @@ namespace Singularity
                 // TODO: Decide how to store authors
                 // TODO: Decide how to store contributors
                 // TODO: Decide how to store tags
-                // TODO: Decide how to store attachments
                 return true;
             } catch(SQLHeavy.Error e) {
-                warning("Cannot load collection data: " + e.message);
+                warning("Cannot load item data: " + e.message);
                 return false;
             }
         }

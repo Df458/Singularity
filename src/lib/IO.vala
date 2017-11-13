@@ -21,7 +21,7 @@ namespace Singularity
 string get_node_contents(Xml.Node* node, bool atom = false)
 {
     string output = "";
-    if(node == null || node->children == null){
+    if(node == null || node->children == null) {
         return output;
     }
     if(atom && node->has_prop("type") != null && node->has_prop("type")->children->content != "text") {
@@ -46,35 +46,54 @@ string get_node_contents(Xml.Node* node, bool atom = false)
     return output;
 }
 
+// Converts a string containing a month (or abbreviation) into an integer.
+// Since we're dealing with a date, the integer starts at one.
+// If the string being passed is not valid, this function prints a warning and returns 0
+// TODO: Figure out how to make this work with localization
 int get_month(string month_abbr)
+    ensures(0 <= result <= 12)
 {
-    switch(month_abbr) {
-	case "Jan":
-	    return 1;
-	case "Feb":
-	    return 2;
-	case "Mar":
-	    return 3;
-	case "Apr":
-	    return 4;
-	case "May":
-	    return 5;
-	case "Jun":
-	    return 6;
-	case "Jul":
-	    return 7;
-	case "Aug":
-	    return 8;
-	case "Sep":
-	    return 9;
-	case "Oct":
-	    return 10;
-	case "Nov":
-	    return 11;
-	case "Dec":
-	    return 12;
+    switch(month_abbr.down()) {
+        case "jan":
+        case "january":
+            return 1;
+        case "feb":
+        case "february":
+            return 2;
+        case "mar":
+        case "march":
+            return 3;
+        case "apr":
+        case "april":
+            return 4;
+        case "may":
+            return 5;
+        case "jun":
+        case "june":
+            return 6;
+        case "jul":
+        case "july":
+            return 7;
+        case "aug":
+        case "august":
+            return 8;
+        case "sep":
+        case "september":
+            return 9;
+        case "oct":
+        case "october":
+            return 10;
+        case "nov":
+        case "november":
+            return 11;
+        case "dec":
+        case "december":
+            return 12;
     }
-    return -1;
+
+    warning("%s is not a valid month", month_abbr);
+
+    return 0;
 }
 
 public static string dump_xml_node(Xml.Node* node)
@@ -97,6 +116,8 @@ public static string dump_xml_node(Xml.Node* node)
     return xml_str;
 }
 
+// Converts a string for SQL. This replaces every ' character with its escaped form.
+// If str is null, returns the string "null" which becomes a nulkl value in SQL.
 public static string sql_str(string? str)
 {
     if(str == null)
@@ -111,5 +132,48 @@ public static string sql_str(string? str)
 public static string strip_htm(string str)
 {
     return str.replace("<", "&lt;").replace(">", "&gt;");
+}
+
+// Hashes a string for use as a unique id
+public static string md5_guid(string str)
+    ensures(str != "")
+{
+    uchar[64] digest = new uchar[64];
+    uchar[32] buffer;
+    GCrypt.Hash.hash_buffer(GCrypt.Hash.Algorithm.MD5, digest, str.data);
+
+    GCrypt.MPI mpi;
+
+    GCrypt.Error err;
+    size_t scanned;
+    err = GCrypt.MPI.scan(out mpi, GCrypt.MPI.Format.USG, digest, 64, out scanned);
+    if(err.code() != GCrypt.ErrorCode.NO_ERROR) {
+        warning("Failed to scan MPI: %s", err.to_string());
+        return "";
+    }
+    err = mpi.aprint(GCrypt.MPI.Format.HEX, out buffer);
+    if(err.code() != GCrypt.ErrorCode.NO_ERROR) {
+        warning("Failed to print MPI: %s", err.to_string());
+        return "";
+    }
+
+    StringBuilder builder = new StringBuilder();
+    int zero_start = -1;
+    for(int i = 0; i < buffer.length; ++i) {
+        if((char)buffer[i] == '0' && zero_start == -1)
+            zero_start = i;
+        else if((char)buffer[i] != '0' && buffer[i] != 0) {
+            zero_start = -1;
+        }
+
+        builder.append_c((char)buffer[i]);
+    }
+
+    string g = builder.str;
+
+    if(zero_start != -1)
+        return g.substring(0, zero_start);
+
+    return g;
 }
 }

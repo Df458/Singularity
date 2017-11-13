@@ -22,14 +22,15 @@ namespace Singularity
     {
         protected Feed to_update;
 
-        public UpdateGenerator(Feed f)
+        public UpdateGenerator(Feed f, Soup.Session s)
         {
             to_update = f;
+            m_session = s;
         }
         
         public UpdatePackage do_update()
         {
-            XmlRequest req = new XmlRequest(to_update.link);
+            XmlRequest req = new XmlRequest(to_update.link, m_session);
             if(req.send() == false) {
                 return new UpdatePackage.failure(to_update, req.error_message);
             }
@@ -56,11 +57,23 @@ namespace Singularity
                 return new UpdatePackage.failure(to_update, "Data was parsed, but the feed couldn't be updated");
             }
 
+            Gee.List<Item?> new_items = new Gee.ArrayList<Item?>();
+            Gee.List<Item?> changed_items = new Gee.ArrayList<Item?>();
+
             foreach(Item? i in source.data) {
-                i.owner = to_update;
+                Item? i2 = to_update.items.first_match((it) => { return it.weak_guid == i.weak_guid; });
+
+                if(i2 == null) {
+                    new_items.add(i);
+                    to_update.add_item(i);
+                } else if(i.equals(i2)) {
+                    changed_items.add(i);
+                }
             }
 
-            return new UpdatePackage.success(to_update, source.data);
+            return new UpdatePackage.success(to_update, new_items, changed_items);
         }
+
+        private Soup.Session m_session;
     }
 }

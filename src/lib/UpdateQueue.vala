@@ -2,6 +2,7 @@ using Gee;
 
 namespace Singularity
 {
+const string USER_AGENT = "Singularity RSS Reader/0.3 [http://github.com/Df458/Singularity]";
 
 // FIXME: Remove deleted feeds
 public class UpdateQueue : Object
@@ -34,9 +35,11 @@ public class UpdateQueue : Object
 
     private void* process()
     {
+        Soup.Session session = new Soup.Session();
+        session.user_agent = USER_AGENT;
         while(true) {
             Feed f = m_update_requests.pop();
-            UpdateGenerator gen = new UpdateGenerator(f);
+            UpdateGenerator gen = new UpdateGenerator(f, session);
             UpdatePackage pak = gen.do_update();
             update_processed(pak);
         }

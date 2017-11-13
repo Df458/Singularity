@@ -72,13 +72,13 @@ namespace Singularity
                 for(Xml.Node* n = node->children; n != null; n = n->next)
                     parse_outline(n, new_collection);
 
-                collection.add_node(new CollectionNode.with_collection(new_collection));
+                collection.add_node(new CollectionNode(new_collection));
             } else {
                 Feed new_feed  = new Feed();
                 new_feed.title = title;
                 new_feed.link  = url;
 
-                collection.add_node(new CollectionNode.with_feed(new_feed));
+                collection.add_node(new CollectionNode(new_feed));
             }
         }
 
@@ -88,14 +88,16 @@ namespace Singularity
             Xml.Node* outline = new Xml.Node(ns, "outline");
             node->add_child(outline);
 
-            if(cn.contents == CollectionNode.Contents.FEED) {
-                outline->new_prop("xmlUrl",  cn.feed.link);
-                outline->new_prop("title", cn.feed.title);
-                outline->new_prop("text",  cn.feed.title);
+            if(cn.data is Feed) {
+                Feed feed = cn.data as Feed;
+                outline->new_prop("xmlUrl",  feed.link);
+                outline->new_prop("title", feed.title);
+                outline->new_prop("text",  feed.title);
             } else {
-                foreach(CollectionNode child in cn.collection.nodes) {
-                    outline->new_prop("title", cn.collection.title);
-                    outline->new_prop("text",  cn.collection.title);
+                FeedCollection collection = cn.data as FeedCollection;
+                foreach(CollectionNode child in collection.nodes) {
+                    outline->new_prop("title", collection.title);
+                    outline->new_prop("text",  collection.title);
                     encode_outline(ns, outline, child);
                 }
             }

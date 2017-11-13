@@ -23,36 +23,30 @@ using Singularity;
 [GtkTemplate (ui="/org/df458/Singularity/SettingsView.ui")]
 class SettingsView : Box
 {
-    public SettingsView(GlobalSettings gs) {
-        m_settings = gs;
-    }
-
     public void sync() {
-        if(!m_settings.auto_update)
+        if(!AppSettings.auto_update)
             auto_update_combo.active = 0;
         else
-            start_update_switch.set_active(m_settings.start_update);
-        auto_update_time_label.set_sensitive(m_settings.auto_update);
-        auto_update_time_entry.set_sensitive(m_settings.auto_update);
-        read_spin.set_value(m_settings.read_rule[0]);
-        unread_spin.set_value(m_settings.unread_rule[0]);
-        read_incr_combo.set_active(m_settings.read_rule[1]);
-        unread_incr_combo.set_active(m_settings.unread_rule[1]);
-        if(m_settings.read_rule[2] == 1)
+            start_update_switch.set_active(AppSettings.start_update);
+        auto_update_time_label.set_sensitive(AppSettings.auto_update);
+        auto_update_time_entry.set_sensitive(AppSettings.auto_update);
+        read_spin.set_value(AppSettings.read_rule[0]);
+        unread_spin.set_value(AppSettings.unread_rule[0]);
+        read_incr_combo.set_active(AppSettings.read_rule[1]);
+        unread_incr_combo.set_active(AppSettings.unread_rule[1]);
+        if(AppSettings.read_rule[2] == 1)
             read_action_combo.set_active(-1);
         else
-            read_action_combo.set_active(m_settings.read_rule[2] / 2); // 0 or 2 becomes 0 or 1
-        unread_action_combo.set_active(m_settings.unread_rule[2]);
-        always_ask_check.set_active(m_settings.ask_download_location);
-        download_to_button.set_current_folder(m_settings.default_download_location.get_path());
-        download_to_label.set_sensitive(!m_settings.ask_download_location);
-        download_to_button.set_sensitive(!m_settings.ask_download_location);
-        link_command_entry.set_text(m_settings.link_command);
+            read_action_combo.set_active(AppSettings.read_rule[2] / 2); // 0 or 2 becomes 0 or 1
+        unread_action_combo.set_active(AppSettings.unread_rule[2]);
+        always_ask_check.set_active(AppSettings.ask_download_location);
+        download_to_button.set_current_folder(AppSettings.default_download_location.get_path());
+        download_to_label.set_sensitive(!AppSettings.ask_download_location);
+        download_to_button.set_sensitive(!AppSettings.ask_download_location);
+        link_command_entry.set_text(AppSettings.link_command);
     }
 
     public signal void done();
-
-    private GlobalSettings m_settings;
 
     [GtkChild]
     private ComboBoxText auto_update_combo;
@@ -133,19 +127,19 @@ class SettingsView : Box
     [GtkCallback]
     private void save()
     {
-        m_settings.auto_update = auto_update_combo.active != 0;
-        m_settings.start_update = start_update_switch.get_active();
-        m_settings.read_rule[0] = (int)read_spin.get_value();
-        m_settings.read_rule[1] = read_incr_combo.get_active();
+        AppSettings.auto_update = auto_update_combo.active != 0;
+        AppSettings.start_update = start_update_switch.get_active();
+        AppSettings.read_rule[0] = (int)read_spin.get_value();
+        AppSettings.read_rule[1] = read_incr_combo.get_active();
         if(read_action_combo.get_active() != -1)
-            m_settings.read_rule[2] = read_action_combo.get_active() * 2; // 0 or 1 becomes 0 or 2
-        m_settings.unread_rule[0] = (int)unread_spin.get_value();
-        m_settings.unread_rule[1] = unread_incr_combo.get_active();
-        m_settings.unread_rule[2] = unread_action_combo.get_active();
-        m_settings.ask_download_location = always_ask_check.get_active();
-        m_settings.default_download_location = File.new_for_path(download_to_button.get_filename());
-        m_settings.link_command = link_command_entry.text;
-        m_settings.save();
+            AppSettings.read_rule[2] = read_action_combo.get_active() * 2; // 0 or 1 becomes 0 or 2
+        AppSettings.unread_rule[0] = (int)unread_spin.get_value();
+        AppSettings.unread_rule[1] = unread_incr_combo.get_active();
+        AppSettings.unread_rule[2] = unread_action_combo.get_active();
+        AppSettings.ask_download_location = always_ask_check.get_active();
+        AppSettings.default_download_location = File.new_for_path(download_to_button.get_filename());
+        AppSettings.link_command = link_command_entry.text;
+        AppSettings.save();
         done();
     }
 

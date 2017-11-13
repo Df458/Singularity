@@ -4,6 +4,8 @@
 # Ignore Glade backups
 *.glade~
 *.ui~
+*.glade#
+*.ui#
 
 # Ignore test databases
 *.db
@@ -14,3 +16,5 @@ libsingularity.a
 generated
 vapi
 obj
+tags
+build

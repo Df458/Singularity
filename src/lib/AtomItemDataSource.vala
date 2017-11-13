@@ -92,7 +92,7 @@ namespace Singularity
                             if(dat->has_prop("rel") == null || dat->has_prop("rel")->children->content == "alternate") {
                                 new_item.link = dat->has_prop("href")->children->content;
                             } else if(dat->has_prop("rel")->children->content == "enclosure") {
-                                Attachment a = Attachment();
+                                Attachment a = new Attachment();
                                 a.url = dat->has_prop("href")->children->content;
                                 if(dat->has_prop("title") != null)
                                     a.name = dat->has_prop("title")->children->content;
@@ -116,7 +116,7 @@ namespace Singularity
 
                         case "id":
                         case "guid":
-                            new_item.guid = get_node_contents(dat, true);
+                            new_item.weak_guid = get_node_contents(dat, true);
                         break;
 
                         case "updated":
@@ -137,13 +137,17 @@ namespace Singularity
                         break;
 
                         case "enclosure":
-                            // TODO: Reimplement after adding attachments
-                            /* if(dat->has_prop("url") != null) */
-                            /*     enclosure_url = dat->has_prop("url")->children->content; */
-                            /* if(dat->has_prop("length") != null) */
-                            /*     enclosure_length = int.parse(dat->has_prop("length")->children->content); */
-                            /* if(dat->has_prop("type") != null) */
-                            /*     enclosure_type = dat->has_prop("type")->children->content; */
+                            if(dat->has_prop("url") != null) {
+                                Attachment a = new Attachment();
+                                a.url = dat->has_prop("url")->children->content;
+                                if(dat->has_prop("length") != null)
+                                    a.size = int.parse(dat->has_prop("length")->children->content);
+                                if(dat->has_prop("type") != null)
+                                    a.mimetype = dat->has_prop("type")->children->content;
+
+                                new_item.attachments.add(a);
+                            } else
+                                warning("Failed to load attachment: No URL");
                         break;
 
                         default:
@@ -154,11 +158,11 @@ namespace Singularity
             }
             if(new_item.guid == null || new_item.guid == "") {
                 if(new_item.link != null && new_item.link.length > 0) {
-                    new_item.guid = new_item.link;
+                    new_item.weak_guid = new_item.link;
                 } else if(new_item.title != null && new_item.title.length > 0) {
-                    new_item.guid = new_item.title;
+                    new_item.weak_guid = new_item.title;
                 } else if(new_item.content != null && new_item.content.length > 0) {
-                    new_item.guid = new_item.content;
+                    new_item.weak_guid = new_item.content;
                 } else {
                     warning("Could not establish GUID for feed, as it has no guid, title, link, or content");
                     return null;

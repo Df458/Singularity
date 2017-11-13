@@ -38,53 +38,86 @@ namespace Singularity
         {
             Query q;
             try {
-                q = new Query(db, "SELECT feeds.*, icons.*, sum(items.unread) AS unread_count FROM feeds LEFT OUTER JOIN icons ON feeds.id = icons.id LEFT OUTER JOIN items ON items.parent_id = feeds.id GROUP BY feeds.id ORDER BY feeds.id");
+                if(current_id == -1) {
+                    q = new Query(db, "SELECT feeds.*, icons.*, sum(items.unread) AS unread_count FROM feeds LEFT OUTER JOIN icons ON feeds.id = icons.id LEFT OUTER JOIN items ON items.parent_id = feeds.id GROUP BY feeds.id ORDER BY feeds.id");
+                } else {
+                    if(item_step)
+                        q = new Query(db, "SELECT * FROM items WHERE parent_id = %d".printf(m_node_list[current_id].id));
+                    else
+                        q = new Query(db, "SELECT * FROM enclosures WHERE feed_id = %d".printf(m_node_list[current_id].id));
+                }
             } catch(SQLHeavy.Error e) {
-                error("failed to load feeds: %s", e.message);
-            }
+                    error("failed to load feeds: %s", e.message);
+                }
 
             return q;
         }
 
         public RequestStatus process_result(QueryResult res)
         {
-            try {
-                for(; !res.finished; res.next()) {
-                    switch(res.get_int("type")) {
-                        case CollectionNode.Contents.FEED:
-                            Feed f = new Feed.from_record(res);
-                            CollectionNode n = new CollectionNode.with_feed(f);
-                            m_node_map[f.id] = n;
-                            count_map[f.id] = res.get_int("unread_count");
-                            m_node_list.add(n);
-                        break;
-                        case CollectionNode.Contents.COLLECTION:
-                            FeedCollection c = new FeedCollection.from_record(res);
-                            CollectionNode n = new CollectionNode.with_collection(c);
-                            m_node_map[c.id] = n;
-                            count_map[c.id] = res.get_int("unread_count");
-                            m_node_list.add(n);
-                        break;
+            if(current_id == -1) {
+                try {
+                    for(; !res.finished; res.next()) {
+                        switch(res.get_int("type")) {
+                            case CollectionNode.Contents.FEED:
+                                Feed f = new Feed.from_record(res);
+                                CollectionNode n = new CollectionNode(f);
+                                m_node_map[f.id] = n;
+                                count_map[f.id] = res.get_int("unread_count");
+                                m_node_list.add(n);
+                            break;
+                            case CollectionNode.Contents.COLLECTION:
+                                FeedCollection c = new FeedCollection.from_record(res);
+                                CollectionNode n = new CollectionNode(c);
+                                m_node_map[c.id] = n;
+                                count_map[c.id] = res.get_int("unread_count");
+                                m_node_list.add(n);
+                            break;
+                        }
+                        unread_count += res.get_int("unread_count");
                     }
-                    unread_count += res.get_int("unread_count");
+                } catch(SQLHeavy.Error e) {
+                    error("Failed to build feed structure: %s", e.message);
                 }
-            } catch(SQLHeavy.Error e) {
-                error("Failed to build feed structure: %s", e.message);
+
+                foreach(CollectionNode n in m_node_list) {
+                    if(n.data.parent_id == -1) {
+                        feeds.add_node(n);
+                    }
+                    else
+                        (m_node_map[n.data.parent_id].data as FeedCollection).add_node(n);
+                }
+            } else {
+                if(item_step) {
+                    item_step = false;
+                    try {
+                        for(; !res.finished; res.next()) {
+                            Item i = new Item.from_record(res);
+                            (m_node_list[current_id].data as Feed).add_item(i);
+                        }
+                    } catch(SQLHeavy.Error e) {
+                        error("Failed to build feed structure: %s", e.message);
+                    }
+
+                    return RequestStatus.CONTINUE;
+                } else {
+                    item_step = true;
+                    try {
+                        for(; !res.finished; res.next()) {
+                            Attachment a = new Attachment.from_record(res);
+                            string guid = res.fetch_string(res.field_index("item_guid"));
+                            (m_node_list[current_id].data as Feed).get_item(guid).attachments.add(a);
+                        }
+                    } catch(SQLHeavy.Error e) {
+                        error("Failed to build feed structure: %s", e.message);
+                    }
+                }
             }
 
-            foreach(CollectionNode n in m_node_list)
-            {
-                if(n.contents == CollectionNode.Contents.FEED) {
-                    if(n.feed.parent_id == -1)
-                        feeds.add_node(n);
-                    else
-                        m_node_map[n.feed.parent_id].collection.add_node(n);
-                } else if(n.contents == CollectionNode.Contents.COLLECTION) {
-                    if(n.collection.parent_id == -1)
-                        feeds.add_node(n);
-                    else
-                        m_node_map[n.collection.parent_id].collection.add_node(n);
-                }
+            while(current_id + 1 < m_node_list.size) {
+                current_id++;
+                if(m_node_list[current_id].data is Feed)
+                    return RequestStatus.CONTINUE;
             }
 
             return RequestStatus.DEFAULT;
@@ -92,5 +125,7 @@ namespace Singularity
 
         private Gee.HashMap<int, CollectionNode> m_node_map;
         private Gee.List<CollectionNode> m_node_list;
+        private int current_id = -1;
+        private bool item_step = true;
     }
 }

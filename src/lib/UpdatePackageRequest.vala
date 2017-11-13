@@ -19,7 +19,6 @@ using SQLHeavy;
 
 namespace Singularity
 {
-    // TODO: Reimplement the cleanup process
     public class UpdatePackageRequest : DatabaseRequest, GLib.Object
     {
         public enum Status
@@ -27,12 +26,12 @@ namespace Singularity
             FEED = 0,
             ICON_INSERT,
             UNREAD_PRE,
-            CRTABLE,
-            CRINDEX,
+            /* CRTABLE, */
+            /* CRINDEX, */
             INSERT_ENCLOSURE,
             INSERT,
-            COPY,
-            DRTABLE,
+            /* COPY, */
+            /* DRTABLE, */
             CLEANUP,
             UNREAD,
             COUNT
@@ -41,19 +40,21 @@ namespace Singularity
         public UpdatePackage package { get; construct; }
         public int unread_count { get; private set; }
 
-        public UpdatePackageRequest(UpdatePackage pak, GlobalSettings settings, bool use_owner_id = true)
+        public UpdatePackageRequest(UpdatePackage pak, bool use_owner_id = true)
         {
             Object(package: pak);
             m_use_owner_id = use_owner_id;
-            m_settings = settings;
+
+            foreach(Item i in package.new_items)
+                i.prepare_for_db();
         }
 
         public Query build_query(Database db)
         {
             switch(m_status) {
                 case Status.ICON_INSERT:
-                    StringBuilder q_builder = new StringBuilder("INSERT OR REPLACE INTO icons (id, width, height, bits, rowstride, data) VALUES ");
-                    q_builder.append_printf("(%d, %d, %d, %d, %d, :data)", package.feed.id, package.feed.icon.width, package.feed.icon.height, package.feed.icon.bits_per_sample, package.feed.icon.rowstride);
+                    StringBuilder q_builder = new StringBuilder("INSERT OR REPLACE INTO icons (id, width, height, alpha, bits, rowstride, data) VALUES ");
+                    q_builder.append_printf("(%d, %d, %d, %d, %d, %d, :data)", package.feed.id, package.feed.icon.width, package.feed.icon.height, package.feed.icon.has_alpha ? 1 : 0, package.feed.icon.bits_per_sample, package.feed.icon.rowstride);
                     Query q;
                     try {
                         q = new Query(db, q_builder.str);
@@ -63,51 +64,32 @@ namespace Singularity
                     }
                     return q;
 
-                case Status.CRTABLE:
-                    StringBuilder q_builder = new StringBuilder("CREATE TEMPORARY TABLE tmp AS SELECT * FROM items");
-                    q_builder.append_printf(" WHERE parent_id = %d;\n", package.feed.id);
-                    Query q;
-                    try {
-                        q = new Query(db, q_builder.str);
-                    } catch(SQLHeavy.Error e) {
-                        error("Failed to create update table: %s", e.message);
-                    }
-                    return q;
-
-                case Status.CRINDEX:
-                    Query q;
-                    try {
-                        q = new Query(db, "CREATE UNIQUE INDEX tmpi_guid ON tmp (guid);\n");
-                    } catch(SQLHeavy.Error e) {
-                        error("Failed to clean table: %s", e.message);
-                    }
-                    return q;
-
                 case Status.INSERT:
-                    StringBuilder q_builder = new StringBuilder(" INSERT OR REPLACE INTO tmp (id, parent_id, guid, title, link, content, rights, publish_time, update_time, load_time, unread, starred) VALUES ");
-                    add_item(q_builder, package.items[0], true);
-                    for(int i = 1; i < package.items.size; i++)
-                        add_item(q_builder, package.items[i], false);
+                    StringBuilder q_builder = new StringBuilder("REPLACE INTO items (guid, parent_id, weak_guid, title, link, content, rights, publish_time, update_time, load_time, unread, starred) VALUES ");
+                    add_item(q_builder, package.new_items[0], true);
+                    for(int i = 1; i < package.new_items.size; i++)
+                        add_item(q_builder, package.new_items[i], false);
                     Query q;
                     try {
                         q = new Query(db, q_builder.str);
                     } catch(SQLHeavy.Error e) {
-                        error("Failed to save item updates: %s", e.message);
+                        error("Failed to save item updates for %s: %s. Cammand was:\n%s", package.feed.to_string(), e.message, q_builder.str);
                     }
                     return q;
 
                 case Status.INSERT_ENCLOSURE:
-                    StringBuilder q_builder = new StringBuilder("INSERT OR IGNORE INTO enclosures (item_id, guid, uri, name, length, mimetype) VALUES ");
+                    StringBuilder q_builder = new StringBuilder("REPLACE INTO enclosures (feed_id, item_guid, guid, uri, name, length, mimetype) VALUES ");
                     bool first = true;
-                    foreach(Item i in package.items) {
+                    foreach(Item i in package.new_items) {
                         foreach(Attachment a in i.attachments) {
                             if(!first)
                                 q_builder.append(",\n");
-                            q_builder.append_printf("((SELECT id FROM tmp WHERE guid = %s), (SELECT id FROM tmp WHERE guid = %s) || %s, %s, %s, %d, %s)", sql_str(i.guid), sql_str(i.guid), sql_str(a.url), sql_str(a.url), sql_str(a.name), a.size, sql_str(a.mimetype));
+
+                            a.prepare_for_db(i);
+                            q_builder.append_printf("(%d, %s, %s, %s, %s, %d, %s)", package.feed.id, sql_str(i.guid), sql_str(a.guid), sql_str(a.url), sql_str(a.name), a.size, sql_str(a.mimetype));
                             first = false;
                         }
                     }
-                    string final = q_builder.str;
                     Query q;
                     try {
                         q = new Query(db, q_builder.str);
@@ -116,43 +98,24 @@ namespace Singularity
                     }
                     return q;
 
-                case Status.COPY:
-                    Query q;
-                    try {
-                        q = new Query(db, "INSERT OR REPLACE INTO items SELECT * FROM tmp");
-                    } catch(SQLHeavy.Error e) {
-                        error("Failed to save item updates: %s", e.message);
-                    }
-
-                    return q;
-
-                case Status.DRTABLE:
-                    Query q;
-                    try {
-                        q = new Query(db, "DROP TABLE IF EXISTS tmp");
-                    } catch(SQLHeavy.Error e) {
-                        error("Failed to clean table: %s", e.message);
-                    }
-                    return q;
-
                 case Status.CLEANUP:
                     StringBuilder q_builder = new StringBuilder("DELETE FROM items");
                     q_builder.append_printf(" WHERE `parent_id` = %d AND (", package.feed.id);
-                    bool delete_read = m_settings.read_rule[2] == 2;
-                    bool delete_unread = m_settings.unread_rule[2] == 2;
+                    bool delete_read = AppSettings.read_rule[2] == 2;
+                    bool delete_unread = AppSettings.unread_rule[2] == 2;
                     DateTime read_time = new DateTime.now_utc();
                     DateTime unread_time = new DateTime.now_utc();
 
                     if(delete_read) {
-                        switch(m_settings.read_rule[1]) {
+                        switch(AppSettings.read_rule[1]) {
                             case 0:
-                                read_time = read_time.add_days(m_settings.read_rule[0] * -1);
+                                read_time = read_time.add_days(AppSettings.read_rule[0] * -1);
                             break;
                             case 1:
-                                read_time = read_time.add_months(m_settings.read_rule[0] * -1);
+                                read_time = read_time.add_months(AppSettings.read_rule[0] * -1);
                             break;
                             case 2:
-                                read_time = read_time.add_years(m_settings.read_rule[0] * -1);
+                                read_time = read_time.add_years(AppSettings.read_rule[0] * -1);
                             break;
                         }
                         q_builder.append_printf("(`unread` = 0 AND `load_time` < %lld)", read_time.to_unix());
@@ -163,15 +126,15 @@ namespace Singularity
                     }
 
                     if(delete_unread) {
-                        switch(m_settings.unread_rule[1]) {
+                        switch(AppSettings.unread_rule[1]) {
                             case 0:
-                                unread_time = unread_time.add_days(m_settings.unread_rule[0] * -1);
+                                unread_time = unread_time.add_days(AppSettings.unread_rule[0] * -1);
                             break;
                             case 1:
-                                unread_time = unread_time.add_months(m_settings.unread_rule[0] * -1);
+                                unread_time = unread_time.add_months(AppSettings.unread_rule[0] * -1);
                             break;
                             case 2:
-                                unread_time = unread_time.add_years(m_settings.unread_rule[0] * -1);
+                                unread_time = unread_time.add_years(AppSettings.unread_rule[0] * -1);
                             break;
                         }
                         q_builder.append_printf("(`unread` = 1 AND `load_time` < %lld))", unread_time.to_unix());
@@ -223,12 +186,10 @@ namespace Singularity
         public RequestStatus process_result(QueryResult res)
         {
             m_status += 1;
-            if(m_status == Status.CRTABLE && package.items.size == 0)
-                m_status = Status.CLEANUP;
 
             if(m_status == Status.INSERT_ENCLOSURE) {
                 int count = 0;
-                foreach(Item i in package.items)
+                foreach(Item i in package.new_items)
                     count += i.attachments.size;
                 if(count == 0)
                     m_status += 1;
@@ -243,8 +204,11 @@ namespace Singularity
             }
 
             if((m_status == Status.ICON_INSERT && package.feed.icon == null) ||
-               (m_status == Status.CLEANUP && m_settings.read_rule[2] != 2 && m_settings.unread_rule[2] != 2))
+               (m_status == Status.CLEANUP && AppSettings.read_rule[2] != 2 && AppSettings.unread_rule[2] != 2))
                 m_status += 1;
+
+            if(m_status == Status.INSERT && package.new_items.size == 0)
+                m_status = Status.CLEANUP;
 
             try {
                 if(m_status == Status.UNREAD_PRE + 1) {
@@ -270,11 +234,11 @@ namespace Singularity
         {
             if(!first)
                 q_builder.append(",\n");
-            q_builder.append_printf(" ((SELECT id FROM tmp WHERE guid = %s), %d, %s, %s, %s, %s, %s, %lld, %lld, %lld, (SELECT unread FROM tmp WHERE guid = %s), (SELECT starred FROM tmp WHERE guid = %s))", sql_str(i.guid), package.feed.id, sql_str(i.guid), sql_str(i.title), sql_str(i.link), sql_str(i.content), sql_str(i.rights), i.time_published.to_unix(), i.time_updated.to_unix(), i.time_loaded.to_unix(), sql_str(i.guid), sql_str(i.guid));
+            i.prepare_for_db();
+            q_builder.append_printf(" (%s, %d, %s, %s, %s, %s, %s, %lld, %lld, %lld, %d, %d)", sql_str(i.guid), package.feed.id, sql_str(i.weak_guid), sql_str(i.title), sql_str(i.link), sql_str(i.content), sql_str(i.rights), i.time_published.to_unix(), i.time_updated.to_unix(), i.time_loaded.to_unix(), i.unread, i.starred);
         }
 
         private Status m_status = Status.FEED;
         private bool m_use_owner_id = true;
-        private unowned GlobalSettings m_settings;
     }
 }
