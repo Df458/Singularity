@@ -49,6 +49,13 @@ namespace Singularity
             set_sort_column_id(Column.TITLE, SortType.ASCENDING);
             append(out base_iter, null);
             set(base_iter, Column.ID, -1, Column.TITLE, FEED_CATEGORY_STRING, Column.WEIGHT, 800, Column.UNREAD, 0, Column.NODE, root_node, -1);
+
+            try {
+                feed_icon_default = Gtk.IconTheme.get_default().load_icon("application-rss+xml-symbolic", 16, IconLookupFlags.FORCE_SIZE);
+                collection_icon_default = Gtk.IconTheme.get_default().load_icon("folder-symbolic", 16, IconLookupFlags.FORCE_SIZE);
+            } catch(Error e) {
+                error("Failed to load default icons: %s", e.message);
+            }
         }
 
         public CollectionTreeStore.from_collection(FeedCollection fc)
@@ -83,8 +90,13 @@ namespace Singularity
             append(out iter, parent);
             set(iter, Column.ID, node.id, Column.TITLE, node.data.title, Column.NODE, node);
 
-            if(node.data is Feed)
-                set(iter, Column.ICON, (node.data as Feed).icon);
+            if(node.data is Feed) {
+                if((node.data as Feed).icon != null)
+                    set(iter, Column.ICON, (node.data as Feed).icon);
+                else
+                    set(iter, Column.ICON, feed_icon_default);
+            } else
+                set(iter, Column.ICON, collection_icon_default);
 
             foreach(CollectionNode n in node.get_children())
                 append_node(n, iter);
@@ -295,6 +307,9 @@ namespace Singularity
         private TreeIter base_iter;
         private Gee.HashMap<int, CollectionNode> node_map;
         private FeedCollection root_collection;
+
+        private Gdk.Pixbuf feed_icon_default;
+        private Gdk.Pixbuf collection_icon_default;
 
         private void reparent(TreeIter src, TreeIter dest)
         {
