@@ -35,7 +35,7 @@ namespace Singularity
                 return new UpdatePackage.failure(to_update, req.error_message);
             }
 
-            Xml.Doc* doc = req.doc;
+            GXml.GDocument doc = req.doc;
 
             FeedProvider source = null;
             XmlRequest.ContentType type = req.determine_content_type();

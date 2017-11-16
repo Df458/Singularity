@@ -15,56 +15,54 @@
 	You should have received a copy of the GNU General Public License
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+using GXml;
 
 // TODO: Rework this. Currently, it's based on the 0.2 code, but we can probably do better now
 namespace Singularity
 {
     class AtomItemDataSource : FeedProvider
     {
-        public override bool parse_data(Xml.Doc doc)
+        public override bool parse_data(GXml.GDocument doc)
         {
             stored_feed = new Feed();
             stored_feed.last_update = new DateTime.now_utc();
             _data = new Gee.ArrayList<Item>();
-            Xml.Node* node = doc.get_root_element();
-
-            while(node != null && node->name != "feed")
-                node = node->next;
+            GXml.Node? node = doc["feed"];
 
             if(node == null)
                 return false;
 
-            readAtomFeed(node->children);
+            readAtomFeed(node);
 
             return true;
         }
 
-        private void readAtomFeed(Xml.Node* node)
+        private void readAtomFeed(GXml.Node node)
         {
-            for(; node != null; node = node->next) {
-                if(node->type == Xml.ElementType.ELEMENT_NODE) {
-                    switch(node->name) {
+            foreach(GXml.Node n in node.children_nodes) {
+                if(n.type_node == GXml.NodeType.ELEMENT) {
+                    switch(n.name) {
                         case "title":
-                            stored_feed.title = get_node_contents(node).strip().replace("&", "&amp;");
+                            stored_feed.title = n.value.strip().replace("&", "&amp;");
                         break;
 
                         case "link":
-                            stored_feed.site_link = get_node_contents(node);
+                            stored_feed.site_link = n.value;
                         break;
 
                         case "icon":
-                            IconRequest req = new IconRequest(get_node_contents(node));
+                            IconRequest req = new IconRequest(n.value);
                             if(req.send()) {
                                 stored_feed.icon = req.buf;
                             }
                         break;
 
                         case "description":
-                            stored_feed.description = get_node_contents(node);
+                            stored_feed.description = n.value;
                         break;
 
                         case "entry":
-                            Item item = readAtomItem(node);
+                            Item item = readAtomItem(n);
                             if(item != null)
                                 _data.add(item);
                         break;
@@ -77,31 +75,31 @@ namespace Singularity
             }
         }
 
-        private Item? readAtomItem(Xml.Node* node)
+        private Item? readAtomItem(GXml.Node node)
         {
             Item new_item = new Item();
 
-            for(Xml.Node* dat = node->children; dat != null; dat = dat->next) {
-                if(dat->type == Xml.ElementType.ELEMENT_NODE) {
-                    switch(dat->name) {
+            foreach(GXml.Node dat in node.children_nodes) {
+                if(dat.type_node == GXml.NodeType.ELEMENT) {
+                    switch(dat.name) {
                         case "title":
-                            new_item.title = get_node_contents(dat, true);
+                            new_item.title = dat.value;
                         break;
 
                         case "link":
-                            if(dat->has_prop("rel") == null || dat->has_prop("rel")->children->content == "alternate") {
-                                new_item.link = dat->has_prop("href")->children->content;
-                            } else if(dat->has_prop("rel")->children->content == "enclosure") {
+                            if(!dat.attrs.has_key("rel") || dat.attrs["rel"].value == "alternate") {
+                                new_item.link = dat.attrs["href"].value;
+                            } else if(dat.attrs["rel"].value == "enclosure") {
                                 Attachment a = new Attachment();
-                                a.url = dat->has_prop("href")->children->content;
-                                if(dat->has_prop("title") != null)
-                                    a.name = dat->has_prop("title")->children->content;
+                                a.url = dat.attrs["href"].value;
+                                if(dat.attrs.has_key("title"))
+                                    a.name = dat.attrs["title"].value;
                                 else
                                     a.name = a.url.substring(a.url.last_index_of_char('/') + 1);
-                                if(dat->has_prop("length") != null)
-                                    a.size = int.parse(dat->has_prop("length")->children->content);
-                                if(dat->has_prop("type") != null)
-                                    a.mimetype = dat->has_prop("type")->children->content;
+                                if(dat.attrs.has_key("length"))
+                                    a.size = int.parse(dat.attrs["length"].value);
+                                if(dat.attrs["type"] != null)
+                                    a.mimetype = dat.attrs["type"].value;
 
                                 new_item.attachments.add(a);
                             }
@@ -109,18 +107,18 @@ namespace Singularity
 
                         case "content":
                         case "summary":
-                            if(new_item.content == null || new_item.content.strip() == "" || dat->get_prop("type") == "html" || dat->get_prop("type") == "xhtml")
-                                new_item.content = get_node_contents(dat, true);
+                            if(new_item.content == null || new_item.content.strip() == "" || dat.attrs["type"].value == "html" || dat.attrs["type"].value == "xhtml")
+                                new_item.content = dat.value;
                         break;
 
 
                         case "id":
                         case "guid":
-                            new_item.weak_guid = get_node_contents(dat, true);
+                            new_item.weak_guid = dat.value;
                         break;
 
                         case "updated":
-                            string input = get_node_contents(dat, true);
+                            string input = dat.value;
                             string[] date_strs = input.split(" ");
                             if(date_strs.length < 5)
                                 break;
@@ -133,17 +131,17 @@ namespace Singularity
 
                         case "author":
                         case "creator":
-                            new_item.author = Person(get_node_contents(dat, true));
+                            new_item.author = Person(dat.value);
                         break;
 
                         case "enclosure":
-                            if(dat->has_prop("url") != null) {
+                            if(dat.attrs["url"] != null) {
                                 Attachment a = new Attachment();
-                                a.url = dat->has_prop("url")->children->content;
-                                if(dat->has_prop("length") != null)
-                                    a.size = int.parse(dat->has_prop("length")->children->content);
-                                if(dat->has_prop("type") != null)
-                                    a.mimetype = dat->has_prop("type")->children->content;
+                                a.url = dat.attrs["url"].value;
+                                if(dat.attrs["length"] != null)
+                                    a.size = int.parse(dat.attrs["length"].value);
+                                if(dat.attrs["type"] != null)
+                                    a.mimetype = dat.attrs["type"].value;
 
                                 new_item.attachments.add(a);
                             } else

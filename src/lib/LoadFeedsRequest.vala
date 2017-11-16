@@ -64,17 +64,16 @@ namespace Singularity
                                 CollectionNode n = new CollectionNode(f);
                                 m_node_map[f.id] = n;
                                 count_map[f.id] = res.get_int("unread_count");
+                                unread_count += res.get_int("unread_count");
                                 m_node_list.add(n);
                             break;
                             case CollectionNode.Contents.COLLECTION:
                                 FeedCollection c = new FeedCollection.from_record(res);
                                 CollectionNode n = new CollectionNode(c);
                                 m_node_map[c.id] = n;
-                                count_map[c.id] = res.get_int("unread_count");
                                 m_node_list.add(n);
                             break;
                         }
-                        unread_count += res.get_int("unread_count");
                     }
                 } catch(SQLHeavy.Error e) {
                     error("Failed to build feed structure: %s", e.message);

@@ -20,55 +20,56 @@ namespace Singularity
 {
     class RSSItemDataSource : FeedProvider
     {
-        public override bool parse_data(Xml.Doc doc)
+        public override bool parse_data(GXml.GDocument doc)
         {
             stored_feed = new Feed();
             stored_feed.last_update = new DateTime.now_utc();
             _data = new Gee.ArrayList<Item>();
-            Xml.Node* node = doc.get_root_element();
+            GXml.Node? node = doc["rss"];
 
-            while(node != null && node->name != "rss" && node->name != "RDF")
-                node = node->next;
+            if(node == null)
+                node = doc["RDF"];
+            else
+            {
+                readRSSFeed(node);
+                return true;
+            }
 
             if(node == null)
                 return false;
 
-            if(node->name == "rss")
-                readRSSFeed(node->children);
-            else if(node->name == "RDF")
-                readRDFFeed(node);
+            readRDFFeed(node);
 
             return true;
         }
 
-        private void readRSSFeed(Xml.Node* node)
+        private void readRSSFeed(GXml.Node node)
         {
-            for(; node != null; node = node->next) {
-                if(node->type == Xml.ElementType.ELEMENT_NODE) {
-                    for(Xml.Node* dat = node->children; dat != null; dat = dat->next) {
-                        if(dat->type == Xml.ElementType.ELEMENT_NODE) {
-                            switch(dat->name) {
+            foreach(GXml.Node n in node.children_nodes) {
+                if(n.type_node == GXml.NodeType.ELEMENT) {
+                    foreach(GXml.Node dat in n.children_nodes) {
+                        if(dat.type_node == GXml.NodeType.ELEMENT) {
+                            switch(dat.name) {
                                 case "title":
-                                    stored_feed.title = get_node_contents(dat).strip().replace("&", "&amp;");
+                                    stored_feed.title = dat.value.strip().replace("&", "&amp;");
                                 break;
 
                                 case "link":
-                                    stored_feed.site_link = get_node_contents(dat);
+                                    stored_feed.site_link = dat.value;
                                 break;
 
                                 case "image":
-                                    for(Xml.Node* imgd = dat->children; imgd != null; imgd = imgd->next) {
-                                        if(imgd->name == "url") {
-                                            IconRequest req = new IconRequest(get_node_contents(imgd));
-                                            if(req.send()) {
-                                                stored_feed.icon = req.buf;
-                                            }
-                                        }
+                                    GXml.Node url = dat["url"];
+                                    if(url != null)
+                                    {
+                                        IconRequest req = new IconRequest(url.value);
+                                        if(req.send())
+                                            stored_feed.icon = req.buf;
                                     }
                                 break;
 
                                 case "description":
-                                    stored_feed.description = get_node_contents(dat);
+                                    stored_feed.description = dat.value;
                                 break;
 
                                 case "item":
@@ -87,31 +88,31 @@ namespace Singularity
             }
         }
 
-        private Item? readRSSItem(Xml.Node* node)
+        private Item? readRSSItem(GXml.Node node)
         {
             Item new_item = new Item();
 
-            for(Xml.Node* dat = node->children; dat != null; dat = dat->next) {
-                if(dat->type == Xml.ElementType.ELEMENT_NODE) {
-                    switch(dat->name) {
+            foreach(GXml.Node n in node.children_nodes) {
+                if(n.type_node == GXml.NodeType.ELEMENT) {
+                    switch(n.name) {
                         case "title":
-                            new_item.title = get_node_contents(dat);
+                            new_item.title = n.value;
                         break;
 
                         case "link":
-                            new_item.link = get_node_contents(dat);
+                            new_item.link = n.value;
                         break;
 
                         case "description":
-                            new_item.content = get_node_contents(dat);
+                            new_item.content = n.value;
                         break;
 
                         case "guid":
-                            new_item.weak_guid = get_node_contents(dat);
+                            new_item.weak_guid = n.value;
                         break;
 
                         case "pubDate":
-                            string input = get_node_contents(dat);
+                            string input = n.value;
                             string[] date_strs = input.split(" ");
                             if(date_strs.length < 5)
                                 break;
@@ -123,7 +124,7 @@ namespace Singularity
                         break;
 
                         case "date":
-                            string[] big_strs = get_node_contents(dat).split("T");
+                            string[] big_strs = n.value.split("T");
                             if(big_strs.length < 2)
                                 break;
                             string[] date_strs = big_strs[0].split("-");
@@ -138,18 +139,18 @@ namespace Singularity
 
                         case "author":
                         case "creator":
-                            new_item.author = Person(get_node_contents(dat));
+                            new_item.author = Person(n.value);
                         break;
 
                         case "enclosure":
-                            if(dat->has_prop("url") != null) {
+                            if(n.attrs.has_key("url")) {
                                 Attachment a = new Attachment();
-                                a.url = dat->has_prop("url")->children->content;
+                                a.url = n.attrs["url"].value;
                                 a.name = a.url.substring(a.url.last_index_of_char('/') + 1);
-                                if(dat->has_prop("length") != null)
-                                    a.size = int.parse(dat->has_prop("length")->children->content);
-                                if(dat->has_prop("type") != null)
-                                    a.mimetype = dat->has_prop("type")->children->content;
+                                if(n.attrs.has_key("length"))
+                                    a.size = int.parse(n.attrs["length"].value);
+                                if(n.attrs.has_key("type"))
+                                    a.mimetype = n.attrs["type"].value;
 
                                 new_item.attachments.add(a);
                             } else
@@ -178,42 +179,40 @@ namespace Singularity
             return new_item;
         }
 
-        private void readRDFFeed(Xml.Node* node)
+        private void readRDFFeed(GXml.Node node)
         {
-            for(; node != null; node = node->next) {
-                if(node->type == Xml.ElementType.ELEMENT_NODE) {
-                    for(Xml.Node* dat = node->children; dat != null; dat = dat->next) {
-                        if(dat->type == Xml.ElementType.ELEMENT_NODE) {
-                            switch(dat->name) {
-                                case "channel":
-                                    for(Xml.Node* cdat = dat->children; cdat != null; cdat = cdat->next)
-                                        if(cdat->type == Xml.ElementType.ELEMENT_NODE) {
-                                            switch(cdat->name) {
-                                                case "title":
-                                                    stored_feed.title = get_node_contents(cdat).strip().replace("&", "&amp;");
-                                                break;
+            foreach(GXml.Node dat in node.children_nodes) {
+                if(dat.type_node == GXml.NodeType.ELEMENT) {
+                    switch(dat.name) {
+                        case "channel":
+                            foreach(GXml.Node cdat in dat.children_nodes) {
+                                if(cdat.type_node == GXml.NodeType.ELEMENT) {
+                                    switch(cdat.name) {
+                                        case "title":
+                                            stored_feed.title = cdat.value.strip().replace("&", "&amp;");
+                                        break;
 
-                                                case "link":
-                                                    stored_feed.site_link = get_node_contents(cdat);
-                                                break;
+                                        case "link":
+                                            stored_feed.site_link = cdat.value;
+                                        break;
 
-                                                case "description":
-                                                    stored_feed.description = get_node_contents(cdat);
-                                                break;
-                                            }
-                                        }
-                                break;
-
-                                case "item":
-                                    Item item = readRSSItem(dat);
-                                    _data.add(item);
-                                break;
-
-                                default:
-                                    //stderr.printf("Feed element <%s> is not currently supported.\n", dat->name);
-                                break;
+                                        case "description":
+                                            stored_feed.description = cdat.value;
+                                        break;
+                                    }
+                                }
                             }
-                        }
+                        break;
+
+                        case "item":
+                            Item? item = readRSSItem(dat);
+                            if(item != null)
+                                _data.add(item);
+                        break;
+
+                        default:
+                            //stderr.printf("Feed element <%s> is not currently supported.\n", dat->name);
+                        break;
                     }
                 }
             }

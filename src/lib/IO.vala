@@ -18,34 +18,6 @@
 
 namespace Singularity
 {
-string get_node_contents(Xml.Node* node, bool atom = false)
-{
-    string output = "";
-    if(node == null || node->children == null) {
-        return output;
-    }
-    if(atom && node->has_prop("type") != null && node->has_prop("type")->children->content != "text") {
-	switch(node->has_prop("type")->children->content) {
-//:TODO: 05.09.14 11:25:16, Hugues Ross
-// Add support for HTML escapes
-	    case "html":
-            output = node->children->get_content();
-	    break;
-
-	    case "xhtml":
-            output = dump_xml_node(node);
-	    break;
-	}
-    } else if(node->children->type != Xml.ElementType.TEXT_NODE && node->children->type != Xml.ElementType.CDATA_SECTION_NODE) {
-        stderr.printf("Unexpected element <%s> detected.", node->children->name);
-    } else {
-        output = node->children->get_content();
-    } 
-
-    output = output.replace("\"//", "\"http://");
-    return output;
-}
-
 // Converts a string containing a month (or abbreviation) into an integer.
 // Since we're dealing with a date, the integer starts at one.
 // If the string being passed is not valid, this function prints a warning and returns 0
@@ -175,5 +147,55 @@ public static string md5_guid(string str)
         return g.substring(0, zero_start);
 
     return g;
+}
+
+// Applies a few basic fixes to XML to increase the chances of successful parsing
+public static string clean_xml(string xml)
+{
+    StringBuilder builder = new StringBuilder();
+    uint8 prev = 0;
+    StringBuilder tag_content = new StringBuilder();
+    bool in_tag = false;
+    for(int i = 0; i < xml.data.length; ++i) {
+        uint8 ch = xml.data[i];
+
+        if(ch == '&') {
+            builder.append_c((char)ch);
+            bool done = false;
+            for(int j = i + 1; j < xml.data.length && !done; ++j) {
+                switch(xml.data[j]) {
+                    case '&':
+                    case '<':
+                    case '>':
+                        builder.append("amp;");
+                        done = true;
+                        break;
+                    case ';':
+                        done = true;
+                        break;
+                }
+            }
+            if(!done)
+                builder.append("amp;");
+        } else if(ch == '<') {
+            in_tag = true;
+            builder.append_c((char)ch);
+        } else if(ch == '>') {
+            if(tag_content.str.down() == "br")
+                builder.append("/>");
+            else
+                builder.append_c((char)ch);
+            tag_content = new StringBuilder();
+            in_tag = false;
+        } else {
+            builder.append_c((char)ch);
+            if(in_tag)
+                tag_content.append_c((char)ch);
+        }
+
+        prev = ch;
+    }
+
+    return builder.str;
 }
 }

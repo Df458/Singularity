@@ -20,9 +20,10 @@
         <property name="row_spacing">12</property>
         <property name="column_spacing">6</property>
         <child>
-          <object class="GtkButton" id="button1">
+          <object class="GtkButton" id="subscribe_button">
             <property name="label" translatable="yes">Subscribe</property>
             <property name="visible">True</property>
+            <property name="sensitive">False</property>
             <property name="can_focus">True</property>
             <property name="receives_default">True</property>
             <property name="image">image1</property>
@@ -43,7 +44,7 @@
             <property name="visible">True</property>
             <property name="can_focus">True</property>
             <property name="receives_default">True</property>
-            <signal name="activate" handler="on_cancel" swapped="no"/>
+            <signal name="clicked" handler="on_cancel" swapped="no"/>
           </object>
           <packing>
             <property name="left_attach">1</property>
@@ -98,7 +99,7 @@
   </template>
   <object class="GtkSizeGroup">
     <widgets>
-      <widget name="button1"/>
+      <widget name="subscribe_button"/>
       <widget name="button2"/>
     </widgets>
   </object>

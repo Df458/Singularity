@@ -33,7 +33,7 @@ namespace Singularity
         public bool     request_sent  { get; private set; }
         public bool     error_exists  { get { return error_message != null; } }
         public string?  error_message { get; private set; }
-        public Xml.Doc* doc           { get; private set; }
+        public GXml.GDocument doc      { get; private set; }
         public string   doc_data      { get; private set; }
 
         public XmlRequest(string to_fetch, Soup.Session s)
@@ -68,20 +68,8 @@ namespace Singularity
             loop.run();
 
             string data = (string)m_message.response_body.data;
-            doc_data = data;
-            doc = Xml.Parser.parse_doc(data);
 
-            if(doc == null && data != null) {
-                data = data.split("<!DOCTYPE html")[0];
-                doc = Xml.Parser.parse_doc(data);
-            }
-
-            if(doc == null) {
-                error_message = "Failed to parse document";
-                return false;
-            }
-
-            return true;
+            return create_doc(data);
         }
 
         public async bool send_async()
@@ -92,42 +80,31 @@ namespace Singularity
 
             if(m_session == null) {
                 error_message = "Broken Session";
+                warning("Failed to create session");
                 return false;
             }
 
             if(m_message == null) {
                 error_message = "Invalid URL";
+                warning("Failed to retrieve URL");
                 return false;
             }
 
             m_session.queue_message(m_message, (s, m) =>
-                    {
-                    data = (string)m.response_body.data;
-                    Idle.add((owned) callback);
-                    });
+            {
+                data = (string)m.response_body.data;
+                Idle.add((owned) callback);
+            });
 
             yield;
 
             if(data == null) {
                 error_message = "Message data was not received";
+                warning("Failed to receive message data");
                 return false;
             }
 
-            doc_data = data;
-
-            doc = Xml.Parser.parse_doc(data);
-
-            if(doc == null && data != null) {
-                data = data.split("<!DOCTYPE html")[0];
-                doc = Xml.Parser.parse_doc(data);
-            }
-
-            if(doc == null) {
-                error_message = "Failed to parse document";
-                return false;
-            }
-
-            return true;
+            return create_doc(data);
         }
 
         public ContentType determine_content_type()
@@ -135,15 +112,11 @@ namespace Singularity
             if(doc == null)
                 return ContentType.INVALID;
 
-            Xml.Node* node = doc->get_root_element();
+            if(doc["rss"] != null || doc["RDF"] != null)
+                return ContentType.RSS;
+            else if(doc["feed"] != null)
+                return ContentType.ATOM;
 
-            while(node != null) {
-                if(node->name == "rss" || node->name == "RDF")
-                    return ContentType.RSS;
-                else if(node->name == "feed")
-                    return ContentType.ATOM;
-                node = node->next;
-            }
             return ContentType.INVALID;
         }
 
@@ -158,6 +131,29 @@ namespace Singularity
                 default:
                     return null;
             }
+        }
+
+        private bool create_doc(string data)
+        {
+            doc_data = clean_xml(data);
+            try {
+                doc = new GXml.GDocument.from_string(doc_data);
+
+                if(doc == null && data != null) {
+                    doc_data = doc_data.split("<!DOCTYPE html")[0];
+                    doc = new GXml.GDocument.from_string(doc_data);
+                }
+            } catch(GLib.Error e) {
+                warning("Failed to parse document: %s\nData:\n%s", e.message, doc_data);
+                doc = null;
+            }
+
+            if(doc == null) {
+                error_message = "Failed to parse document";
+                return false;
+            }
+
+            return true;
         }
 
         private Soup.Session? m_session = null;

@@ -282,7 +282,7 @@ namespace Singularity
             int new_count = 0;
             get(iter, Column.UNREAD, out new_count, -1);
 
-            if(n.data != root_collection) {
+            if(n.data != root_collection && new_count != orig_count) {
                 set_unread_count(new_count - orig_count, n.data.parent_id, true);
             }
         }

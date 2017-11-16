@@ -273,7 +273,6 @@ public class SingularityApp : Gtk.Application
                 m_feed_store.append_root_collection(m_feeds);
 
             foreach(Gee.Map.Entry<int, int> e in req.count_map.entries) {
-                /* warning("Adding %d unread...", e.value); */
                 m_feed_store.set_unread_count(e.value, e.key);
             }
 

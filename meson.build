@@ -14,7 +14,7 @@ gee = dependency('gee-0.8')
 dflib = dependency('dflib')
 webkitgtk = dependency('webkit2gtk-4.0')
 soup = dependency('libsoup-2.4')
-xml = dependency('libxml-2.0')
+xml = dependency('gxml-0.14')
 sqlheavy = dependency('sqlheavy-0.1')
 sqlite = dependency('sqlite3')
 

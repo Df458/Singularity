@@ -13,8 +13,8 @@ public class FeedBuilder : Popover
     public void reset_form()
     {
         url_entry.text = "";
-        title_label.label = "";
-        link_label.label = "";
+        title_label.label = "Feed Title";
+        link_label.label = "Site Link";
         to_build = null;
         m_temp_items = null;
         url_changed = false;
@@ -33,6 +33,8 @@ public class FeedBuilder : Popover
     private Label title_label;
     [GtkChild]
     private Label link_label;
+    [GtkChild]
+    private Button subscribe_button;
 
     private void reload_feed()
     {
@@ -59,13 +61,15 @@ public class FeedBuilder : Popover
     }
 
     [GtkCallback]
-    private void on_cancel() {
+    private void on_cancel()
+    {
         cancelled();
         reset_form();
     }
 
     [GtkCallback]
-    private void on_subscribe() {
+    private void on_subscribe()
+    {
         if(url_entry.text == "") {
             cancelled();
             reset_form();
@@ -84,7 +88,9 @@ public class FeedBuilder : Popover
     }
 
     [GtkCallback]
-    private void on_url_changed() {
+    private void on_url_changed()
+    {
+        subscribe_button.sensitive = url_entry.text != "";
         url_changed = true;
         url_entry.secondary_icon_name = "content-loading-symbolic";
         to_build = null;
