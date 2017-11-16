@@ -19,6 +19,11 @@
     <property name="step_increment">1</property>
     <property name="page_increment">10</property>
   </object>
+  <object class="GtkFileFilter" id="filefilter1">
+    <patterns>
+      <pattern>.sqlite</pattern>
+    </patterns>
+  </object>
   <template class="SettingsView" parent="GtkBox">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
@@ -479,6 +484,50 @@
                     <style>
                       <class name="linked"/>
                     </style>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="pack_type">end</property>
+                    <property name="position">1</property>
+                  </packing>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkListBoxRow">
+            <property name="width_request">100</property>
+            <property name="height_request">80</property>
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <child>
+              <object class="GtkBox">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="margin_left">18</property>
+                <property name="margin_right">18</property>
+                <property name="margin_top">18</property>
+                <property name="margin_bottom">18</property>
+                <child>
+                  <object class="GtkLabel">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="label" translatable="yes">Cookie Database Location</property>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkFileChooserButton" id="cookie_db_button">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="filter">filefilter1</property>
+                    <property name="title" translatable="yes"/>
                   </object>
                   <packing>
                     <property name="expand">False</property>

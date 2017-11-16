@@ -44,6 +44,7 @@ class SettingsView : Box
         download_to_label.set_sensitive(!AppSettings.ask_download_location);
         download_to_button.set_sensitive(!AppSettings.ask_download_location);
         link_command_entry.set_text(AppSettings.link_command);
+        cookie_db_button.set_filename(AppSettings.cookie_db_path);
     }
 
     public signal void done();
@@ -70,6 +71,8 @@ class SettingsView : Box
     private Switch always_ask_check;
     [GtkChild]
     private FileChooserButton download_to_button;
+    [GtkChild]
+    private FileChooserButton cookie_db_button;
     [GtkChild]
     private Entry link_command_entry;
     [GtkChild]
@@ -139,6 +142,7 @@ class SettingsView : Box
         AppSettings.ask_download_location = always_ask_check.get_active();
         AppSettings.default_download_location = File.new_for_path(download_to_button.get_filename());
         AppSettings.link_command = link_command_entry.text;
+        AppSettings.cookie_db_path = cookie_db_button.get_filename();
         AppSettings.save();
         done();
     }

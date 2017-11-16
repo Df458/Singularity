@@ -41,6 +41,10 @@ public class FeedBuilder : Popover
         url_changed = false;
 
         Soup.Session session = new Soup.Session();
+        if(AppSettings.cookie_db_path != "") {
+            Soup.CookieJarDB cookies = new Soup.CookieJarDB(AppSettings.cookie_db_path, true);
+            session.add_feature(cookies);
+        }
         XmlRequest request = new XmlRequest(url_entry.text, session);
         request.send_async.begin((obj, ret) =>
         {

@@ -20,6 +20,7 @@ sqlite = dependency('sqlite3')
 
 resource_path = 'data/singularity.gresource.xml'
 resources = gnome.compile_resources('resources', resource_path, source_dir : 'data')
+install_data(['data/org.df458.singularity.gschema.xml'], install_dir: '/usr/share/glib-2.0/schemas')
 
 deps = [glib, gobject, gcrypt_v, gcrypt_c, gee, dflib, webkitgtk, soup, xml, sqlheavy]
 

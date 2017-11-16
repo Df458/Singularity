@@ -34,6 +34,7 @@ namespace Singularity
         public static bool   ask_download_location;
         public static File   default_download_location;
         public static string link_command;
+        public static string cookie_db_path;
 
         // Saves the settings to GSettings
         public static void save()
@@ -50,6 +51,7 @@ namespace Singularity
             m_source.set_boolean("ask-download-location", ask_download_location);
             m_source.set_string("default-download-location", default_download_location.get_path());
             m_source.set_string("link-command", link_command);
+            m_source.set_string("cookie-db-path", cookie_db_path);
         }
 
         // Loads the settings from GSettings, optionally taking an ID to initialize
@@ -79,6 +81,7 @@ namespace Singularity
                 ask_download_location     = m_source.get_boolean("ask-download-location");
                 default_download_location = File.new_for_path(m_source.get_string("default-download-location"));
                 link_command              = m_source.get_string("link-command");
+                cookie_db_path            = m_source.get_string("cookie-db-path");
             }
 
         // Resets the values in this object to the defaults.
@@ -95,6 +98,7 @@ namespace Singularity
             ask_download_location     = true;
             default_download_location = File.new_for_path(Environment.get_home_dir() + "/Downloads");
             link_command              = "xdg-open %s";
+            cookie_db_path            = "";
         }
 
         // Container for argument-based settings

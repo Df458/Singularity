@@ -92,6 +92,7 @@ public class SingularityApp : Gtk.Application
         /* AppSettings.set_string("default-download-location", default_location); */
         /* AppSettings.set_string("link-command", link_command); */
         AppSettings.save();
+        m_update_queue.update_cookie_path();
         if(AppSettings.auto_update && !update_running) {
             update_running = true;
             update_next = timeout_value;

@@ -69,5 +69,12 @@
                 This defines what gets called when opening links. '%s' inserts the address.
             </description>
         </key>
+        <key name="cookie-db-path" type="s">
+            <default>""</default>
+            <summary>Cookie Database Path</summary>
+            <description>
+                The path to a database that should be used for getting cookies. This has been tested with Firefox's cookies, but not other web browsers.
+            </description>
+        </key>
     </schema>
 </schemalist>
