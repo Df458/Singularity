@@ -93,14 +93,24 @@ namespace Singularity
             m_session.queue_message(m_message, (s, m) =>
             {
                 data = (string)m.response_body.data;
+                if(m.status_code == Soup.Status.NOT_FOUND) {
+                    error_message = "The server couldn't find the content requested";
+                    data = null;
+                }
+                if(m.status_code == Soup.Status.FORBIDDEN || m.status_code == Soup.Status.UNAUTHORIZED) {
+                    error_message = "The server denied the request";
+                    data = null;
+                }
                 Idle.add((owned) callback);
             });
 
             yield;
 
             if(data == null) {
-                error_message = "Message data was not received";
-                warning("Failed to receive message data");
+                if(error_message == null) {
+                    error_message = "Message data was not received";
+                }
+                warning("%s: %s", uri, error_message);
                 return false;
             }
 
@@ -133,7 +143,7 @@ namespace Singularity
             }
         }
 
-        private bool create_doc(string data)
+        private bool create_doc(string? data)
         {
             doc_data = clean_xml(data);
             try {

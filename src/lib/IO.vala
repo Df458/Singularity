@@ -196,6 +196,6 @@ public static string clean_xml(string xml)
         prev = ch;
     }
 
-    return builder.str;
+    return builder.str.strip();
 }
 }

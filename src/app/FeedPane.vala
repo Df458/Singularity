@@ -42,9 +42,9 @@ public class FeedPane : Gtk.Box
         init_menus();
     }
 
-    public void expand_all()
+    public void expand_base()
     {
-        feed_list.expand_all();
+        feed_list.expand_row(new TreePath.first(), false);
     }
 
     public signal void selection_changed(int selection_id);

@@ -93,7 +93,11 @@ public class StreamItemView : Box, ItemView {
         m_web_view.load_html(html, "file://singularity");
 
         title_label.label = title;
-        desc_label.label = desc == null ? "" : desc;
+        if(desc != null) {
+            desc_label.label = desc.substring(0, desc.index_of("\n"));
+        } else {
+            desc_label.label = "";
+        }
     }
 
     private bool m_important_view = true;

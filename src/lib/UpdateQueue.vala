@@ -53,7 +53,6 @@ public class UpdateQueue : Object
             session.user_agent = USER_AGENT;
 
             Feed f = m_update_requests.pop();
-            warning("COOKIES!\n\n%s:\n%s\n\n\n\n", f.link, m_cookies.get_cookies(new Soup.URI(f.link), false));
             UpdateGenerator gen = new UpdateGenerator(f, session);
             UpdatePackage pak = gen.do_update();
             update_processed(pak);

@@ -86,7 +86,7 @@ public class MainWindow : Gtk.ApplicationWindow
 
         app.load_status_changed.connect((val) =>
         {
-            feed_pane.expand_all();
+            feed_pane.expand_base();
             view_stack.set_visible_child(m_item_view);
         });
 
