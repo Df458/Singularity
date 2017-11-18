@@ -2,11 +2,14 @@ using Gtk;
 using Singularity;
 
 [GtkTemplate (ui = "/org/df458/Singularity/ItemListEntry.ui")]
-public class ItemListEntry : Grid {
+public class ItemListEntry : Box {
     public Item item { get; construct; }
     public ItemListEntry(Item i) {
         Object(item: i);
-        title_label.label = i.title;
+        if(i.title == "" || i.title == null)
+            title_label.label = "Untitled";
+        else
+            title_label.label = i.title.replace("\n", " ");
         if(i.content == "" || i.content == null) {
             description_label.visible = false;
         } else {

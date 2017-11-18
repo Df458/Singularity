@@ -228,6 +228,8 @@ public class ColumnItemView : Paned, ItemView {
         page_cursor = 0;
         column_scroll.vadjustment.set_value(0);
 
+        title_label.label = title;
+
         m_item_list = new Gee.ArrayList<Item>();
         item_list.foreach((i) => { m_item_list.add(i); return true; });
 
@@ -247,6 +249,8 @@ public class ColumnItemView : Paned, ItemView {
     private Box webview_box;
     [GtkChild]
     private ScrolledWindow column_scroll;
+    [GtkChild]
+    private Label title_label;
     private ColumnViewBuilder m_builder;
     private Gee.List<Item> m_item_list;
     private Gee.List<ListBoxRow> m_row_list;

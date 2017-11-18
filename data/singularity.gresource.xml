@@ -9,6 +9,8 @@
         <file preprocess="xml-stripblanks">ItemListEntry.ui</file>
         <file preprocess="xml-stripblanks">PropertiesWindow.ui</file>
         <file>default.css</file>
+        <file>stream.css</file>
+        <file>column.css</file>
         <file>StreamViewLink.js</file>
     </gresource>
 </gresources>

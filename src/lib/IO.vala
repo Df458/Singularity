@@ -220,6 +220,7 @@ public static string xml_to_plain(string xml)
                             done = true;
                         break;
                         case ';':
+                            // TODO: Potentially replace based on content
                             done = true;
                         break;
                     }
@@ -238,5 +239,27 @@ public static string xml_to_plain(string xml)
     }
 
     return builder.str.strip().replace("&nbsp;", " ");
+}
+
+// Loads a resource file to a string
+public static string resource_to_string(string resource) throws Error
+{
+    const string resource_prefix = "resource:///org/df458/Singularity/";
+
+    File resource_file = File.new_for_uri(resource_prefix + resource);
+    FileInputStream stream = resource_file.read();
+    DataInputStream data_stream = new DataInputStream(stream);
+
+    StringBuilder builder = new StringBuilder();
+    string? str = data_stream.read_line();
+    while(str != null) {
+        builder.append(str + "\n");
+        str = data_stream.read_line();
+    }
+
+    data_stream.close();
+    stream.close();
+
+    return builder.str;
 }
 }

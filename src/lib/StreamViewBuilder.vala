@@ -29,18 +29,7 @@ public class StreamViewBuilder : ViewBuilder, GLib.Object
     public StreamViewBuilder()
     {
         try {
-            File css_resource = File.new_for_uri("resource:///org/df458/Singularity/default.css");
-            FileInputStream stream = css_resource.read();
-            DataInputStream data_stream = new DataInputStream(stream);
-
-            StringBuilder builder = new StringBuilder("<head><style>\n");
-            string? str = data_stream.read_line();
-            do {
-                builder.append(str + "\n");
-                str = data_stream.read_line();
-            } while(str != null);
-            builder.append_printf("</style></head>");
-            head = builder.str;
+            head = "<head><style>\n%s\n%s\n</style></head>".printf(resource_to_string("default.css"), resource_to_string("stream.css"));
         } catch(Error e) {
             warning("Failed to read style information");
             head = "";

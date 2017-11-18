@@ -16,8 +16,9 @@
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 using Gee;
-using Singularity;
 
+namespace Singularity
+{
 public class ColumnViewBuilder : ViewBuilder, GLib.Object
 {
     public string head;
@@ -29,20 +30,9 @@ public class ColumnViewBuilder : ViewBuilder, GLib.Object
     public ColumnViewBuilder()
     {
         try {
-            File css_resource = File.new_for_uri("resource:///org/df458/Singularity/default.css");
-            FileInputStream stream = css_resource.read();
-            DataInputStream data_stream = new DataInputStream(stream);
-
-            StringBuilder builder = new StringBuilder("<head><style>\n");
-            string? str = data_stream.read_line();
-            do {
-                builder.append(str + "\n");
-                str = data_stream.read_line();
-            } while(str != null);
-            builder.append_printf("</style></head>");
-            head = builder.str;
+            head = "<head><style>\n%s\n%s\n</style></head>".printf(resource_to_string("default.css"), resource_to_string("column.css"));
         } catch(Error e) {
-            warning("Failed to read style information");
+            warning("Failed to read style information: %s", e.message);
             head = "";
         }
     }
@@ -72,17 +62,12 @@ public class ColumnViewBuilder : ViewBuilder, GLib.Object
 
         head_builder.append("<section class=\"title\">");
         head_builder.append_printf("<a href=\"%s\">%s</a>", item.link, item.title == "" ? "Untitled Post" : item.title);
-        head_builder.append("<div>");
-        head_builder.append_printf("<img class=\"read-button\", src=\"%s\"/>", read_svg);
-        head_builder.append_printf("<img class=\"star\", src=\"%s\"/>", star_svg);
-        head_builder.append("</div>");
         head_builder.append("</section>");
         if(item.time_published.compare(new DateTime.from_unix_utc(0)) != 0) {
             string datestr = item.time_published.format("%A, %B %e %Y");
             head_builder.append_printf("Posted on <time class=\"date\" datetime=\"%s\">%s</time>", datestr, datestr);
         }
         // TODO: Posted by section
-        head_builder.append("<hr>");
         head_builder.append("</header>");
 
         content_builder.append(item.content != null ? item.content : "No content");
@@ -103,4 +88,5 @@ public class ColumnViewBuilder : ViewBuilder, GLib.Object
 
         return builder.str;
     }
+}
 }
