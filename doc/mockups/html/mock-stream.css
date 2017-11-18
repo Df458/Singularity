@@ -15,15 +15,15 @@ article+article {
     /* border-top: 3px solid #777; */
 }
 
-.title {
+.title,.button-box {
     display: flex;
     justify-content: space-between;
     align-content: space-between;
-    flex-flow: row wrap;
+    flex-flow: row;
     -webkit-display: flex;
     -webkit-justify-content: space-between;
     -webkit-align-content: space-between;
-    -webkit-flex-flow: row wrap;
+    -webkit-flex-flow: row;
 }
 
 .star, .read-button {
@@ -54,4 +54,10 @@ article:hover .star, article:hover .read-button {
 
 .tags-list {
     color: #777777;
+}
+
+hr {
+    margin: 3px -12px 3px -12px;
+    border-style: none;
+    border-top: 1px solid;
 }

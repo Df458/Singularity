@@ -235,6 +235,10 @@ public class ColumnItemView : Paned, ItemView {
             item_box.remove(row);
         m_row_list.clear();
         add_items();
+
+        m_builder.page = -1;
+        string html = m_builder.buildPageHTML(m_item_list, 0);
+        m_web_view.load_html(html, "file://singularity");
     }
 
     [GtkChild]

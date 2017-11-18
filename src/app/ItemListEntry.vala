@@ -7,7 +7,12 @@ public class ItemListEntry : Grid {
     public ItemListEntry(Item i) {
         Object(item: i);
         title_label.label = i.title;
-        description_label.label = i.content;
+        if(i.content == "" || i.content == null) {
+            description_label.visible = false;
+        } else {
+            string desc = xml_to_plain(i.content);
+            description_label.label = desc.substring(0, desc.index_of("\n"));
+        }
         Pango.AttrList list = new Pango.AttrList();
         list.insert(Pango.attr_weight_new(Pango.Weight.BOLD));
         if(item.unread)

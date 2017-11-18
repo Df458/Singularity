@@ -73,7 +73,7 @@ public class StreamViewBuilder : ViewBuilder, GLib.Object
 
         head_builder.append("<section class=\"title\">");
         head_builder.append_printf("<a href=\"%s\">%s</a>", item.link, item.title == "" ? "Untitled Post" : item.title);
-        head_builder.append("<div>");
+        head_builder.append("<div class=\"button-box\">");
         head_builder.append_printf("<img class=\"read-button\", src=\"%s\"/>", read_svg);
         head_builder.append_printf("<img class=\"star\", src=\"%s\"/>", star_svg);
         head_builder.append("</div>");
@@ -88,6 +88,9 @@ public class StreamViewBuilder : ViewBuilder, GLib.Object
 
         content_builder.append(item.content != null ? item.content : "No content");
         content_builder.append("</section>");
+
+        if(item.attachments.size > 0)
+            content_builder.append("<hr>");
 
         if(item.attachments.size > 0) {
             footer_builder.append("<section class=\"attachments-list\">");

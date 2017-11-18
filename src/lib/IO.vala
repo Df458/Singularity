@@ -198,4 +198,45 @@ public static string clean_xml(string xml)
 
     return builder.str.strip();
 }
+
+// Scrubs markup out of xml, leaving just the text
+public static string xml_to_plain(string xml)
+{
+    StringBuilder builder = new StringBuilder();
+    bool in_tag = false;
+    for(int i = 0; i < xml.data.length; ++i) {
+        uint8 ch = xml.data[i];
+
+        if(ch == '&') {
+            if(!in_tag) {
+                builder.append_c((char)ch);
+                bool done = false;
+                for(int j = i + 1; j < xml.data.length && !done; ++j) {
+                    switch(xml.data[j]) {
+                        case '&':
+                        case '<':
+                        case '>':
+                            builder.append("amp;");
+                            done = true;
+                        break;
+                        case ';':
+                            done = true;
+                        break;
+                    }
+                }
+                if(!done)
+                    builder.append("amp;");
+            }
+        } else if(ch == '<') {
+            in_tag = true;
+        } else if(ch == '>') {
+            in_tag = false;
+        } else {
+            if(!in_tag)
+                builder.append_c((char)ch);
+        }
+    }
+
+    return builder.str.strip().replace("&nbsp;", " ");
+}
 }

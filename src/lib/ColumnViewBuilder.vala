@@ -24,7 +24,7 @@ public class ColumnViewBuilder : ViewBuilder, GLib.Object
     public const string builder_class = "column";
     public string star_svg = "file:///usr/local/share/singularity/star.svg";
     public string read_svg = "file:///usr/local/share/singularity/read.svg";
-    public int page = 0;
+    public int page = -1;
 
     public ColumnViewBuilder()
     {
@@ -49,10 +49,14 @@ public class ColumnViewBuilder : ViewBuilder, GLib.Object
 
     public string buildPageHTML(Gee.List<Item> items, int limit)
     {
-        if(page > items.size)
-            return "";
         StringBuilder builder = new StringBuilder("<html>");
         builder.append(head);
+
+        if(page > items.size || page < 0) {
+            builder.append("</html>");
+            return builder.str;
+        }
+
         builder.append_printf("<body>%s</body></html>", buildItemHTML(items[page], 0));
 
         return builder.str;

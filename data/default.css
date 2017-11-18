@@ -3,16 +3,14 @@ body {
     background-color: #323232;
     margin: 0;
 
+    color: #aaa;
+
     font-family: sans;
 }
 
 a {
     text-decoration: none;
-}
-
-.title a {
-    /*color: #222;*/
-    color: #aaa;
+    color: rgb(60, 120, 255);
 }
 
 .title a:hover {
@@ -29,9 +27,9 @@ footer section {
 }
 
 hr {
+    margin: 3px -12px 3px -12px;
     border-style: none;
-    border-top: 1px dashed;
-    margin: 3px;
+    border-top: 1px solid #333333;
 }
 
 .star, .read-button {
@@ -78,15 +76,15 @@ article+article {
     /* border-top: 3px solid #777; */
 }
 
-.title {
+.title, .button-box {
     display: flex;
     justify-content: space-between;
     align-content: space-between;
-    flex-flow: row wrap;
+    flex-flow: row;
     -webkit-display: flex;
     -webkit-justify-content: space-between;
     -webkit-align-content: space-between;
-    -webkit-flex-flow: row wrap;
+    -webkit-flex-flow: row;
 }
 
 .post-info {
@@ -94,10 +92,11 @@ article+article {
 }
 
 .title a {
+    color: #aaa;
+
     margin-top: 0;
     margin-bottom: 6px;
     font-size: x-large;
-    font-weight: bold;
 }
 
 .content {
