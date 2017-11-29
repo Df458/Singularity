@@ -262,4 +262,67 @@ public static string resource_to_string(string resource) throws Error
 
     return builder.str;
 }
+
+// Tries to find and <img> tag and get its src attribute, or returns null
+public static string? extract_image(string content)
+{
+    StringBuilder builder = new StringBuilder();
+    bool in_tag = false;
+    bool in_img = false;
+    bool in_src = false;
+    bool in_str = false;
+    int tag_start = -1;
+    for(int i = 0; i < content.data.length; ++i) {
+        uint8 ch = content.data[i];
+
+        if(ch == '<') {
+            in_tag = true;
+            tag_start = i;
+        } else if(ch == '>') {
+            in_tag = false;
+            in_img = false;
+            in_src = false;
+            in_str = false;
+        } else if(in_tag && i - tag_start == 4 && content.substring(tag_start + 1, 3) == "img") {
+            in_img = true;
+        } else if(in_img && content.substring(i - 3, 3) == "src") {
+            in_src = true;
+        } else if(in_src && ch == '\"' || ch == '\'') {
+            in_str = !in_str;
+            if(builder.str != "")
+                return builder.str;
+        } else if(in_str)
+            builder.append_c((char)ch);
+    }
+
+    return null;
+}
+
+// Attempts to make html links generic
+public static string html_to_generic(string xml, string domain)
+{
+    StringBuilder builder = new StringBuilder();
+    bool in_tag = false;
+    for(int i = 0; i < xml.data.length; ++i) {
+        uint8 ch = xml.data[i];
+
+        builder.append_c((char)ch);
+        if(ch == '<') {
+            in_tag = true;
+        } else if(ch == '>') {
+            in_tag = false;
+        } else {
+            if(in_tag && ch == '\"') {
+                if(i + 2 < xml.data.length && xml.data[i + 1] == '/') {
+                    if(xml.data[i + 2] == '/')
+                        builder.append("http:");
+                    else
+                        builder.append(domain);
+                }
+            }
+        }
+    }
+
+    return builder.str.strip();
+}
 }

@@ -66,6 +66,8 @@ namespace Singularity
                 if(i2 == null) {
                     new_items.add(i);
                     to_update.add_item(i);
+
+                    i.content = html_to_generic(i.content, req.get_base_uri());
                 } else if(i.equals(i2)) {
                     changed_items.add(i);
                 }

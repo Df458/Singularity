@@ -11,6 +11,8 @@
         <file>default.css</file>
         <file>stream.css</file>
         <file>column.css</file>
+        <file>grid.css</file>
         <file>StreamViewLink.js</file>
+        <file>GridViewLink.js</file>
     </gresource>
 </gresources>

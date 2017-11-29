@@ -107,8 +107,18 @@ namespace Singularity
 
                         case "content":
                         case "summary":
-                            if(new_item.content == null || new_item.content.strip() == "" || dat.attrs["type"].value == "html" || dat.attrs["type"].value == "xhtml")
-                                new_item.content = dat.value;
+                            if(new_item.content == null || new_item.content.strip() == "" || dat.attrs["type"].value == "html" || dat.attrs["type"].value == "xhtml") {
+                                if(dat.attrs["type"].value == "xhtml") {
+                                    StringBuilder builder = new StringBuilder();
+                                    foreach(GXml.Node child in dat.children_nodes)
+                                        if(child.type_node == GXml.NodeType.ELEMENT) {
+                                            builder.append(child.to_string() + "\n");
+                                        }
+                                    new_item.content = builder.str;
+                                } else {
+                                    new_item.content = dat.value;
+                                }
+                            }
                         break;
 
 

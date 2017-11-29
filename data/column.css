@@ -6,7 +6,6 @@ header {
     padding: 18px;
     background: #444444;
     border-bottom: 1px solid #222222;
-    position: fixed;
     top: 0;
     left: 0;
     right: 0;
@@ -37,8 +36,6 @@ header {
 
 .content {
     padding: 18px;
-    margin-top: 64px;
-    /* padding-bottom: 12px; */
     overflow: hidden;
 }
 

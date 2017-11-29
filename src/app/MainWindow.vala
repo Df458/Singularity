@@ -70,6 +70,22 @@ public class MainWindow : Gtk.ApplicationWindow
         column_view.unread_mode_changed.connect((mode) => { display_node(m_last_displayed_node); });
         view_stack.add_named(column_view, "items_column");
 
+        GridItemView grid_view = new GridItemView();
+        grid_view.items_viewed.connect((i) =>
+        {
+            app.view_items(i);
+        });
+        grid_view.item_read_toggle.connect((i) =>
+        {
+            app.toggle_unread(i);
+        });
+        grid_view.item_star_toggle.connect((i) =>
+        {
+            app.toggle_star(i);
+        });
+        grid_view.unread_mode_changed.connect((mode) => { display_node(m_last_displayed_node); });
+        view_stack.add_named(grid_view, "items_grid");
+
         m_item_view = stream_view;
         m_settings_view = new SettingsView();
         view_stack.add_named(m_settings_view, "settings");

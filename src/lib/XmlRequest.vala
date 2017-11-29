@@ -143,6 +143,11 @@ namespace Singularity
             }
         }
 
+        public string get_base_uri()
+        {
+            return m_message.uri.get_host();
+        }
+
         private bool create_doc(string? data)
         {
             doc_data = clean_xml(data);

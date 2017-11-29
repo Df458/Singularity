@@ -1,16 +1,26 @@
 body.grid {
     display: flex;
-    flex-wrap: wrap;
+    flex-flow: row wrap;
     align-content: flex-start;
+    justify-content: space-between;
 }
 
 article.grid {
     width: 180px;
     height: 180px;
-    padding: 12px;
     margin: 9px;
-    border: 1px solid;
-    border-radius: 6px;
+    border: 1px solid #222;
+    border-top: 1px solid #555;
+    border-radius: 3px;
+    box-shadow: 0 0 3px #222;
+}
+
+article.grid:hover {
+    background: linear-gradient(#222, #444 50%, #444);
+}
+
+.title.grid a {
+    color: #eee;
 }
 
 .grid.star {
@@ -23,7 +33,9 @@ article.grid {
 }
 
 .grid.title {
-    margin: 0;
+    padding: 12px;
+    height: 50%;
+    background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0));
 }
 
 .grid#taglist {
