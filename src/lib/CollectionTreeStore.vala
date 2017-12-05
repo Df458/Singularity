@@ -41,12 +41,11 @@ namespace Singularity
 
         construct
         {
-            node_map = new Gee.HashMap<int, CollectionNode>();
-            root_collection = new FeedCollection(FEED_CATEGORY_STRING);
-            CollectionNode root_node = new CollectionNode(root_collection);
-            node_map[-1] = root_node;
             set_column_types({ typeof(int), typeof(string), typeof(int), typeof(Gdk.Pixbuf), typeof(CollectionNode), typeof(int) });
             set_sort_column_id(Column.TITLE, SortType.ASCENDING);
+
+            CollectionNode root_node = new CollectionNode(root_collection);
+            node_map[-1] = root_node;
             append(out base_iter, null);
             set(base_iter, Column.ID, -1, Column.TITLE, FEED_CATEGORY_STRING, Column.WEIGHT, 800, Column.UNREAD, 0, Column.NODE, root_node, -1);
 
@@ -102,6 +101,7 @@ namespace Singularity
                 append_node(n, iter);
         }
 
+        // Moves node src into dest, keeping the heirarchy of src intact.
         public bool move_node(CollectionNode src, CollectionNode dest)
         {
             if(src.data == root_collection || !node_map.has_key(src.data.id) || !node_map.has_key(dest.data.id))
@@ -116,7 +116,7 @@ namespace Singularity
             if(src.data == c)
                 return false;
 
-            src.data.set_parent(c);
+            src.data.parent = c;
 
             reparent(get_iter_from_node(src), get_iter_from_data(c));
 
@@ -305,12 +305,13 @@ namespace Singularity
         }
 
         private TreeIter base_iter;
-        private Gee.HashMap<int, CollectionNode> node_map;
-        private FeedCollection root_collection;
+        private Gee.HashMap<int, CollectionNode> node_map = new Gee.HashMap<int, CollectionNode>();
+        private FeedCollection root_collection = new FeedCollection(FEED_CATEGORY_STRING);
 
         private Gdk.Pixbuf feed_icon_default;
         private Gdk.Pixbuf collection_icon_default;
 
+        // A recursive subtree copy, used in move_node
         private void reparent(TreeIter src, TreeIter dest)
         {
             TreeIter iter;

@@ -1,6 +1,6 @@
 /*
 	Singularity - A web newsfeed aggregator
-	Copyright (C) 2016  Hugues Ross <hugues.ross@gmail.com>
+	Copyright (C) 2017  Hugues Ross <hugues.ross@gmail.com>
 
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -19,12 +19,9 @@ using Gee;
 
 namespace Singularity
 {
+// Constructs HTML for the column view
 public class ColumnViewBuilder : ViewBuilder, GLib.Object
 {
-    public string head;
-    public const string builder_class = "column";
-    public string star_svg = "file:///usr/local/share/singularity/star.svg";
-    public string read_svg = "file:///usr/local/share/singularity/read.svg";
     public int page = -1;
 
     public ColumnViewBuilder()
@@ -33,7 +30,6 @@ public class ColumnViewBuilder : ViewBuilder, GLib.Object
             head = "<head><style>\n%s\n%s\n</style></head>".printf(resource_to_string("default.css"), resource_to_string("column.css"));
         } catch(Error e) {
             warning("Failed to read style information: %s", e.message);
-            head = "";
         }
     }
 
@@ -52,7 +48,7 @@ public class ColumnViewBuilder : ViewBuilder, GLib.Object
         return builder.str;
     }
 
-    public string buildItemHTML(Item item, int id)
+    private string buildItemHTML(Item item, int id)
     {
         StringBuilder builder = new StringBuilder();
 
@@ -88,5 +84,10 @@ public class ColumnViewBuilder : ViewBuilder, GLib.Object
 
         return builder.str;
     }
+
+    private string head = "";
+    private const string star_svg = "file:///usr/local/share/singularity/star.svg";
+    private const string read_svg = "file:///usr/local/share/singularity/read.svg";
+    private const string builder_class = "column";
 }
 }

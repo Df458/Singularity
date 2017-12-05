@@ -1,6 +1,6 @@
 /*
 	Singularity - A web newsfeed aggregator
-	Copyright (C) 2016  Hugues Ross <hugues.ross@gmail.com>
+	Copyright (C) 2017  Hugues Ross <hugues.ross@gmail.com>
 
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -17,11 +17,16 @@
 */
 using GXml;
 
-// TODO: Rework this. Currently, it's based on the 0.2 code, but we can probably do better now
 namespace Singularity
 {
+    // FeedProvider implementation for Atom feeds
+    // Parses Atom feeds and converts them into Feed objects
+    // TODO: Simplify the parser functions by taking better advantage of GXml
     class AtomItemDataSource : FeedProvider
     {
+        // Main parsing function, takes a GXml.GDocument and uses it to init
+        // its internal feed
+        // Returns true if successful
         public override bool parse_data(GXml.GDocument doc)
         {
             stored_feed = new Feed();
@@ -37,6 +42,7 @@ namespace Singularity
             return true;
         }
 
+        // Parses a <feed> node to populate the internal feed
         private void readAtomFeed(GXml.Node node)
         {
             foreach(GXml.Node n in node.children_nodes) {
@@ -75,6 +81,8 @@ namespace Singularity
             }
         }
 
+        // Parses an <entry> node and tries to create a new Item from it
+        // Returns the item if successful, otherwise returns null
         private Item? readAtomItem(GXml.Node node)
         {
             Item new_item = new Item();

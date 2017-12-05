@@ -1,6 +1,6 @@
 /*
 	Singularity - A web newsfeed aggregator
-	Copyright (C) 2016  Hugues Ross <hugues.ross@gmail.com>
+	Copyright (C) 2017  Hugues Ross <hugues.ross@gmail.com>
 
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -19,17 +19,18 @@
 using SQLHeavy;
 using Singularity;
 
+// TODO: Change this to be more sensible, and pick a directory based on whether it's installed or not
 /* const string DEFAULT_SCHEMA_DIR = "/usr/local/share/singularity/schemas"; */
 const string DEFAULT_SCHEMA_DIR = "../data/schemas";
 
+// This class manages the database.
+// It is responsible for creating and updating the database schema, as well as managing the DatabaseRequestProcessors
 public class DatabaseManager
 {
     public bool is_open { get; private set; }
 
     public DatabaseManager.from_path(string path)
     {
-        m_database_mutex = Mutex();
-
         try {
             m_database = new Database(path, FileMode.READ | FileMode.WRITE | FileMode.CREATE);
             if(m_database.schema_version == 0) {
@@ -43,34 +44,32 @@ public class DatabaseManager
         }
         is_open = true;
 
-        processors = {};
         for(int i = 0; i < RequestPriority.COUNT; ++i) {
             processors[i] = new DatabaseRequestProcessor(m_database_mutex, m_database);
         }
     }
 
+    // Queue a request for the processors to execute
     public void queue_request(DatabaseRequest req, RequestPriority prio = RequestPriority.DEFAULT)
     {
         processors[prio].requests.push(req);
     }
 
+    // Queues a request, then yields until finished
     public async void execute_request(DatabaseRequest req, RequestPriority prio = RequestPriority.DEFAULT)
     {
         SourceFunc func = execute_request.callback;
-        req.processing_complete.connect(() => {Idle.add(func);});
-        processors[prio].requests.push(req);
+        req.processing_complete.connect(() => {Idle.add((owned)func);});
+        queue_request(req);
 
         yield;
     }
 
-    /* public signal void query_complete(DatabaseRequest req, bool success = true); */
-
-    //-------------------------------------------------------------------------
-
     private Database m_database;
-    private Mutex    m_database_mutex;
-    private DatabaseRequestProcessor[] processors;
+    private Mutex    m_database_mutex = Mutex();
+    private DatabaseRequestProcessor[] processors = {};
 
+    // Attempt to sequentially update the database schema
     private bool update_schema_version(string schema_dir = DEFAULT_SCHEMA_DIR)
     {
         StringBuilder builder = new StringBuilder(schema_dir);
@@ -88,6 +87,7 @@ public class DatabaseManager
         return true;
     }
 
+    // Run the initial database creation schema
     private void init_schema(string schema_dir = DEFAULT_SCHEMA_DIR)
     {
         StringBuilder builder = new StringBuilder(schema_dir);
@@ -102,67 +102,9 @@ public class DatabaseManager
             error("Cannot create database: %s", e.message);
         }
     }
-
-/*     private async void cleanup_id(int id) */
-/*     { */
-/*         StringBuilder q_builder = new StringBuilder("DELETE FROM items WHERE `parent_id` = :id AND ("); */
-/*         bool delete_read = m_global_settings.read_rule[2] == 2; */
-/*         bool delete_unread = m_global_settings.unread_rule[2] == 2; */
-/*         if(!delete_read && !delete_unread) */
-/*             return; */
-/*         DateTime read_time = new DateTime.now_utc(); */
-/*         DateTime unread_time = new DateTime.now_utc(); */
-/*  */
-/*         if(delete_read) { */
-/*             q_builder.append("(`unread` = 0 AND `load_time` < :read_time)"); */
-/*             read_time = read_time.add_minutes(-1); */
-/*             switch(m_global_settings.read_rule[1]) { */
-/*                 case 0: */
-/*                     read_time = read_time.add_days(m_global_settings.read_rule[0] * -1); */
-/*                     break; */
-/*                 case 1: */
-/*                     read_time = read_time.add_months(m_global_settings.read_rule[0] * -1); */
-/*                     break; */
-/*                 case 2: */
-/*                     read_time = read_time.add_years(m_global_settings.read_rule[0] * -1); */
-/*                     break; */
-/*             } */
-/*             if(delete_unread) */
-/*                 q_builder.append(" OR "); */
-/*             else */
-/*                 q_builder.append(")"); */
-/*         } */
-/*  */
-/*         if(delete_unread) { */
-/*             q_builder.append_printf("(`unread` = 1 AND `load_time` < :unread_time))"); */
-/*             switch(m_global_settings.unread_rule[1]) { */
-/*                 case 0: */
-/*                     unread_time = unread_time.add_days(m_global_settings.unread_rule[0] * -1); */
-/*                     break; */
-/*                 case 1: */
-/*                     unread_time = unread_time.add_months(m_global_settings.unread_rule[0] * -1); */
-/*                     break; */
-/*                 case 2: */
-/*                     unread_time = unread_time.add_years(m_global_settings.unread_rule[0] * -1); */
-/*                     break; */
-/*             } */
-/*             stderr.printf("Deleting unread\u2026\n"); */
-/*         } */
-/*  */
-/*         try { */
-/*             Query q_clean = new Query(db, q_builder.str); */
-/*             q_clean[":id"] = id; */
-/*             if(delete_read) */
-/*                 q_clean[":read_time"] = read_time.to_unix(); */
-/*             if(delete_unread) */
-/*                 q_clean[":unread_time"] = unread_time.to_unix(); */
-/*             yield q_clean.execute_async(); */
-/*         } catch(SQLHeavy.Error e) { */
-/*             error("Can't clean up id: %s: %s", e.message, q_builder.str); */
-/*         } */
-/*     } */
 }
 
+// Wraps database requests using a provided handle and mutex
 public class DatabaseRequestProcessor
 {
     public AsyncQueue<DatabaseRequest> requests { get; set; }

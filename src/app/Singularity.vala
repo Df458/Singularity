@@ -135,8 +135,7 @@ public class SingularityApp : Gtk.Application
     public void subscribe_to_feed(Feed f, bool loaded, FeedCollection? parent = null, Gee.List<Item?>? items = null)
     {
         CollectionNode node = new CollectionNode(f);
-        if(parent != null)
-            node.data.set_parent(parent);
+        node.data.parent = parent;
 
         SubscribeRequest req = new SubscribeRequest(node);
         m_database.execute_request.begin(req, RequestPriority.MEDIUM, () =>
@@ -165,8 +164,7 @@ public class SingularityApp : Gtk.Application
     public void add_collection(FeedCollection c, FeedCollection? parent = null)
     {
         CollectionNode node = new CollectionNode(c);
-        if(parent != null)
-            node.data.set_parent(parent);
+        node.data.parent = parent;
 
         SubscribeRequest req = new SubscribeRequest(node);
         m_database.execute_request.begin(req, RequestPriority.MEDIUM, () =>
@@ -374,8 +372,7 @@ public class SingularityApp : Gtk.Application
 
         window.new_collection_requested.connect((parent) =>
         {
-            FeedCollection fc = new FeedCollection("Untitled");
-            CollectionRequest req = new CollectionRequest(new CollectionNode(fc), parent.id);
+            CollectionRequest req = new CollectionRequest(new CollectionNode(new FeedCollection("Untitled")), parent.id);
             m_database.execute_request.begin(req, RequestPriority.HIGH, () =>
             {
                 m_feed_store.append_node(req.node, m_feed_store.get_iter_from_data(parent));

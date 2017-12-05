@@ -1,6 +1,6 @@
 /*
 	Singularity - A web newsfeed aggregator
-	Copyright (C) 2016  Hugues Ross <hugues.ross@gmail.com>
+	Copyright (C) 2017  Hugues Ross <hugues.ross@gmail.com>
 
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -37,6 +37,7 @@ public enum RequestStatus
     DEFAULT = COMPLETED
 }
 
+// The interface used by all classes that handle database IO
 public interface DatabaseRequest : GLib.Object
 {
     public abstract Query build_query(Database db);

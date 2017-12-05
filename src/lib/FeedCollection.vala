@@ -53,13 +53,13 @@ namespace Singularity
         public void add_node(CollectionNode c)
         {
             nodes.add(c);
-            c.data.set_parent(this);
+            c.data.parent = this;
         }
 
         public void remove_node(CollectionNode c)
         {
             nodes.remove(c);
-            c.data.set_parent(null);
+            c.data.parent = null;
         }
 
         public override Query? insert(Queryable q)

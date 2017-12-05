@@ -130,13 +130,12 @@ namespace Singularity
                     m_database = Environment.get_user_data_dir() + "/singularity/feeds.db";
 
                 try {
-                    File default_data_file = File.new_for_path(m_database);
-                    // TODO
-                    /* if(!default_data_file.query_exists()) { */
-                    /*     if(verbose) */
-                    /*         info("Default data location does not exist, and will be created.\n"); */
-                    /*     default_data_file.make_directory_with_parents(); */
-                    /* } */
+                    File default_data_file = File.new_for_path(m_database).get_parent();
+                    if(!default_data_file.query_exists()) {
+                        if(verbose)
+                            info("Default data location does not exist, and will be created.\n");
+                        default_data_file.make_directory_with_parents();
+                    }
                 } catch(Error e) {
                     error("Failed to initialize the directory at %s: %s\n", m_database, e.message);
                 }

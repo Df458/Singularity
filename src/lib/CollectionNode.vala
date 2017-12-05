@@ -15,25 +15,28 @@
 	You should have received a copy of the GNU General Public License
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
 using DFLib;
+
 namespace Singularity
 {
     // DataEntry holding common data for both the Feed and Collection classes
     public abstract class FeedDataEntry : DataEntry
     {
         public string title { get; set; }
-        public int parent_id = -1;
-        public FeedCollection?  parent = null;
+        public int parent_id { get; protected set; default = -1; }
 
-        public void set_parent(FeedCollection? p)
+        private FeedCollection? _parent = null;
+        public FeedCollection? parent
         {
-            parent = p;
+            get { return _parent; }
+            set {
+                _parent = value;
 
-            if(p == null)
-                parent_id = -1;
-            else
-                parent_id = p.id;
+                if(value == null)
+                    parent_id = -1;
+                else
+                    parent_id = value.id;
+            }
         }
 
         public abstract Gee.List<Item> get_items();
@@ -44,7 +47,7 @@ namespace Singularity
     // type-checking code elsewhere
     public class CollectionNode : Object
     {
-        public FeedDataEntry data { get; construct; }
+        public FeedDataEntry data { get; construct set; }
         public int id { get { return data.id; } }
 
         public CollectionNode(FeedDataEntry entry)

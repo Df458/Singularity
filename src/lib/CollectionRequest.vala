@@ -1,6 +1,6 @@
 /*
 	Singularity - A web newsfeed aggregator
-	Copyright (C) 2016  Hugues Ross <hugues.ross@gmail.com>
+	Copyright (C) 2017  Hugues Ross <hugues.ross@gmail.com>
 
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -19,6 +19,7 @@ using SQLHeavy;
 
 namespace Singularity
 {
+    // A DatabaseRequest for creating new FeedCollections
     public class CollectionRequest : DatabaseRequest, GLib.Object
     {
         public CollectionNode node { get; construct; }
@@ -33,26 +34,22 @@ namespace Singularity
         public Query build_query(Database db)
         {
             if(insert_done) {
-                Query q;
                 try {
-                    q = new Query(db, "SELECT MAX(id) FROM feeds");
+                    return new Query(db, "SELECT MAX(id) FROM feeds");
                 } catch(SQLHeavy.Error e) {
                     error("Failed to check ids: %s", e.message);
                 }
-                return q;
             }
 
             StringBuilder q_builder = new StringBuilder("INSERT OR IGNORE INTO feeds (parent_id, type, title, link) VALUES");
             q_builder.append_printf("(%d, %d, %s, null)", parent_id, (int)CollectionNode.Contents.COLLECTION, sql_str(node.data.title));
 
-            Query q;
             try {
-                warning(q_builder.str);
-                q = new Query(db, q_builder.str);
+                /* warning(q_builder.str); */
+                return new Query(db, q_builder.str);
             } catch(SQLHeavy.Error e) {
                 error("Failed to create collection: %s", e.message);
             }
-            return q;
         }
 
         public RequestStatus process_result(QueryResult res)
