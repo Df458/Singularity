@@ -7,7 +7,7 @@
     <property name="can_focus">False</property>
     <property name="icon_name">list-add-symbolic</property>
   </object>
-  <template class="FeedBuilder" parent="GtkPopover">
+  <template class="SingularityFeedBuilder" parent="GtkPopover">
     <property name="can_focus">False</property>
     <child>
       <object class="GtkGrid">

@@ -1,13 +1,16 @@
 <gresources>
     <gresource prefix="/org/df458/Singularity">
-        <file preprocess="xml-stripblanks">MainWindow.ui</file>
         <file preprocess="xml-stripblanks">ColumnItemView.ui</file>
-        <file preprocess="xml-stripblanks">StreamItemView.ui</file>
-        <file preprocess="xml-stripblanks">GridItemView.ui</file>
+        <file preprocess="xml-stripblanks">ExportDialog.ui</file>
         <file preprocess="xml-stripblanks">FeedBuilder.ui</file>
-        <file preprocess="xml-stripblanks">SettingsView.ui</file>
+        <file preprocess="xml-stripblanks">FeedPane.ui</file>
+        <file preprocess="xml-stripblanks">GridItemView.ui</file>
+        <file preprocess="xml-stripblanks">ImportDialog.ui</file>
         <file preprocess="xml-stripblanks">ItemListEntry.ui</file>
+        <file preprocess="xml-stripblanks">MainWindow.ui</file>
         <file preprocess="xml-stripblanks">PropertiesWindow.ui</file>
+        <file preprocess="xml-stripblanks">SettingsView.ui</file>
+        <file preprocess="xml-stripblanks">StreamItemView.ui</file>
         <file>default.css</file>
         <file>stream.css</file>
         <file>column.css</file>

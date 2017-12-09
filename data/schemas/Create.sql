@@ -46,3 +46,12 @@ CREATE TABLE enclosures (
     "length" INTEGER,
     "mimetype" TEXT
 );
+
+CREATE TABLE people (
+    "guid" TEXT PRIMARY KEY NOT NULL,
+    "feed_id" INTEGER NOT NULL,
+    "item_guid" TEXT NOT NULL,
+    "name" TEXT,
+    "url" TEXT,
+    "email" TEXT
+);

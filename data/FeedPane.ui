@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Generated with glade 3.20.0 -->
+<interface>
+  <requires lib="gtk+" version="3.20"/>
+  <template class="SingularityFeedPane" parent="GtkBox">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="orientation">vertical</property>
+    <property name="spacing">12</property>
+    <child>
+      <object class="GtkScrolledWindow">
+        <property name="visible">True</property>
+        <property name="can_focus">True</property>
+        <property name="hscrollbar_policy">never</property>
+        <property name="shadow_type">in</property>
+        <child>
+          <object class="GtkViewport">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <child>
+              <object class="GtkTreeView" id="feed_list">
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="headers_visible">False</property>
+                <property name="activate_on_single_click">True</property>
+                <signal name="button-press-event" handler="on_click_menu" swapped="no"/>
+                <signal name="cursor-changed" handler="on_cursor_change" swapped="no"/>
+                <signal name="drag-data-get" handler="drag_set_feed" swapped="no"/>
+                <signal name="drag-data-received" handler="drag_get_feed" swapped="no"/>
+                <signal name="drag-drop" handler="drag_drop_feed" swapped="no"/>
+                <signal name="popup-menu" handler="display_menu" swapped="no"/>
+                <child internal-child="selection">
+                  <object class="GtkTreeSelection"/>
+                </child>
+                <child>
+                  <object class="GtkTreeViewColumn" id="title_column">
+                    <property name="sizing">fixed</property>
+                    <property name="fixed_width">120</property>
+                    <child>
+                      <object class="GtkCellRendererPixbuf" id="icon_renderer"/>
+                    </child>
+                    <child>
+                      <object class="GtkCellRendererText" id="title_renderer">
+                        <property name="ellipsize">end</property>
+                        <signal name="edited" handler="title_edit_done" swapped="no"/>
+                        <signal name="editing-canceled" handler="title_edit_cancel" swapped="no"/>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkTreeViewColumn" id="count_column">
+                    <property name="sizing">fixed</property>
+                    <child>
+                      <object class="GtkCellRendererText" id="count_renderer"/>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+      <packing>
+        <property name="expand">True</property>
+        <property name="fill">True</property>
+        <property name="position">0</property>
+      </packing>
+    </child>
+  </template>
+</interface>
