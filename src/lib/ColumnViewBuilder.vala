@@ -59,11 +59,22 @@ public class ColumnViewBuilder : ViewBuilder, GLib.Object
         head_builder.append("<section class=\"title\">");
         head_builder.append_printf("<a href=\"%s\">%s</a>", item.link, item.title == "" ? "Untitled Post" : item.title);
         head_builder.append("</section>");
+        if(item.author != null || item.time_published.compare(new DateTime.from_unix_utc(0)) != 0)
+            head_builder.append("Posted ");
         if(item.time_published.compare(new DateTime.from_unix_utc(0)) != 0) {
             string datestr = item.time_published.format("%A, %B %e %Y");
-            head_builder.append_printf("Posted on <time class=\"date\" datetime=\"%s\">%s</time>", datestr, datestr);
+            head_builder.append_printf("on <time class=\"date\" datetime=\"%s\">%s</time> ", datestr, datestr);
         }
-        // TODO: Posted by section
+        if(item.author != null) {
+            if(item.author.url != null)
+                head_builder.append_printf("<a href=\"%s\">", item.author.url);
+            if(item.author.name != null)
+                head_builder.append_printf("by %s", item.author.name);
+            else if(item.author.email != null)
+                head_builder.append_printf("by %s", item.author.email);
+            if(item.author.url != null)
+                head_builder.append_printf("</a>");
+        }
         head_builder.append("</header>");
 
         content_builder.append(item.content != null ? item.content : "No content");

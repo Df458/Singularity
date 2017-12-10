@@ -1,6 +1,6 @@
 /*
 	Singularity - A web newsfeed aggregator
-	Copyright (C) 2016  Hugues Ross <hugues.ross@gmail.com>
+	Copyright (C) 2017  Hugues Ross <hugues.ross@gmail.com>
 
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -21,6 +21,7 @@ using SQLHeavy;
 
 namespace Singularity
 {
+    // Represents an RSS/Atom/RDF feed
     public class Feed : FeedDataEntry
     {
         public string?          description { get; set; }
@@ -30,10 +31,13 @@ namespace Singularity
         public Collection<Tag?> tags        { get; set; }
         public string?          generator   { get; set; }
         public string?          icon_url    { get; set; }
-        public Gdk.Pixbuf?      icon        { get; set; }
-        public DateTime?        last_update { get; set; }
+        public Gdk.Pixbuf?      icon        { get; set; default = null; }
+        public DateTime?        last_update { get; set; default = new DateTime.from_unix_utc(0); }
 
-        public Gee.List<Item> items = new Gee.ArrayList<Item>();
+        public bool should_update
+        {
+            get { return last_update.add_minutes((int)AppSettings.auto_update_freq).compare(new DateTime.now_utc()) <= 0; }
+        }
 
         public enum DBColumn
         {
@@ -51,22 +55,14 @@ namespace Singularity
             COUNT
         }
 
-        public Feed()
-        {
-            last_update = new DateTime.from_unix_utc(0);
-            icon = null;
-        }
+        public Feed() {}
 
         public Feed.from_record(Record r)
         {
             base.from_record(r);
         }
 
-        public bool get_should_update()
-        {
-            return last_update.add_minutes((int)AppSettings.auto_update_freq).compare(new DateTime.now_utc()) <= 0;
-        }
-
+        // Sets contents based on a FeedProvider's contents
         public bool update_contents(FeedProvider provider)
         {
             if(provider.stored_feed == null)
@@ -157,6 +153,31 @@ namespace Singularity
             return "%d (%d): %s [%s | %s]".printf(id, parent_id, title, link, site_link);
         }
 
+        // Sets ID value in preparation for database access
+        public void prepare_for_db(int new_id)
+        {
+            set_id(new_id);
+        }
+
+        // Return contained Items for viewing
+        public override Gee.List<Item> get_items()
+        {
+            return items;
+        }
+
+        // Find a child Item using the given guid
+        public Item get_item(string guid, bool is_hash = true)
+        {
+            return items.first_match((i) => { return is_hash ? i.guid == guid : i.weak_guid == guid; });
+        }
+
+        // Adds an item and sets its owner
+        public void add_item(Item i)
+        {
+            i.owner = this;
+            items.add(i);
+        }
+
         protected override bool build_from_record(SQLHeavy.Record r)
         {
             try {
@@ -189,25 +210,6 @@ namespace Singularity
             }
         }
 
-        public void prepare_for_db(int new_id)
-        {
-            set_id(new_id);
-        }
-
-        public override Gee.List<Item> get_items()
-        {
-            return items;
-        }
-
-        public Item get_item(string guid)
-        {
-            return items.first_match((i) => { return i.guid == guid; });
-        }
-
-        public void add_item(Item i)
-        {
-            i.owner = this;
-            items.add(i);
-        }
+        private Gee.List<Item> items = new Gee.ArrayList<Item>();
     }
 }

@@ -1,6 +1,6 @@
 /*
 	Singularity - A web newsfeed aggregator
-	Copyright (C) 2016  Hugues Ross <hugues.ross@gmail.com>
+	Copyright (C) 2017  Hugues Ross <hugues.ross@gmail.com>
 
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -18,6 +18,8 @@
 
 namespace Singularity
 {
+    // Represents the result of a feed update created by an UpdateGenerator
+    // THis is just a container, and has no logic of its' own
     public class UpdatePackage : Object
     {
         public PackageContents contents { get; construct; }

@@ -149,7 +149,7 @@ namespace Singularity
 
                         case "author":
                         case "creator":
-                            new_item.author = Person(dat.value);
+                            new_item.author = new Person(dat.value);
                         break;
 
                         case "enclosure":

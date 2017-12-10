@@ -1,6 +1,6 @@
 /*
 	Singularity - A web newsfeed aggregator
-	Copyright (C) 2016  Hugues Ross <hugues.ross@gmail.com>
+	Copyright (C) 2017  Hugues Ross <hugues.ross@gmail.com>
 
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -18,8 +18,14 @@
 
 namespace Singularity
 {
+    // FeedProvider implementation for RSS/RDF feeds
+    // Parses Atom feeds and converts them into Feed objects
+    // TODO: Simplify the parser functions by taking better advantage of GXml
     class RSSItemDataSource : FeedProvider
     {
+        // Main parsing function, takes a GXml.GDocument and uses it to init
+        // its internal feed
+        // Returns true if successful
         public override bool parse_data(GXml.GDocument doc)
         {
             stored_feed = new Feed();
@@ -43,6 +49,7 @@ namespace Singularity
             return true;
         }
 
+        // Parses a <rss> node to populate the internal feed
         private void readRSSFeed(GXml.Node node)
         {
             foreach(GXml.Node n in node.children_nodes) {
@@ -88,6 +95,8 @@ namespace Singularity
             }
         }
 
+        // Parses an <item> node and tries to create a new Item from it
+        // Returns the item if successful, otherwise returns null
         private Item? readRSSItem(GXml.Node node)
         {
             Item new_item = new Item();
@@ -139,7 +148,7 @@ namespace Singularity
 
                         case "author":
                         case "creator":
-                            new_item.author = Person(n.value);
+                            new_item.author = new Person(n.value);
                         break;
 
                         case "enclosure":
@@ -179,6 +188,7 @@ namespace Singularity
             return new_item;
         }
 
+        // Parses a <RDF> node to populate the internal feed
         private void readRDFFeed(GXml.Node node)
         {
             foreach(GXml.Node dat in node.children_nodes) {

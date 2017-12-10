@@ -1,6 +1,6 @@
 /*
 	Singularity - A web newsfeed aggregator
-	Copyright (C) 2016  Hugues Ross <hugues.ross@gmail.com>
+	Copyright (C) 2017  Hugues Ross <hugues.ross@gmail.com>
 
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -18,6 +18,7 @@
 
 namespace Singularity
 {
+    // This class handles a single feed update, by requesting the data and running the appropriate parser.
     public class UpdateGenerator
     {
         protected Feed to_update;
@@ -28,6 +29,7 @@ namespace Singularity
             m_session = s;
         }
         
+        // Runs the actual feed update. This returns a package containing either the resulting update data, or an error message
         public UpdatePackage do_update()
         {
             XmlRequest req = new XmlRequest(to_update.link, m_session);
@@ -61,14 +63,14 @@ namespace Singularity
             Gee.List<Item?> changed_items = new Gee.ArrayList<Item?>();
 
             foreach(Item? i in source.data) {
-                Item? i2 = to_update.items.first_match((it) => { return it.weak_guid == i.weak_guid; });
+                Item? i2 = to_update.get_item(i.weak_guid, false);
 
                 if(i2 == null) {
                     new_items.add(i);
                     to_update.add_item(i);
 
                     i.content = html_to_generic(i.content, req.get_base_uri());
-                } else if(i.equals(i2)) {
+                } else if(!i.equals(i2)) {
                     changed_items.add(i);
                 }
             }

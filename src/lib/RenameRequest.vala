@@ -1,6 +1,6 @@
 /*
 	Singularity - A web newsfeed aggregator
-	Copyright (C) 2016  Hugues Ross <hugues.ross@gmail.com>
+	Copyright (C) 2017  Hugues Ross <hugues.ross@gmail.com>
 
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -19,10 +19,12 @@ using SQLHeavy;
 
 namespace Singularity
 {
+    // A DatabaseRequest for renaming FeedCollections
     public class RenameRequest : DatabaseRequest, GLib.Object
     {
         public CollectionNode node { get; construct; }
         public string title { get; construct; }
+
         public RenameRequest(CollectionNode n, string t)
         {
             Object(node: n, title: t);
@@ -30,16 +32,12 @@ namespace Singularity
 
         public Query build_query(Database db)
         {
-            StringBuilder q_builder = new StringBuilder("UPDATE feeds SET 'title' = ");
-            q_builder.append_printf("%s WHERE id = %d", sql_str(title), node.data.id);
-
-            Query q;
+            string q = "UPDATE feeds SET 'title' = %s WHERE id = %d".printf(sql_str(title), node.data.id);
             try {
-                q = new Query(db, q_builder.str);
+                return new Query(db, q);
             } catch(SQLHeavy.Error e) {
-                error("Failed to rename node: %s [%s]", e.message, q_builder.str);
+                error("Failed to rename node: %s [%s]", e.message, q);
             }
-            return q;
         }
 
         public RequestStatus process_result(QueryResult res)

@@ -1,9 +1,29 @@
-using Gtk;
-using Singularity;
+/*
+	Singularity - A web newsfeed aggregator
+	Copyright (C) 2017  Hugues Ross <hugues.ross@gmail.com>
 
+	This program is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation, either version 3 of the License, or
+	(at your option) any later version.
+
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+
+	You should have received a copy of the GNU General Public License
+	along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+using Gtk;
+
+namespace Singularity
+{
+// Widget used for the ColumnView's item list
 [GtkTemplate (ui = "/org/df458/Singularity/ItemListEntry.ui")]
 public class ItemListEntry : Box {
     public Item item { get; construct; }
+
     public ItemListEntry(Item i) {
         Object(item: i);
         if(i.title == "" || i.title == null)
@@ -35,4 +55,5 @@ public class ItemListEntry : Box {
     private Label description_label;
     [GtkChild]
     private Revealer unread_icon;
+}
 }

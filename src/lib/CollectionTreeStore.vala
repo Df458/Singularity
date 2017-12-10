@@ -116,9 +116,15 @@ namespace Singularity
             if(src.data == c)
                 return false;
 
-            src.data.parent = c;
+            int unread;
+            get(get_iter_from_node(src), Column.UNREAD, out unread, -1);
+            set_unread_count(-unread, src.data.parent_id, true);
+
+            c.add_node(src);
 
             reparent(get_iter_from_node(src), get_iter_from_data(c));
+
+            set_unread_count(unread, dest.data.id, true);
 
             parent_changed(src.data, c.id);
 
@@ -183,8 +189,12 @@ namespace Singularity
         public void remove_node(CollectionNode n)
         {
             TreeIter? iter = get_iter_from_node(n);
-            // TODO: REMOVE COLLECTION CHILDREN TOO
             if(iter != null) {
+                foreach(CollectionNode child in n.get_children())
+                    move_node(child, node_map[n.data.parent_id]);
+
+                set_unread_count(0, n.id);
+
                 remove(ref iter);
                 node_map.unset(n.id);
             }
@@ -193,17 +203,7 @@ namespace Singularity
         // Removes the given FeedDataEntry from the store.
         public void remove_data(FeedDataEntry d)
         {
-            TreeIter? iter = get_iter_from_data(d);
-            if(iter != null) {
-                if(d is FeedCollection) {
-                    foreach(CollectionNode node in (d as FeedCollection).nodes) {
-                        move_node(node, get_node_from_id(d.parent_id));
-                    }
-                }
-
-                remove(ref iter);
-                node_map.unset(d.id);
-            }
+            remove_node(node_map[d.id]);
         }
 
         // Performs a depth-first search for the tree node representing n,

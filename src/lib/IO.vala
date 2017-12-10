@@ -1,6 +1,6 @@
 /*
 	Singularity - A web newsfeed aggregator
-	Copyright (C) 2016  Hugues Ross <hugues.ross@gmail.com>
+	Copyright (C) 2017  Hugues Ross <hugues.ross@gmail.com>
 
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -25,7 +25,7 @@ namespace Singularity
 int get_month(string month_abbr)
     ensures(0 <= result <= 12)
 {
-    switch(month_abbr.down()) {
+    switch(month_abbr.strip().down()) {
         case "jan":
         case "january":
             return 1;
@@ -68,26 +68,6 @@ int get_month(string month_abbr)
     return 0;
 }
 
-public static string dump_xml_node(Xml.Node* node)
-{
-    string xml_str = "";
-
-    if(node->type == Xml.ElementType.TEXT_NODE || node->type == Xml.ElementType.CDATA_SECTION_NODE)
-        return node->children->get_content();
-    xml_str += "<" + node->name;
-    for(Xml.Attr* a = node->properties; a != null; a = a->next)
-        xml_str += " " + a->name + " =  \"" + a->children->get_content() + "\"";
-    if(node->children == null)
-        xml_str += "/>";
-    else {
-        xml_str += ">";
-        for(Xml.Node* n = node->children; n != null; n = n->next)
-            xml_str += dump_xml_node(n);
-        xml_str += "</" + node->name + ">";
-    }
-    return xml_str;
-}
-
 // Converts a string for SQL. This replaces every ' character with its escaped form.
 // If str is null, returns the string "null" which becomes a nulkl value in SQL.
 public static string sql_str(string? str)
@@ -101,6 +81,7 @@ public static string sql_str(string? str)
     return sb.str;
 }
 
+// Escpaes common characters for HTML display
 public static string strip_htm(string str)
 {
     return str.replace("<", "&lt;").replace(">", "&gt;");

@@ -1,6 +1,6 @@
 /*
 	Singularity - A web newsfeed aggregator
-	Copyright (C) 2016  Hugues Ross <hugues.ross@gmail.com>
+	Copyright (C) 2017  Hugues Ross <hugues.ross@gmail.com>
 
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -19,38 +19,36 @@ using SQLHeavy;
 
 namespace Singularity
 {
-    public class ItemViewRequest : DatabaseRequest, GLib.Object
+// DatabaseRequest for marking one or more items as read
+public class ItemViewRequest : DatabaseRequest, GLib.Object
+{
+    public string[] guid { get; construct; }
+
+    public ItemViewRequest(string[] i)
     {
-        public string[] guid { get; construct; }
+        Object(guid: i);
+    }
 
-        public ItemViewRequest(string[] i)
-        {
-            Object(guid: i);
+    public Query build_query(Database db)
+    {
+        StringBuilder q_builder = new StringBuilder("UPDATE items SET 'unread' = 0 WHERE guid IN (");
+        for(int i = 0; i < guid.length; ++i) {
+            if(i != 0)
+                q_builder.append(", ");
+            q_builder.append_printf("%s", sql_str(guid[i]));
         }
+        q_builder.append(")");
 
-        public Query build_query(Database db)
-        {
-            StringBuilder q_builder = new StringBuilder("UPDATE items SET 'unread' = 0");
-            q_builder.append(" WHERE guid IN (");
-            for(int i = 0; i < guid.length; ++i) {
-                if(i != 0)
-                    q_builder.append(", ");
-                q_builder.append_printf("%s", sql_str(guid[i]));
-            }
-            q_builder.append(")");
-
-            Query q;
-            try {
-                q = new Query(db, q_builder.str);
-            } catch(SQLHeavy.Error e) {
-                error("Failed to view item: %s [%s]", e.message, q_builder.str);
-            }
-            return q;
-        }
-
-        public RequestStatus process_result(QueryResult res)
-        {
-            return RequestStatus.DEFAULT;
+        try {
+            return new Query(db, q_builder.str);
+        } catch(SQLHeavy.Error e) {
+            error("Failed to view item: %s [%s]", e.message, q_builder.str);
         }
     }
+
+    public RequestStatus process_result(QueryResult res)
+    {
+        return RequestStatus.DEFAULT;
+    }
+}
 }

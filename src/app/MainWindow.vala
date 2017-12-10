@@ -1,6 +1,6 @@
 /*
 	Singularity - A web newsfeed aggregator
-	Copyright (C) 2016  Hugues Ross <hugues.ross@gmail.com>
+	Copyright (C) 2017  Hugues Ross <hugues.ross@gmail.com>
 
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -27,6 +27,7 @@ enum ViewType
     STREAM
 }
 
+// The primary application window
 [GtkTemplate (ui = "/org/df458/Singularity/MainWindow.ui")]
 public class MainWindow : Gtk.ApplicationWindow
 {
@@ -103,12 +104,26 @@ public class MainWindow : Gtk.ApplicationWindow
         app.load_status_changed.connect((val) =>
         {
             feed_pane.expand_base();
-            view_stack.set_visible_child(m_item_view);
+            if(val == SingularityApp.LoadStatus.COMPLETED) {
+                if(app.has_subscriptions)
+                    view_stack.set_visible_child(m_item_view);
+                else
+                    view_stack.visible_child_name = "welcome";
+            }
+        });
+
+        app.subscribe_done.connect((f) => 
+        {
+            if(view_stack.visible_child_name == "welcome") {
+                view_stack.set_visible_child(m_item_view);
+                feed_pane.expand_base();
+            }
         });
 
         m_feed_builder.subscription_added.connect((feed, loaded, items) =>
         {
             app.subscribe_to_feed(feed, loaded, null, items);
+
             m_feed_builder.hide();
         });
 
@@ -122,6 +137,9 @@ public class MainWindow : Gtk.ApplicationWindow
             view_stack.set_visible_child(m_item_view);
         });
 
+        if(!app.init_success)
+            view_stack.visible_child_name = "loading";
+
         this.show_all();
 
         /*
@@ -133,11 +151,6 @@ public class MainWindow : Gtk.ApplicationWindow
             ////set_content(feed_settings);
             //warning("settings_button click callback is a stub");
         //});
-        //welcome_view = new Welcome("Welcome", "You have no subscriptions");
-        //welcome_view.append("add", "Add", "Subscribe to a new feed.");
-        //welcome_view.activated.connect( () => {
-            //set_content(add_pane);
-        //});
         */
     }
 
@@ -146,7 +159,6 @@ public class MainWindow : Gtk.ApplicationWindow
         m_last_displayed_node = node;
 
         if(node != null) {
-            warning(node.data.title);
             Gee.Iterator<Item> iter = node.data.get_items().iterator();
             if(m_item_view.get_important_only())
                 iter = iter.filter((i) => { return i.unread || i.starred; });
@@ -180,7 +192,8 @@ public class MainWindow : Gtk.ApplicationWindow
     [GtkCallback]
     public void stream_view_selected()
     {
-        view_stack.set_visible_child_name("items_stream");
+        if(view_stack.visible_child_name != "welcome")
+            view_stack.set_visible_child_name("items_stream");
         m_item_view = view_stack.get_child_by_name("items_stream") as ItemView;
         display_node(m_last_displayed_node);
     }
@@ -188,7 +201,8 @@ public class MainWindow : Gtk.ApplicationWindow
     [GtkCallback]
     public void column_view_selected()
     {
-        view_stack.set_visible_child_name("items_column");
+        if(view_stack.visible_child_name != "welcome")
+            view_stack.set_visible_child_name("items_column");
         m_item_view = view_stack.get_child_by_name("items_column") as ItemView;
         display_node(m_last_displayed_node);
     }
@@ -196,7 +210,8 @@ public class MainWindow : Gtk.ApplicationWindow
     [GtkCallback]
     public void grid_view_selected()
     {
-        view_stack.set_visible_child_name("items_grid");
+        if(view_stack.visible_child_name != "welcome")
+            view_stack.set_visible_child_name("items_grid");
         m_item_view = view_stack.get_child_by_name("items_grid") as ItemView;
         display_node(m_last_displayed_node);
     }

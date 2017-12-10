@@ -1,6 +1,6 @@
 /*
 	Singularity - A web newsfeed aggregator
-	Copyright (C) 2016  Hugues Ross <hugues.ross@gmail.com>
+	Copyright (C) 2017  Hugues Ross <hugues.ross@gmail.com>
 
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -15,11 +15,11 @@
 	You should have received a copy of the GNU General Public License
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
 using DFLib;
 using Gtk;
 using Singularity;
 
+// View widget for viewing/editing application settings
 [GtkTemplate (ui="/org/df458/Singularity/SettingsView.ui")]
 class SettingsView : Box
 {

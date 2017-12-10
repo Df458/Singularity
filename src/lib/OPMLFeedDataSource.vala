@@ -1,11 +1,30 @@
+/*
+	Singularity - A web newsfeed aggregator
+	Copyright (C) 2017  Hugues Ross <hugues.ross@gmail.com>
+
+	This program is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation, either version 3 of the License, or
+	(at your option) any later version.
+
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+
+	You should have received a copy of the GNU General Public License
+	along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 using Gee;
 using Xml;
 
-// TODO: Schema validation
 namespace Singularity
 {
     const string OPML_VERSION = "1.1";
 
+    // DataSource for importing/exporting feeds from/to OPML files
+    // TODO: Update to use GXml
+    // TODO: Ensure that collection tree is always correct
     public class OPMLFeedDataSource : ReversibleDataSource<CollectionNode, Xml.Doc*>
     {
         public override bool parse_data(Xml.Doc* doc)
@@ -14,9 +33,8 @@ namespace Singularity
             while(node != null && node->name != "opml")
                 node = node->next;
     
-            if(node == null) {
+            if(node == null)
                 return false;
-            }
     
             node = node->children;
             while(node != null && node->name != "body")

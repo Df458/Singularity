@@ -1,6 +1,6 @@
 /*
 	Singularity - A web newsfeed aggregator
-	Copyright (C) 2016  Hugues Ross <hugues.ross@gmail.com>
+	Copyright (C) 2017  Hugues Ross <hugues.ross@gmail.com>
 
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -19,6 +19,7 @@ using SQLHeavy;
 
 namespace Singularity
 {
+    // DatabaseRequest for reparenting a Feed/Collection
     public class UpdateParentRequest : DatabaseRequest, GLib.Object
     {
         public FeedDataEntry entry { get; construct; }
@@ -31,16 +32,12 @@ namespace Singularity
 
         public Query build_query(Database db)
         {
-            StringBuilder q_builder = new StringBuilder("UPDATE feeds SET 'parent_id' = ");
-            q_builder.append_printf("%d WHERE id = %d", parent_id, entry.id);
-
-            Query q;
+            string q = "UPDATE feeds SET 'parent_id' = %d WHERE id = %d".printf(parent_id, entry.id);
             try {
-                q = new Query(db, q_builder.str);
+                return new Query(db, q);
             } catch(SQLHeavy.Error e) {
-                error("Failed to reparent node: %s [%s]", e.message, q_builder.str);
+                error("Failed to reparent node: %s [%s]", e.message, q);
             }
-            return q;
         }
 
         public RequestStatus process_result(QueryResult res)

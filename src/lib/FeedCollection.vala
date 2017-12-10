@@ -1,6 +1,6 @@
 /*
 	Singularity - A web newsfeed aggregator
-	Copyright (C) 2016  Hugues Ross <hugues.ross@gmail.com>
+	Copyright (C) 2017  Hugues Ross <hugues.ross@gmail.com>
 
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -15,16 +15,17 @@
 	You should have received a copy of the GNU General Public License
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
 using DFLib;
 using SQLHeavy;
 
 namespace Singularity
 {
+    // Represents a collection of feeds. FeedCollections act a lot like folders,
+    // and can hold both feeds and other collections.
     public class FeedCollection : FeedDataEntry
     {
         public Icon? icon   { get; protected set; }
-        public Gee.List<CollectionNode> nodes { get; protected set; }
+        public Gee.List<CollectionNode> nodes { get; protected set; default = new Gee.ArrayList<CollectionNode>(); }
 
         public enum DBColumn
         {
@@ -36,27 +37,25 @@ namespace Singularity
         public FeedCollection(string new_title)
         {
             title = new_title;
-            nodes = new Gee.ArrayList<CollectionNode>();
         }
 
         public FeedCollection.from_record(Record r)
         {
             base.from_record(r);
-            nodes = new Gee.ArrayList<CollectionNode>();
         }
 
-        public FeedCollection.root()
-        {
-            nodes = new Gee.ArrayList<CollectionNode>();
-        }
+        public FeedCollection.root() { }
 
+        // Adds a node as a child, and updates its parent
         public void add_node(CollectionNode c)
         {
             nodes.add(c);
             c.data.parent = this;
         }
 
+        // Removes a child node, and updates its parent
         public void remove_node(CollectionNode c)
+            requires(nodes.contains(c))
         {
             nodes.remove(c);
             c.data.parent = null;
@@ -77,7 +76,6 @@ namespace Singularity
                 return null;
             }
         }
-
         public override Query? update(Queryable q)
         {
             try {
@@ -92,7 +90,6 @@ namespace Singularity
                 return null;
             }
         }
-
         public override Query? remove(Queryable q)
         {
             try {
@@ -125,6 +122,7 @@ namespace Singularity
             set_id(new_id);
         }
 
+        // Returns the union of all items contained in child nodes
         public override Gee.List<Item> get_items()
         {
             Gee.List<Item> items = new Gee.ArrayList<Item>();

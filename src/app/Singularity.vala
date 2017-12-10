@@ -1,6 +1,6 @@
 /*
 	Singularity - A web newsfeed aggregator
-	Copyright (C) 2016  Hugues Ross <hugues.ross@gmail.com>
+	Copyright (C) 2017  Hugues Ross <hugues.ross@gmail.com>
 
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -15,14 +15,13 @@
 	You should have received a copy of the GNU General Public License
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
 using Gee;
 
 const string APP_ID = "org.df458.singularity";
 
 namespace Singularity
 {
-
+// The primary application class
 public class SingularityApp : Gtk.Application
 {
     public enum LoadStatus
@@ -36,6 +35,7 @@ public class SingularityApp : Gtk.Application
 
     // Public section ---------------------------------------------------------
     public bool init_success { get; private set; }
+    public bool has_subscriptions { get { return m_feeds.nodes.size > 0; } }
 
     private MainLoop ml;
     public uint timeout_value = 600;
@@ -144,7 +144,6 @@ public class SingularityApp : Gtk.Application
 
             // FIXME: Looks suspicious. Did I miss something?
             m_feed_store.append_node(node, iter);
-            warning("FEED ADDED: %s", f.to_string());
             if(!loaded) {
                 m_update_queue.request_update(node.data as Feed, true);
             } else if(items != null){
@@ -158,6 +157,8 @@ public class SingularityApp : Gtk.Application
                     m_feed_store.set_unread_count(ureq.unread_count, new_package.feed.id, false);
                 });
             }
+
+            subscribe_done(f);
         });
     }
 
@@ -184,7 +185,7 @@ public class SingularityApp : Gtk.Application
         m_feed_store.foreach((model, path, iter) =>
         {
             Feed? feed = m_feed_store.get_data_from_iter(iter) as Feed;
-            if(feed != null && (feed.get_should_update() || force)) {
+            if(feed != null && (feed.should_update || force)) {
                 m_update_queue.request_update(feed);
                 m_current_update_progress.updates_started();
             } 
@@ -226,6 +227,7 @@ public class SingularityApp : Gtk.Application
     // Signals ----------------------------------------------------------------
     public signal void load_status_changed(LoadStatus status);
     public signal void update_progress_changed(UpdateProgress val);
+    public signal void subscribe_done(Feed f);
 
     // Private section --------------------------------------------------------
     private DatabaseManager        m_database;
@@ -397,6 +399,7 @@ public class SingularityApp : Gtk.Application
     }
 }
 
+// Item for tracking the feed update status
 public struct UpdateProgress
 {
     public SingularityApp.LoadStatus status { get; private set;}

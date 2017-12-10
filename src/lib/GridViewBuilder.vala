@@ -1,22 +1,14 @@
 namespace Singularity
 {
-// TODO: Implement this
+// Constructs HTML for the column view
 public class GridViewBuilder : ViewBuilder, GLib.Object
 {
-    public string head;
-    public const string builder_class = "grid";
-    public  string star_svg = "file:///usr/local/share/singularity/star.svg";
-    public  string read_svg = "file:///usr/local/share/singularity/read.svg";
-
-    private bool is_tile = true;
-
     public GridViewBuilder()
     {
         try {
             head = "<head><style>\n%s\n%s\n</style></head>".printf(resource_to_string("default.css"), resource_to_string("grid.css"));
         } catch(Error e) {
             warning("Failed to read style information");
-            head = "";
         }
     }
 
@@ -48,7 +40,7 @@ public class GridViewBuilder : ViewBuilder, GLib.Object
         return builder.str;
     }
 
-    public string buildItemHTML(Item item, int id)
+    private string buildItemHTML(Item item, int id)
     {
         StringBuilder builder = new StringBuilder();
         StringBuilder head_builder    = new StringBuilder("<header>");
@@ -70,11 +62,23 @@ public class GridViewBuilder : ViewBuilder, GLib.Object
             head_builder.append_printf("<img class=\"star\", src=\"%s\"/>", star_svg);
             head_builder.append("</div>");
             head_builder.append("</section>");
+            if(item.author != null || item.time_published.compare(new DateTime.from_unix_utc(0)) != 0)
+                head_builder.append("Posted ");
             if(item.time_published.compare(new DateTime.from_unix_utc(0)) != 0) {
                 string datestr = item.time_published.format("%A, %B %e %Y");
-                head_builder.append_printf("Posted on <time class=\"date\" datetime=\"%s\">%s</time>", datestr, datestr);
+                head_builder.append_printf("on <time class=\"date\" datetime=\"%s\">%s</time> ", datestr, datestr);
             }
-            // TODO: Posted by section
+            if(item.author != null) {
+                if(item.author.url != null)
+                    head_builder.append_printf("<a href=\"%s\">", item.author.url);
+                if(item.author.name != null)
+                    head_builder.append_printf("by %s", item.author.name);
+                else if(item.author.email != null)
+                    head_builder.append_printf("by %s", item.author.email);
+                if(item.author.url != null)
+                    head_builder.append_printf("</a>");
+            }
+
             head_builder.append("<hr>");
             head_builder.append("</header>");
 
@@ -83,5 +87,12 @@ public class GridViewBuilder : ViewBuilder, GLib.Object
 
         return builder.str;
     }
+
+    private string head = "";
+    private bool is_tile = true;
+
+    private const string builder_class = "grid";
+    private const string star_svg = "file:///usr/local/share/singularity/star.svg";
+    private const string read_svg = "file:///usr/local/share/singularity/read.svg";
 }
 }

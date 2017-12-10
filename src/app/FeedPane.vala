@@ -1,6 +1,6 @@
 /*
 	Singularity - A web newsfeed aggregator
-	Copyright (C) 2016  Hugues Ross <hugues.ross@gmail.com>
+	Copyright (C) 2017  Hugues Ross <hugues.ross@gmail.com>
 
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -15,11 +15,12 @@
 	You should have received a copy of the GNU General Public License
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
 using Gtk;
 
 namespace Singularity
 {
+// The contents of the left pane, which holds the treeview for browsing feeds
+[GtkTemplate (ui="/org/df458/Singularity/FeedPane.ui")]
 public class FeedPane : Gtk.Box
 {
     public Feed? selected_feed { get; private set; }
@@ -28,20 +29,16 @@ public class FeedPane : Gtk.Box
     public FeedPane(MainWindow owner_window, CollectionTreeStore store)
     {
         owner = owner_window;
-        orientation = Orientation.VERTICAL;
-        spacing     = 12;
-        homogeneous = false;
 
         feed_data = store;
         feed_model = new TreeModelFilter(store, null);
 
-        init_structure();
         init_content();
-        connect_signals();
         add_actions();
         init_menus();
     }
 
+    // Expand the base category (All Feeds)
     public void expand_base()
     {
         feed_list.expand_row(new TreePath.first(), false);
@@ -49,13 +46,18 @@ public class FeedPane : Gtk.Box
 
     public signal void selection_changed(int selection_id);
 
-    private ScrolledWindow       scroll;
     private TreeModelFilter      feed_model;
+    [GtkChild]
     private TreeView             feed_list;
+    [GtkChild]
     private CellRendererPixbuf   icon_renderer;
+    [GtkChild]
     private CellRendererText     title_renderer;
+    [GtkChild]
     private CellRendererText     count_renderer;
+    [GtkChild]
     private TreeViewColumn       title_column;
+    [GtkChild]
     private TreeViewColumn       count_column;
     private CollectionTreeStore  feed_data;
     private unowned MainWindow   owner;
@@ -64,147 +66,23 @@ public class FeedPane : Gtk.Box
     private Gtk.Menu feed_menu;
     private Gtk.Menu collection_menu;
 
-    private void init_structure()
-    {
-        scroll = new ScrolledWindow(null, null);
-        scroll.hscrollbar_policy = PolicyType.NEVER;
-        this.pack_start(scroll, true, true);
-    }
-
     private void init_content()
     {
-        feed_list      = new TreeView.with_model(feed_model);
-        icon_renderer  = new CellRendererPixbuf();
-        title_renderer = new CellRendererText();
-        count_renderer = new CellRendererText();
-        title_column    = new TreeViewColumn.with_area(new CellAreaBox());
-        title_column.cell_area.add(icon_renderer);
-        title_column.cell_area.add(title_renderer);
+        feed_list.set_model(feed_model);
 
-        title_column.cell_area.attribute_connect(icon_renderer, "pixbuf", CollectionTreeStore.Column.ICON);
-        title_column.cell_area.attribute_connect(title_renderer, "markup", CollectionTreeStore.Column.TITLE);
-        title_column.cell_area.attribute_connect(title_renderer, "weight", CollectionTreeStore.Column.WEIGHT);
+        title_column.add_attribute(icon_renderer, "pixbuf", CollectionTreeStore.Column.ICON);
+        title_column.add_attribute(title_renderer, "markup", CollectionTreeStore.Column.TITLE);
+        title_column.add_attribute(title_renderer, "weight", CollectionTreeStore.Column.WEIGHT);
 
-        count_column   = new TreeViewColumn.with_attributes("Unread", count_renderer, "text",   CollectionTreeStore.Column.UNREAD, null);
+        count_column.cell_area.attribute_connect(count_renderer, "text", CollectionTreeStore.Column.UNREAD);
+        count_column.cell_area.attribute_connect(count_renderer, "visible", CollectionTreeStore.Column.UNREAD);
 
-        title_renderer.ellipsize = Pango.EllipsizeMode.END;
-        title_column.sizing = TreeViewColumnSizing.FIXED;
-        count_column.sizing = TreeViewColumnSizing.FIXED;
         icon_renderer.xpad = 0;
-        title_column.fixed_width = 120;
         title_column.expand = true;
 
-        feed_list.append_column(title_column);
-        feed_list.append_column(count_column);
-        feed_list.headers_visible = false;
         feed_list.tooltip_column = CollectionTreeStore.Column.TITLE;
         feed_list.enable_model_drag_source(Gdk.ModifierType.BUTTON1_MASK, { TargetEntry(){ target="SINGULARTY_COLLECTION_NODE", flags=0, info=0 } }, Gdk.DragAction.MOVE);
         feed_list.enable_model_drag_dest({ TargetEntry(){ target="SINGULARTY_COLLECTION_NODE", flags=0, info=0 } }, Gdk.DragAction.MOVE);
-
-        scroll.add(feed_list);
-    }
-
-    private void connect_signals()
-    {
-        feed_list.cursor_changed.connect(() =>
-        {
-            TreePath path;
-            feed_list.get_cursor(out path, null);
-
-            FeedDataEntry entry = feed_data.get_data_from_path(path);
-
-            selected_feed = entry as Feed;
-            selected_collection = entry as FeedCollection;
-
-            owner.display_node(feed_data.get_node_from_path(path));
-        });
-        feed_list.button_press_event.connect((event) =>
-        {
-            if(event.button == 3) {
-                TreePath path;
-                feed_list.get_path_at_pos((int)event.x, (int)event.y, out path, null, null, null);
-                if(path != null) {
-                    feed_list.set_cursor(path, null, false);
-                } else {
-                    feed_list.unselect_all();
-                }
-                feed_list.popup_menu();
-            }
-            return false;
-        });
-        feed_list.popup_menu.connect(() =>
-        {
-            TreePath path;
-            feed_list.get_cursor(out path, null);
-
-            if(selected_feed != null)
-                feed_menu.popup(null, null, null, 0, Gtk.get_current_event_time());
-            else if(selected_collection != null)
-                collection_menu.popup(null, null, null, 0, Gtk.get_current_event_time());
-            else
-                base_menu.popup(null, null, null, 0, Gtk.get_current_event_time());
-            return false;
-        });
-
-        feed_list.drag_data_get.connect((ctx, data, info, time) =>
-        {
-            Gtk.TreePath path = null;
-            feed_list.get_cursor(out path, null);
-            int id = -1;
-            if(path != null)
-                id = feed_data.get_node_from_path(path).id;
-
-            warning("Passing data: %d", id);
-
-            /* data.set_text(id.to_string(), -1); */
-            /* data.set(ctx.list_targets().first().data, 1, (uchar[])id); */
-            data.set(ctx.list_targets().first().data, 1, id.to_string().data);
-        });
-        feed_list.drag_drop.connect((ctx, x, y, time) =>
-        {
-            TreePath? path = null;
-            if(!feed_list.get_dest_row_at_pos(x, y, out path, null))
-                return false;
-
-                warning("getting %s...", ctx.list_targets().first().data.name());
-            drag_get_data(feed_list, ctx, ctx.list_targets().first().data, time);
-
-            return true;
-        });
-        feed_list.drag_data_received.connect((ctx, x, y, data, info, time) =>
-        {
-            Signal.stop_emission_by_name(feed_list, "drag-data-received");
-            warning("Got data: %s %d, %d", data.get_text(), data.get_length(), data.get_format());
-            /* int id = int.parse(data.get_text()); */
-            int id = int.parse((string)data.get_data());
-            warning("Got data: %d", id);
-            TreePath? path = null;
-            if(id == -1 || !feed_list.get_dest_row_at_pos(x, y, out path, null)) {
-                drag_finish(ctx, false, false, time);
-                return;
-            }
-
-            CollectionNode src = feed_data.get_node_from_id(id);
-            CollectionNode dest = feed_data.get_node_from_path(path);
-
-            if(!feed_data.move_node(src, dest)) {
-                drag_finish(ctx, false, false, time);
-                return;
-            }
-
-            drag_finish(ctx, true, false, time);
-        });
-
-        title_renderer.editing_canceled.connect(() =>
-        {
-            title_renderer.editable = false;
-        });
-
-        title_renderer.edited.connect((path, text) =>
-        {
-            owner.rename_node_requested(feed_data.get_node_from_path(new TreePath.from_string(path)), text);
-            title_renderer.editable = false;
-        });
     }
 
     private void add_actions()
@@ -291,6 +169,117 @@ public class FeedPane : Gtk.Box
         collection_menu.attach_to_widget(this, null);
         base_menu = new Gtk.Menu.from_model(base_model);
         base_menu.attach_to_widget(this, null);
+    }
+
+    [GtkCallback]
+    private void drag_set_feed(Gdk.DragContext ctx, SelectionData data, uint info, uint time)
+    {
+        Gtk.TreePath path = null;
+        feed_list.get_cursor(out path, null);
+        int id = -1;
+        if(path != null)
+            id = feed_data.get_node_from_path(path).id;
+
+        data.set(ctx.list_targets().first().data, 1, id.to_string().data);
+    }
+
+    [GtkCallback]
+    private void drag_get_feed(Gdk.DragContext ctx, int x, int y, SelectionData data, uint info, uint time)
+    {
+        Signal.stop_emission_by_name(feed_list, "drag-data-received");
+        int id = int.parse((string)data.get_data());
+        TreePath? path = null;
+        if(id == -1 || !feed_list.get_dest_row_at_pos(x, y, out path, null)) {
+            drag_finish(ctx, false, false, time);
+            return;
+        }
+
+        CollectionNode src = feed_data.get_node_from_id(id);
+        CollectionNode dest = feed_data.get_node_from_path(path);
+
+        if(!feed_data.move_node(src, dest)) {
+            drag_finish(ctx, false, false, time);
+            return;
+        }
+
+        drag_finish(ctx, true, false, time);
+    }
+
+    [GtkCallback]
+    private bool drag_drop_feed(Gdk.DragContext ctx, int x, int y, uint time)
+    {
+        TreePath? path = null;
+        if(!feed_list.get_dest_row_at_pos(x, y, out path, null))
+            return false;
+
+        drag_get_data(feed_list, ctx, ctx.list_targets().first().data, time);
+
+        return true;
+    }
+
+    [GtkCallback]
+    private bool on_click_menu(Gdk.EventButton event)
+    {
+        TreePath path;
+        feed_list.get_path_at_pos((int)event.x, (int)event.y, out path, null, null, null);
+        if(event.button == 3) {
+            if(path != null) {
+                feed_list.set_cursor(path, null, false);
+                feed_list.popup_menu();
+            } else {
+                feed_list.unselect_all();
+            }
+        }
+        return false;
+    }
+
+    [GtkCallback]
+    private bool display_menu()
+    {
+        TreePath path;
+        feed_list.get_cursor(out path, null);
+
+        if(path != null)
+        {
+            if(selected_feed != null)
+                feed_menu.popup(null, null, null, 0, Gtk.get_current_event_time());
+            else if(selected_collection != null)
+                collection_menu.popup(null, null, null, 0, Gtk.get_current_event_time());
+            else
+                base_menu.popup(null, null, null, 0, Gtk.get_current_event_time());
+        }
+
+        return false;
+    }
+
+    [GtkCallback]
+    private void on_cursor_change()
+    {
+        TreePath path;
+        feed_list.get_cursor(out path, null);
+
+        if(path != null)
+        {
+            FeedDataEntry entry = feed_data.get_data_from_path(path);
+
+            selected_feed = entry as Feed;
+            selected_collection = entry as FeedCollection;
+
+            owner.display_node(feed_data.get_node_from_path(path));
+        }
+    }
+
+    [GtkCallback]
+    private void title_edit_done(string path, string title)
+    {
+        owner.rename_node_requested(feed_data.get_node_from_path(new TreePath.from_string(path)), title);
+        title_renderer.editable = false;
+    }
+
+    [GtkCallback]
+    private void title_edit_cancel()
+    {
+        title_renderer.editable = false;
     }
 }
 }

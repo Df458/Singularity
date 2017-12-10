@@ -1,4 +1,15 @@
-appsrc = ['AddPane.vala', 'FeedBuilder.vala', 'FeedPane.vala', 'ItemView.vala', 'MainWindow.vala', 'SettingsView.vala', 'Singularity.vala', 'main.vala', 'ImportDialog.vala', 'ItemListEntry.vala', 'PropertiesWindow.vala'
+appsrc = [
+    'main.vala',
+
+    'FeedBuilder.vala',
+    'FeedPane.vala',
+    'ImportDialog.vala',
+    'ItemListEntry.vala',
+    'ItemView.vala',
+    'MainWindow.vala',
+    'PropertiesWindow.vala',
+    'SettingsView.vala',
+    'Singularity.vala'
 ]
 appinc = [include_directories('../../build/src/lib'), include_directories('../lib')]
 apptarget = executable('singularity', appsrc + resources,

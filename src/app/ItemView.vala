@@ -1,6 +1,6 @@
 /*
 	Singularity - A web newsfeed aggregator
-	Copyright (C) 2016  Hugues Ross <hugues.ross@gmail.com>
+	Copyright (C) 2017  Hugues Ross <hugues.ross@gmail.com>
 
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -15,12 +15,12 @@
 	You should have received a copy of the GNU General Public License
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
 using Gtk;
 using WebKit;
 using JSHandler;
 using Singularity;
 
+// Interface for widgets that display items
 public interface ItemView : Widget
 {
     // Returns whether to only show "important" items (unread and starred)
@@ -34,6 +34,7 @@ public interface ItemView : Widget
     public signal void unread_mode_changed(bool unread_only);
 }
 
+// ItemView that displays all items in a linear "stream"
 [GtkTemplate (ui = "/org/df458/Singularity/StreamItemView.ui")]
 public class StreamItemView : Box, ItemView {
     // Returns whether to only show "important" items (unread and starred)
@@ -187,6 +188,7 @@ public class StreamItemView : Box, ItemView {
     }
 }
 
+// ItemView that displays items in a 2-column format: One column with an item list, and a second that displys the selected item.
 [GtkTemplate (ui = "/org/df458/Singularity/ColumnItemView.ui")]
 public class ColumnItemView : Paned, ItemView {
     // Returns whether to only show "important" items (unread and starred)
@@ -313,6 +315,7 @@ public class ColumnItemView : Paned, ItemView {
     }
 }
 
+// ItemView that displays items in a grid. Clicking any grid square causes the full item to pop up over the view.
 [GtkTemplate (ui = "/org/df458/Singularity/GridItemView.ui")]
 public class GridItemView : Box, ItemView {
     // Returns whether to only show "important" items (unread and starred)

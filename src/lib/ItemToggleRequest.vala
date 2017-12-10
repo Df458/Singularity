@@ -1,6 +1,6 @@
 /*
 	Singularity - A web newsfeed aggregator
-	Copyright (C) 2016  Hugues Ross <hugues.ross@gmail.com>
+	Copyright (C) 2017  Hugues Ross <hugues.ross@gmail.com>
 
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -19,6 +19,7 @@ using SQLHeavy;
 
 namespace Singularity
 {
+    // DatabaseRequest for toggling an item's unread/starred status
     public class ItemToggleRequest : DatabaseRequest, GLib.Object
     {
         public enum ToggleField
@@ -26,7 +27,7 @@ namespace Singularity
             UNREAD = 0,
             STARRED
         }
-        public const string[] field_names = { "unread", "starred" };
+
         public string guid { get; construct; }
         public ToggleField field { get; construct; }
 
@@ -37,21 +38,18 @@ namespace Singularity
 
         public Query build_query(Database db)
         {
-            StringBuilder q_builder = new StringBuilder("UPDATE items");
-            q_builder.append_printf(" SET %s = 1 - %s WHERE guid = %s", field_names[field], field_names[field], sql_str(guid));
-
-            Query q;
             try {
-                q = new Query(db, q_builder.str);
+                return new Query(db, "UPDATE items SET %s = 1 - %s WHERE guid = %s".printf(field_names[field], field_names[field], sql_str(guid)));
             } catch(SQLHeavy.Error e) {
                 error("Failed to toggle %s: %s", field_names[field], e.message);
             }
-            return q;
         }
 
         public RequestStatus process_result(QueryResult res)
         {
             return RequestStatus.DEFAULT;
         }
+
+        private const string[] field_names = { "unread", "starred" };
     }
 }

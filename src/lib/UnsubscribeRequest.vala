@@ -1,6 +1,6 @@
 /*
 	Singularity - A web newsfeed aggregator
-	Copyright (C) 2016  Hugues Ross <hugues.ross@gmail.com>
+	Copyright (C) 2017  Hugues Ross <hugues.ross@gmail.com>
 
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -19,6 +19,7 @@ using SQLHeavy;
 
 namespace Singularity
 {
+    // A DatabaseRequest for unsubscribing from a feed
     public class UnsubscribeRequest : DatabaseRequest, GLib.Object
     {
         public Feed feed { get; construct; }
@@ -29,49 +30,23 @@ namespace Singularity
 
         public Query build_query(Database db)
         {
-            if(icon_removed) {
-                StringBuilder q_builder = new StringBuilder("DELETE FROM feeds");
-                q_builder.append_printf(" WHERE id = %d", feed.id);
-
-                Query q;
-                try {
-                    q = new Query(db, q_builder.str);
-                } catch(SQLHeavy.Error e) {
-                    error("Failed to unsubscribe: %s", e.message);
-                }
-                return q;
-            }
-
-            if(items_removed) {
-                StringBuilder q_builder = new StringBuilder("DELETE FROM icons");
-                q_builder.append_printf(" WHERE id = %d", feed.id);
-
-                Query q;
-                try {
-                    q = new Query(db, q_builder.str);
-                } catch(SQLHeavy.Error e) {
-                    error("Failed to unsubscribe: %s", e.message);
-                }
-                return q;
-            }
-
-            Query q;
-            StringBuilder q_builder;
             try {
-                q_builder = new StringBuilder("DELETE FROM items ");
-                q_builder.append_printf("WHERE parent_id = %d", feed.id);
-                q = new Query(db, q_builder.str);
+                if(icon_removed)
+                    return new Query(db, "DELETE FROM feeds WHERE id = %d".printf(feed.id));
+                else if(items_removed)
+                    return new Query(db, "DELETE FROM icons WHERE id = %d".printf(feed.id));
+                else
+                    return new Query(db, "DELETE FROM items WHERE parent_id = %d".printf(feed.id));
             } catch(SQLHeavy.Error e) {
-                error("Failed to unsubscribe: %s [%s]", e.message, q_builder.str);
+                error("Failed to unsubscribe: %s", e.message);
             }
-            return q;
         }
 
         public RequestStatus process_result(QueryResult res)
         {
             if(icon_removed)
                 return RequestStatus.DEFAULT;
-            if(items_removed)
+            else if(items_removed)
                 icon_removed = true;
             items_removed = true;
             return RequestStatus.CONTINUE;
