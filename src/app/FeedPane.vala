@@ -225,28 +225,24 @@ public class FeedPane : Gtk.Box
         if(event.button == 3) {
             if(path != null) {
                 feed_list.set_cursor(path, null, false);
-                feed_list.popup_menu();
             } else {
                 feed_list.unselect_all();
             }
+            display_menu(path);
         }
         return false;
     }
 
-    [GtkCallback]
-    private bool display_menu()
+    private bool display_menu(TreePath? path)
     {
-        TreePath path;
-        feed_list.get_cursor(out path, null);
-
-        if(path != null)
+        if(path != null && !feed_data.is_path_root(path))
         {
             if(selected_feed != null)
                 feed_menu.popup(null, null, null, 0, Gtk.get_current_event_time());
             else if(selected_collection != null)
                 collection_menu.popup(null, null, null, 0, Gtk.get_current_event_time());
-            else
-                base_menu.popup(null, null, null, 0, Gtk.get_current_event_time());
+        } else {
+            base_menu.popup(null, null, null, 0, Gtk.get_current_event_time());
         }
 
         return false;

@@ -15,7 +15,6 @@
 	You should have received a copy of the GNU General Public License
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
 using Gtk;
 
 namespace Singularity
@@ -253,6 +252,11 @@ namespace Singularity
                 }
             } while(iter_next(ref it));
             return null;
+        }
+
+        public bool is_path_root(TreePath path)
+        {
+            return path.get_depth() == 1;
         }
 
         // Updates the unread count for a given node

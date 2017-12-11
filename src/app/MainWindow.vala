@@ -15,7 +15,6 @@
 	You should have received a copy of the GNU General Public License
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
 using Gtk;
 using Gdk;
 using Singularity;
@@ -134,7 +133,12 @@ public class MainWindow : Gtk.ApplicationWindow
 
         m_settings_view.done.connect(() =>
         {
-            view_stack.set_visible_child(m_item_view);
+            if(!app.init_success)
+                view_stack.visible_child_name = "loading";
+            else if(!app.has_subscriptions)
+                view_stack.visible_child_name = "welcome";
+            else
+                view_stack.set_visible_child(m_item_view);
         });
 
         if(!app.init_success)
