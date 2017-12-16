@@ -1,0 +1,26 @@
+.TH Singularity 1
+.SH NAME
+Singularity \- A GTK-based webfeed reader
+.SH SYNOPSIS
+.B singularity [-d
+.I database
+.B ] [-c
+.I stylesheet
+.B ] [options]
+.SH DESCRIPTION
+.B Singularity
+is a reader for RSS/RDF/Atom feeds.
+.SH OPTIONS
+.IP "-d database-path"
+.IP "--database database-path"
+Specifies the path to a SQLite database containing the feeds/items. If the database does not exist, the application will create an empty one. The default database path is
+.I ~/.local/share/singularity/feeds.db
+.IP -c
+.IP --css-path
+Specifies the path to a custom css file. This file will be appended to all the css in all item views.
+.IP -n
+.IP --no-gui
+Launch singularity without making a new window.
+.IP -v
+.IP --verbose
+Display additionallog messages for debugging.

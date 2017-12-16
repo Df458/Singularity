@@ -39,25 +39,14 @@ namespace Singularity
 
             GXml.GDocument doc = req.doc;
 
-            FeedProvider source = null;
-            XmlRequest.ContentType type = req.determine_content_type();
-            switch(type) {
-                case XmlRequest.ContentType.INVALID:
-                    stderr.printf("\n\nUnknown content found: %s\n\n", req.doc_data);
-                    return new UpdatePackage.failure(to_update, "Couldn't determine document content type");
-                case XmlRequest.ContentType.RSS:
-                    source = new RSSItemDataSource();
-                    break;
-                case XmlRequest.ContentType.ATOM:
-                    source = new AtomItemDataSource();
-                    break;
-            }
-            if(source == null || !source.parse_data(doc))
-                return new UpdatePackage.failure(to_update, "Failed to parse feed data");
+            FeedProvider source = req.get_provider_from_request();
 
-            if(!to_update.update_contents(source)) {
+            if(source == null)
+                return new UpdatePackage.failure(to_update, "Couldn't determine document content type");
+            if(!source.parse_data(doc))
+                return new UpdatePackage.failure(to_update, "Failed to parse feed data");
+            if(!to_update.update_contents(source))
                 return new UpdatePackage.failure(to_update, "Data was parsed, but the feed couldn't be updated");
-            }
 
             Gee.List<Item?> new_items = new Gee.ArrayList<Item?>();
             Gee.List<Item?> changed_items = new Gee.ArrayList<Item?>();

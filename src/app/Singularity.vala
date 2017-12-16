@@ -41,7 +41,6 @@ public class SingularityApp : Gtk.Application
     public uint timeout_value = 600;
     public bool update_running = true;
     public uint update_next = 600;
-    public const string[] authors = { "Hugues Ross (df458)" };
 
     public SingularityApp()
     {
@@ -145,12 +144,11 @@ public class SingularityApp : Gtk.Application
             // FIXME: Looks suspicious. Did I miss something?
             m_feed_store.append_node(node, iter);
             if(!loaded) {
-                m_update_queue.request_update(node.data as Feed, true);
+                m_update_queue.request_update(f, true);
             } else if(items != null){
-                foreach(Item i in items) {
-                    i.owner = node.data as Feed;
-                }
-                UpdatePackage new_package = new UpdatePackage.success(node.data as Feed, items, new ArrayList<Item?>());
+                foreach(Item i in items)
+                    f.add_item(i);
+                UpdatePackage new_package = new UpdatePackage.success(f, items, new ArrayList<Item?>());
                 UpdatePackageRequest ureq = new UpdatePackageRequest(new_package, false);
                 m_database.execute_request.begin(ureq, RequestPriority.MEDIUM, () =>
                 {
@@ -312,7 +310,7 @@ public class SingularityApp : Gtk.Application
         about_action.activate.connect(() => {
             Gtk.show_about_dialog(get_active_window(),
                 program_name: "Singularity",
-                authors: authors,
+                authors: new string[]{ "Hugues Ross (df458)" },
                 website: "http://github.com/Df458/Singularity",
                 website_label: ("Github"),
                 comments: "A simple webfeed aggregator",

@@ -140,6 +140,7 @@ namespace Singularity
                 case ContentType.ATOM:
                     return new AtomItemDataSource();
                 default:
+                    stderr.printf("Unknown content found: %s", doc_data);
                     return null;
             }
         }
