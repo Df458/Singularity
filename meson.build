@@ -25,7 +25,7 @@ install_data(['data/org.df458.singularity.gschema.xml'], install_dir: '/usr/shar
 deps = [glib, gobject, gcrypt_v, gcrypt_c, gee, dflib, webkitgtk, soup, xml, sqlheavy]
 
 subdir('src/lib')
-#subdir('src/test')
 subdir('src/app')
+subdir('src/test')
 
 run_command('ctags', '-R', 'src')

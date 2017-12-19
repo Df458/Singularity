@@ -36,6 +36,7 @@ public class SingularityApp : Gtk.Application
     // Public section ---------------------------------------------------------
     public bool init_success { get; private set; }
     public bool has_subscriptions { get { return m_feeds.nodes.size > 0; } }
+    private Gdk.Pixbuf icon { get; private set; }
 
     private MainLoop ml;
     public uint timeout_value = 600;
@@ -310,6 +311,7 @@ public class SingularityApp : Gtk.Application
         about_action.activate.connect(() => {
             Gtk.show_about_dialog(get_active_window(),
                 program_name: "Singularity",
+                logo: icon,
                 authors: new string[]{ "Hugues Ross (df458)" },
                 website: "http://github.com/Df458/Singularity",
                 website_label: ("Github"),
@@ -325,6 +327,12 @@ public class SingularityApp : Gtk.Application
         quit_action.activate.connect(this.quit);
         set_accels_for_action("quit", { "<Control>q", null });
         add_action(quit_action);
+
+        try {
+            icon = new Gdk.Pixbuf.from_resource("/org/df458/Singularity/icon.svg");
+        } catch(Error e) {
+            warning(e.message);
+        }
     }
 
     private void activate_response()
@@ -339,6 +347,7 @@ public class SingularityApp : Gtk.Application
         }
 
         MainWindow window = new MainWindow(this);
+        window.icon = icon;
         window.update_requested.connect((f) =>
         {
             if(f != null) {
