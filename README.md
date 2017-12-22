@@ -1,3 +1,4 @@
+![](/data/icon_header.png)
 Singularity
 ===========
 
