@@ -100,29 +100,6 @@ public class SingularityApp : Gtk.Application
         }
     }
 
-    public int runall()
-    {
-        if(!AppSettings.Arguments.background)
-            Gtk.main();
-        else {
-            ml = new MainLoop();
-            TimeoutSource time = new TimeoutSource(900000);
-            time.set_callback(() => {
-                stderr.printf("Operation is taking too long. Exiting...\n");
-                ml.quit();
-                return false;
-            });
-            TimeoutSource counter = new TimeoutSource(5000);
-            counter.set_callback(() => {
-                return true;
-            });
-            time.attach(ml.get_context());
-            counter.attach(ml.get_context());
-            ml.run();
-        }
-        return 0;
-    }
-
     public void exit()
     {
     }
@@ -346,59 +323,113 @@ public class SingularityApp : Gtk.Application
             });
         }
 
-        MainWindow window = new MainWindow(this);
-        window.icon = icon;
-        window.update_requested.connect((f) =>
-        {
-            if(f != null) {
-                m_update_queue.request_update(f, true);
-                m_current_update_progress.updates_started();
-                update_progress_changed(m_current_update_progress);
-            }
-        });
-
-        window.unsub_requested.connect((f) =>
-        {
-            if(f != null) {
-                UnsubscribeRequest req = new UnsubscribeRequest(f);
-                m_database.execute_request.begin(req, RequestPriority.HIGH, () =>
-                {
-                    m_feed_store.remove_data(f);
-                });
-            }
-        });
-
-        window.delete_collection_requested.connect((c) =>
-        {
-            if(c != null) {
-                DeleteCollectionRequest req = new DeleteCollectionRequest(c);
-                m_database.execute_request.begin(req, RequestPriority.HIGH, () =>
-                {
-                    m_feed_store.remove_data(c);
-                });
-            }
-        });
-
-        window.new_collection_requested.connect((parent) =>
-        {
-            CollectionRequest req = new CollectionRequest(new CollectionNode(new FeedCollection("Untitled")), parent.id);
-            m_database.execute_request.begin(req, RequestPriority.HIGH, () =>
+        if(!AppSettings.Arguments.background) {
+            MainWindow window = new MainWindow(this);
+            window.icon = icon;
+            window.update_requested.connect((f) =>
             {
-                m_feed_store.append_node(req.node, m_feed_store.get_iter_from_data(parent));
+                if(f != null) {
+                    m_update_queue.request_update(f, true);
+                    m_current_update_progress.updates_started();
+                    update_progress_changed(m_current_update_progress);
+                }
             });
-        });
 
-        window.rename_node_requested.connect((node, title) =>
-        {
-            RenameRequest req = new RenameRequest(node, title);
-            m_database.execute_request.begin(req, RequestPriority.HIGH, () =>
-            {
-                node.data.title = title;
-                m_feed_store.set(m_feed_store.get_iter_from_node(node), CollectionTreeStore.Column.TITLE, title, -1);
-            });
-        });
+            window.unsub_requested.connect((f) =>
+                    {
+                    if(f != null) {
+                    UnsubscribeRequest req = new UnsubscribeRequest(f);
+                    m_database.execute_request.begin(req, RequestPriority.HIGH, () =>
+                            {
+                            m_feed_store.remove_data(f);
+                            });
+                    }
+                    });
 
-        this.add_window(window);
+            window.delete_collection_requested.connect((c) =>
+                    {
+                    if(c != null) {
+                    DeleteCollectionRequest req = new DeleteCollectionRequest(c);
+                    m_database.execute_request.begin(req, RequestPriority.HIGH, () =>
+                            {
+                            m_feed_store.remove_data(c);
+                            });
+                    }
+                    });
+
+            window.new_collection_requested.connect((parent) =>
+                    {
+                    CollectionRequest req = new CollectionRequest(new CollectionNode(new FeedCollection("Untitled")), parent.id);
+                    m_database.execute_request.begin(req, RequestPriority.HIGH, () =>
+                            {
+                            m_feed_store.append_node(req.node, m_feed_store.get_iter_from_data(parent));
+                            });
+                    });
+
+            window.rename_node_requested.connect((node, title) =>
+                    {
+                    RenameRequest req = new RenameRequest(node, title);
+                    m_database.execute_request.begin(req, RequestPriority.HIGH, () =>
+                            {
+                            node.data.title = title;
+                            m_feed_store.set(m_feed_store.get_iter_from_node(node), CollectionTreeStore.Column.TITLE, title, -1);
+                            });
+                    });
+
+            this.add_window(window);
+        } else {
+            ml = new MainLoop();
+            if(AppSettings.Arguments.background_update) {
+                TimeoutSource timer = new TimeoutSource(1000);
+                if(!AppSettings.start_update)
+                    check_for_updates();
+                timer.set_callback( () => {
+                    // FIXME: This might drop sometimes? Needs testing.
+                    if(init_success && m_update_queue.length <= 0 && m_database.pending_requests <= 0) {
+                        ml.quit();
+                        return false;
+                    }
+                    return true;
+                });
+                timer.attach(ml.get_context());
+            } else if(AppSettings.Arguments.list_feeds) {
+                TimeoutSource timer = new TimeoutSource(1000);
+                timer.set_callback( () => {
+                    if(init_success) {
+                        foreach(Feed f in m_feed_store.get_feeds())
+                            stdout.printf("%s\n", f.to_string());
+                        ml.quit();
+                        return false;
+                    }
+                    return true;
+                });
+                timer.attach(ml.get_context());
+            } else if (AppSettings.Arguments.subscribe_url != null) {
+                TimeoutSource timer = new TimeoutSource(1000);
+                bool started_subscribe = false;
+                bool finished_subscribe = false;
+                timer.set_callback( () => {
+                    if(init_success) {
+                        if(!started_subscribe) {
+                            started_subscribe = true;
+                            Feed to_build = new Feed();
+                            to_build.link = AppSettings.Arguments.subscribe_url;
+                            subscribe_done.connect((f) => { finished_subscribe = true; });
+                            subscribe_to_feed(to_build, false);
+                        } else if(finished_subscribe) {
+                            ml.quit();
+                            return false;
+                        }
+                    }
+                    return true;
+                });
+                timer.attach(ml.get_context());
+            } else {
+                // We don't want to hang here
+                return;
+            }
+            ml.run();
+        }
     }
 
     private void cleanup()

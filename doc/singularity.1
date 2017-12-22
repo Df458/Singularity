@@ -18,9 +18,15 @@ Specifies the path to a SQLite database containing the feeds/items. If the datab
 .IP -c
 .IP --css-path
 Specifies the path to a custom css file. This file will be appended to all the css in all item views.
-.IP -n
-.IP --no-gui
-Launch singularity without making a new window.
+.IP -u
+.IP --update-feeds
+Launch singularity without making a new window. Singularity will check for new items, then exit.
+.IP "-s url"
+.IP "--subscribe=url"
+Launch singularity without making a new window. Singularity will add the feed url provided as a subscription, then exit.
+.IP "-l"
+.IP "--list-feeds"
+Launch singularity without making a new window. Singularity will print information about every subscribed feed to the terminal, then exit.
 .IP -v
 .IP --verbose
 Display additionallog messages for debugging.

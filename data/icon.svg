@@ -17,8 +17,8 @@
    sodipodi:docname="icon.svg"
    inkscape:version="0.92.2 5c3e80d, 2017-08-06"
    inkscape:export-filename="/home/df458/code/singularity/data/icon_header.png"
-   inkscape:export-xdpi="512"
-   inkscape:export-ydpi="512">
+   inkscape:export-xdpi="256.64481"
+   inkscape:export-ydpi="256.64481">
   <defs
      id="defs2" />
   <sodipodi:namedview
@@ -28,9 +28,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="5.6568543"
-     inkscape:cx="22.784018"
-     inkscape:cy="81.712935"
+     inkscape:zoom="2.8284272"
+     inkscape:cx="-22.619174"
+     inkscape:cy="69.028685"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="true"
@@ -55,7 +55,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>

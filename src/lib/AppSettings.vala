@@ -106,10 +106,13 @@ namespace Singularity
         // as settings
         public class Arguments
         {
-            public static bool    background    { get { return m_background; } }
-            public static string? database_path { get { return m_database; } }
-            public static bool    verbose       { get { return m_verbose; } }
-            public static string? user_css      { get { return m_user_css; } }
+            public static bool    background        { get { return m_background_update || m_list_feeds || m_subscribe_url != null; } }
+            public static string? database_path     { get { return m_database; } }
+            public static bool    verbose           { get { return m_verbose; } }
+            public static string? user_css          { get { return m_user_css; } }
+            public static bool    background_update { get { return m_background_update; } }
+            public static bool    list_feeds        { get { return m_list_feeds; } }
+            public static string? subscribe_url     { get { return m_subscribe_url; } }
 
             // Parses the provided arguments.
             // Returns true if the arguments were parsed correctly, or false if
@@ -146,14 +149,18 @@ namespace Singularity
             private static string?  m_database = null;
             private static string?  m_user_css = null;
             private static bool     m_verbose = false;
-            private static bool     m_background = false;
+            private static bool     m_background_update = false;
+            private static bool     m_list_feeds = false;
+            private static string?  m_subscribe_url = null;
 
             // Argument information, used for parsing
             private const OptionEntry[] options = {
-                { "database",  'd',  0,  OptionArg.STRING,  ref m_database,    "database path", "DATABASE" },
-                { "css-path",  'c',  0,  OptionArg.STRING,  ref m_user_css,    "css path",      "STYLESHEET" },
-                { "no-gui",    'n',  0,  OptionArg.NONE,    ref m_background,  "check for new entries, then exit without opening the main window" },
-                { "verbose",   'v',  0,  OptionArg.NONE,    ref m_verbose,     "display extra information" },
+                { "database",     'd',  0,  OptionArg.STRING,  ref m_database,    "database path", "DATABASE" },
+                { "css-path",     'c',  0,  OptionArg.STRING,  ref m_user_css,    "css path",      "STYLESHEET" },
+                { "verbose",      'v',  0,  OptionArg.NONE,    ref m_verbose,     "display extra information" },
+                { "update-feeds", 'u',  0,  OptionArg.NONE,    ref m_background_update,  "check for new items, then exit without opening the main window" },
+                { "list-feeds",   'l',  0,  OptionArg.NONE,    ref m_list_feeds,  "list all subscribed feeds, then exit without opening the main window" },
+                { "subscribe",    's',  0,  OptionArg.STRING,  ref m_subscribe_url, "Subscribe to a feed, then exit without opening the main window", "URL" },
                 { null }
             };
         }

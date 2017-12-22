@@ -28,6 +28,17 @@ const string DEFAULT_SCHEMA_DIR = "../data/schemas";
 public class DatabaseManager
 {
     public bool is_open { get; private set; }
+    public int  pending_requests
+    {
+        get
+        {
+            int count = 0;
+            foreach(DatabaseRequestProcessor p in processors)
+                count += p.requests.length();
+
+            return count;
+        }
+    }
 
     public DatabaseManager.from_path(string path)
     {

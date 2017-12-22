@@ -308,6 +308,17 @@ namespace Singularity
             set(iter, Column.WEIGHT, 800, -1);
         }
 
+        public Gee.Collection<Feed> get_feeds()
+        {
+            Gee.ArrayList<Feed> feeds = new Gee.ArrayList<Feed>();
+
+            foreach(CollectionNode node in node_map.values)
+                if(node.data is Feed)
+                    feeds.add(node.data as Feed);
+
+            return feeds;
+        }
+
         private TreeIter base_iter;
         private Gee.HashMap<int, CollectionNode> node_map = new Gee.HashMap<int, CollectionNode>();
         private FeedCollection root_collection = new FeedCollection(FEED_CATEGORY_STRING);

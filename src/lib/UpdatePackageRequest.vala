@@ -30,7 +30,6 @@ namespace Singularity
             INSERT_ENCLOSURE,
             INSERT_PEOPLE,
             INSERT,
-            CLEANUP,
             UNREAD,
             COUNT
         }
@@ -108,53 +107,6 @@ namespace Singularity
                         error("Failed to save item author: %s", e.message);
                     }
 
-                case Status.CLEANUP:
-                    StringBuilder q_builder = new StringBuilder("DELETE FROM items");
-                    q_builder.append_printf(" WHERE `parent_id` = %d AND (", package.feed.id);
-                    bool delete_read = AppSettings.read_rule[2] == 2;
-                    bool delete_unread = AppSettings.unread_rule[2] == 2;
-                    DateTime read_time = new DateTime.now_utc();
-                    DateTime unread_time = new DateTime.now_utc();
-
-                    if(delete_read) {
-                        switch(AppSettings.read_rule[1]) {
-                            case 0:
-                                read_time = read_time.add_days(AppSettings.read_rule[0] * -1);
-                            break;
-                            case 1:
-                                read_time = read_time.add_months(AppSettings.read_rule[0] * -1);
-                            break;
-                            case 2:
-                                read_time = read_time.add_years(AppSettings.read_rule[0] * -1);
-                            break;
-                        }
-                        q_builder.append_printf("(`unread` = 0 AND `load_time` < %lld)", read_time.to_unix());
-                        if(delete_unread)
-                            q_builder.append(" OR ");
-                        else
-                            q_builder.append(")");
-                    }
-
-                    if(delete_unread) {
-                        switch(AppSettings.unread_rule[1]) {
-                            case 0:
-                                unread_time = unread_time.add_days(AppSettings.unread_rule[0] * -1);
-                            break;
-                            case 1:
-                                unread_time = unread_time.add_months(AppSettings.unread_rule[0] * -1);
-                            break;
-                            case 2:
-                                unread_time = unread_time.add_years(AppSettings.unread_rule[0] * -1);
-                            break;
-                        }
-                        q_builder.append_printf("(`unread` = 1 AND `load_time` < %lld))", unread_time.to_unix());
-                    }
-                    try {
-                        return new Query(db, q_builder.str);
-                    } catch(SQLHeavy.Error e) {
-                        error("Failed to clean table: %s", e.message);
-                    }
-
                 case Status.UNREAD_PRE:
                 case Status.UNREAD:
                     try {
@@ -199,20 +151,21 @@ namespace Singularity
                     m_status += 1;
             }
 
-            if(m_status == Status.ICON_INSERT && !m_use_owner_id) {
-                try {
-                    package.feed.prepare_for_db(res.fetch_int(res.field_index("id")));
-                } catch(SQLHeavy.Error e) {
-                    error("Failed to fix id for update: %s", e.message);
+            if(m_status == Status.ICON_INSERT) {
+                if(!m_use_owner_id) {
+                    try {
+                        package.feed.prepare_for_db(res.fetch_int(res.field_index("id")));
+                    } catch(SQLHeavy.Error e) {
+                        error("Failed to fix id for update: %s", e.message);
+                    }
                 }
+
+                if(package.feed.icon == null)
+                    m_status += 1;
             }
 
-            if((m_status == Status.ICON_INSERT && package.feed.icon == null) ||
-               (m_status == Status.CLEANUP && AppSettings.read_rule[2] != 2 && AppSettings.unread_rule[2] != 2))
-                m_status += 1;
-
             if(m_status == Status.INSERT && package.new_items.size == 0)
-                m_status = Status.CLEANUP;
+                m_status = Status.UNREAD;
 
             try {
                 if(m_status == Status.UNREAD_PRE + 1)
