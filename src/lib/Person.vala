@@ -35,6 +35,21 @@ namespace Singularity
             this.email = email;
         }
 
+        public Person.from_xml(GXml.Node node)
+        {
+            var name_list = node.get_elements_by_name("name");
+            if(name_list.size > 0)
+                name = name_list[0].value;
+
+            var uri_list = node.get_elements_by_name("uri");
+            if(uri_list.size > 0)
+                url = uri_list[0].value;
+
+            var email_list = node.get_elements_by_name("email");
+            if(email_list.size > 0)
+                email = email_list[0].value;
+        }
+
         public Person.from_record(SQLHeavy.Record r) throws SQLHeavy.Error
         {
             base.from_record(r);
