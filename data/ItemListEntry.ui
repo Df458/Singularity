@@ -11,20 +11,6 @@
     <property name="margin_bottom">6</property>
     <property name="spacing">12</property>
     <child>
-      <object class="GtkImage">
-        <property name="visible">True</property>
-        <property name="can_focus">False</property>
-        <property name="pixel_size">48</property>
-        <property name="icon_name">application-rss+xml</property>
-        <property name="icon_size">6</property>
-      </object>
-      <packing>
-        <property name="expand">False</property>
-        <property name="fill">True</property>
-        <property name="position">0</property>
-      </packing>
-    </child>
-    <child>
       <object class="GtkBox">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
@@ -73,14 +59,14 @@
       </packing>
     </child>
     <child>
-      <object class="GtkRevealer" id="unread_icon">
+      <object class="GtkRevealer" id="unread_indicator">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
         <property name="halign">end</property>
         <property name="valign">center</property>
         <property name="transition_type">none</property>
         <child>
-          <object class="GtkImage">
+          <object class="GtkImage" id="unread_icon">
             <property name="can_focus">False</property>
             <property name="halign">end</property>
             <property name="valign">center</property>

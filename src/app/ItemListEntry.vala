@@ -40,13 +40,20 @@ public class ItemListEntry : Box {
         list.insert(Pango.attr_weight_new(Pango.Weight.BOLD));
         if(item.unread)
             title_label.attributes = list;
-        unread_icon.reveal_child = item.unread;
+
+        update_view();
     }
 
     public void viewed() {
         Pango.AttrList list = new Pango.AttrList();
         title_label.attributes = list;
-        unread_icon.reveal_child = false;
+
+        update_view();
+    }
+
+    public void update_view() {
+        unread_indicator.reveal_child = item.unread || item.starred;
+        unread_icon.set_from_icon_name(item.starred ? "starred-symbolic" : "mail-unread", IconSize.LARGE_TOOLBAR);
     }
 
     [GtkChild]
@@ -54,6 +61,8 @@ public class ItemListEntry : Box {
     [GtkChild]
     private Label description_label;
     [GtkChild]
-    private Revealer unread_icon;
+    private Revealer unread_indicator;
+    [GtkChild]
+    private Image unread_icon;
 }
 }

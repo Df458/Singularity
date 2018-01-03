@@ -253,6 +253,8 @@ public class ColumnItemView : Paned, ItemView {
     private ScrolledWindow column_scroll;
     [GtkChild]
     private Label title_label;
+    [GtkChild]
+    private ToggleButton star_button;
     private ColumnViewBuilder m_builder;
     private Gee.List<Item> m_item_list;
     private Gee.List<ListBoxRow> m_row_list;
@@ -296,9 +298,30 @@ public class ColumnItemView : Paned, ItemView {
             item.unread = false;
         }
 
+        star_button.active = item.starred;
+
         m_builder.page = m_item_list.index_of(item);
         string html = m_builder.buildPageHTML(m_item_list, 0);
         m_web_view.load_html(html, "file://singularity");
+    }
+
+    // Called when the user presses the Mark as Unread button
+    [GtkCallback]
+    void on_unread_pressed() {
+        ItemListEntry row = item_box.get_selected_row().get_child() as ItemListEntry;
+        item_read_toggle(row.item);
+        row.update_view();
+    }
+
+    // Called when the user toggle the star button
+    [GtkCallback]
+    void on_star_pressed() {
+        ItemListEntry row = item_box.get_selected_row().get_child() as ItemListEntry;
+        if(star_button.active == row.item.starred)
+            return;
+
+        item_star_toggle(row.item);
+        row.update_view();
     }
 
     public void add_items() {

@@ -5,7 +5,7 @@
   <template class="ColumnItemView" parent="GtkPaned">
     <property name="visible">True</property>
     <property name="can_focus">True</property>
-    <property name="position">500</property>
+    <property name="position">300</property>
     <property name="position_set">True</property>
     <child>
       <object class="GtkBox" id="box1">
@@ -14,7 +14,7 @@
         <property name="orientation">vertical</property>
         <child>
           <object class="GtkButton" id="button1">
-            <property name="label" translatable="yes">Read All</property>
+            <property name="label" translatable="yes">Mark all as read</property>
             <property name="visible">True</property>
             <property name="can_focus">True</property>
             <property name="receives_default">True</property>
@@ -79,10 +79,11 @@
             <property name="margin_bottom">12</property>
             <property name="spacing">6</property>
             <child>
-              <object class="GtkToggleButton">
+              <object class="GtkToggleButton" id="star_button">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
+                <signal name="toggled" handler="on_star_pressed" swapped="no"/>
                 <child>
                   <object class="GtkImage">
                     <property name="visible">True</property>
@@ -100,10 +101,11 @@
             </child>
             <child>
               <object class="GtkButton">
-                <property name="label" translatable="yes">Mark as Unread</property>
+                <property name="label" translatable="yes">Toggle Unread</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
+                <signal name="clicked" handler="on_unread_pressed" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>

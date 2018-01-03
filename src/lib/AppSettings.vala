@@ -27,8 +27,6 @@ namespace Singularity
         public static bool   start_update;
         public static bool   display_unread_only;
         public static uint   auto_update_freq;
-        public static int    read_rule[3];
-        public static int    unread_rule[3];
         public static int    items_per_list;
         public static bool   download_attachments;
         public static bool   ask_download_location;
@@ -44,9 +42,6 @@ namespace Singularity
             m_source.set_boolean("start-update", start_update);
             m_source.set_boolean("unread-only", display_unread_only);
             m_source.set_uint("auto-update-freq", auto_update_freq);
-            // TODO: Can this be replaced by just the array, or do we need to provide each int separately?
-            m_source.set_value("read-rule", new Variant("(iii)", read_rule[0], read_rule[1], read_rule[2]));
-            m_source.set_value("unread-rule", new Variant("(iii)", unread_rule[0], unread_rule[1], unread_rule[2]));
             m_source.set_boolean("download-attachments", download_attachments);
             m_source.set_boolean("ask-download-location", ask_download_location);
             m_source.set_string("default-download-location", default_download_location.get_path());
@@ -66,16 +61,6 @@ namespace Singularity
                 start_update              = m_source.get_boolean("start-update");
                 display_unread_only       = m_source.get_boolean("unread-only");
                 auto_update_freq          = m_source.get_uint("auto-update-freq");
-                Variant read_value        = m_source.get_value("read-rule");
-                VariantIter read_iter     = read_value.iterator();
-                read_iter.next("i", &read_rule[0]);
-                read_iter.next("i", &read_rule[1]);
-                read_iter.next("i", &read_rule[2]);
-                Variant unread_value      = m_source.get_value("unread-rule");
-                VariantIter unread_iter   = unread_value.iterator();
-                unread_iter.next("i", &unread_rule[0]);
-                unread_iter.next("i", &unread_rule[1]);
-                unread_iter.next("i", &unread_rule[2]);
                 items_per_list            = m_source.get_int("items-per-list");
                 download_attachments      = m_source.get_boolean("download-attachments");
                 ask_download_location     = m_source.get_boolean("ask-download-location");
@@ -92,8 +77,6 @@ namespace Singularity
             auto_update               = true;
             start_update              = true;
             auto_update_freq          = 10;
-            read_rule                 = { 6, 1, 1 };
-            unread_rule               = { 0, -1, 0 };
             download_attachments      = true;
             ask_download_location     = true;
             default_download_location = File.new_for_path(Environment.get_home_dir() + "/Downloads");

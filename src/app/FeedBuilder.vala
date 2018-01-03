@@ -37,6 +37,7 @@ public class FeedBuilder : Popover
         to_build = null;
         m_temp_items = null;
         url_changed = false;
+        info_revealer.reveal_child = false;
     }
 
     public signal void subscription_added(Feed new_sub, bool loaded, Gee.List<Item?>? items);
@@ -54,10 +55,15 @@ public class FeedBuilder : Popover
     private Label link_label;
     [GtkChild]
     private Button subscribe_button;
+    [GtkChild]
+    private Revealer info_revealer;
 
     private void reload_feed()
     {
         url_changed = false;
+
+        if(url_entry.text == "")
+            return;
 
         Soup.Session session = new Soup.Session();
         if(AppSettings.cookie_db_path != "") {
@@ -79,6 +85,7 @@ public class FeedBuilder : Popover
                         link_label.label = to_build.site_link;
                     m_temp_items = provider.data;
                 }
+                info_revealer.reveal_child = true;
             }
         });
     }
@@ -115,9 +122,10 @@ public class FeedBuilder : Popover
     {
         subscribe_button.sensitive = url_entry.text != "";
         url_changed = true;
-        url_entry.secondary_icon_name = "content-loading-symbolic";
+        url_entry.secondary_icon_name = url_entry.text != "" ? "content-loading-symbolic" : "";
         to_build = null;
         m_temp_items = null;
+        info_revealer.reveal_child = false;
     }
 }
 }
