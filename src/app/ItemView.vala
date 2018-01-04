@@ -93,7 +93,7 @@ public class StreamItemView : Box, ItemView {
         string html = m_builder.buildPageHTML(m_item_list, AppSettings.items_per_list);
         m_web_view.load_html(html, "file://singularity");
 
-        title_label.label = title;
+        title_label.label = "<span font=\"24\">%s</span>".printf(title);
         if(desc != null) {
             desc_label.label = desc.substring(0, desc.index_of("\n"));
         } else {
@@ -397,7 +397,7 @@ public class GridItemView : Box, ItemView {
         string html = m_builder.buildPageHTML(m_item_list, AppSettings.items_per_list);
         m_web_view.load_html(html, "file://singularity");
 
-        title_label.label = title;
+        title_label.label = "<span font=\"24\">%s</span>".printf(title);
         if(desc != null) {
             desc_label.label = desc.substring(0, desc.index_of("\n"));
         } else {

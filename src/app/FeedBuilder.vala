@@ -80,7 +80,7 @@ public class FeedBuilder : Popover
                 FeedProvider? provider = request.get_provider_from_request();
                 if(provider != null && provider.parse_data(request.doc)) {
                     to_build = provider.stored_feed;
-                    title_label.label = to_build.title;
+                    title_label.label = "<b>%s</b>".printf(to_build.title);
                     if(to_build.site_link != null)
                         link_label.label = to_build.site_link;
                     m_temp_items = provider.data;
