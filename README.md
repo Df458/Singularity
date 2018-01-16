@@ -2,10 +2,7 @@
 Singularity
 ===========
 
-Singularity is a simple newsfeed aggregator written in Vala. It has support for
-RSS, RDF, and Atom feeds, but is currently at a very early stage of development,
-and doesn't support these fully. It should be enough for simple browsing, but
-don't expect anything special just yet!
+Singularity is a simple newsfeed aggregator written in Vala. It has support for RSS, RDF, and Atom feeds, but doesn't have full support for their specs yet. It can also import/export OPML files, and use Firefox cookies to access feeds that require a login.
 
 License
 -------
