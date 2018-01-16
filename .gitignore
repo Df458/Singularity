@@ -11,10 +11,6 @@
 *.db
 
 # Ignore compiled things
-singularity
-libsingularity.a
 generated
-vapi
-obj
 tags
 build

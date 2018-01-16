@@ -1,0 +1,4 @@
+[wrap-git]
+directory = dflib
+url = https://github.com/Df458/dflib.git
+revision = head
