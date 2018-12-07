@@ -113,9 +113,9 @@ namespace Singularity
                 outline->new_prop("text",  feed.title);
             } else {
                 FeedCollection collection = cn.data as FeedCollection;
+                outline->new_prop("title", collection.title);
+                outline->new_prop("text",  collection.title);
                 foreach(CollectionNode child in collection.nodes) {
-                    outline->new_prop("title", collection.title);
-                    outline->new_prop("text",  collection.title);
                     encode_outline(ns, outline, child);
                 }
             }

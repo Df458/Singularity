@@ -90,7 +90,7 @@ public class StreamViewBuilder : ViewBuilder, GLib.Object
         if(item.attachments.size > 0) {
             footer_builder.append("<section class=\"attachments-list\">");
             foreach(Attachment a in item.attachments) {
-                footer_builder.append_printf("<span class=\"attachment\"><a href=\"%s\">%s</a> (%s, %d)</span> ", a.url, a.name, a.mimetype, a.size);
+                footer_builder.append_printf("<span class=\"attachment\"><a href=\"%s\">%s</a> (%s, %d)</span>\n", a.url, a.name, a.mimetype, a.size);
             }
             footer_builder.append("</section>");
         }

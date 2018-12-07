@@ -455,6 +455,7 @@
             <property name="can_focus">True</property>
             <property name="receives_default">True</property>
             <property name="tooltip_text" translatable="yes">Subscribe to a new feed</property>
+            <property name="always_show_image">True</property>
             <signal name="clicked" handler="add_clicked" swapped="no"/>
             <child>
               <object class="GtkImage">

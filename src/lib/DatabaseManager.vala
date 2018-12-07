@@ -20,8 +20,8 @@ using SQLHeavy;
 using Singularity;
 
 // TODO: Change this to be more sensible, and pick a directory based on whether it's installed or not
-/* const string DEFAULT_SCHEMA_DIR = "/usr/local/share/singularity/schemas"; */
-const string DEFAULT_SCHEMA_DIR = "../data/schemas";
+const string DEFAULT_SCHEMA_DIR = "/usr/local/share/singularity/schemas";
+/* const string DEFAULT_SCHEMA_DIR = "../data/schemas"; */
 
 // This class manages the database.
 // It is responsible for creating and updating the database schema, as well as managing the DatabaseRequestProcessors
@@ -45,7 +45,7 @@ public class DatabaseManager
         try {
             m_database = new Database(path, FileMode.READ | FileMode.WRITE | FileMode.CREATE);
             if(m_database.schema_version == 0) {
-                info("Initializing database\u2026");
+                warning("Initializing database\u2026");
                 init_schema();
             }
 
