@@ -18,6 +18,5 @@
         <file>grid.css</file>
         <file>StreamViewLink.js</file>
         <file>GridViewLink.js</file>
-        <file>schemas/Create.sql</file>
     </gresource>
 </gresources>

@@ -19,9 +19,9 @@
 using SQLHeavy;
 using Singularity;
 
-// TODO: Change this to be more sensible, and pick a directory based on whether it's installed or not
+// Directories to search for schema-related files
 const string DEFAULT_SCHEMA_DIR = "/usr/local/share/singularity/schemas";
-/* const string DEFAULT_SCHEMA_DIR = "../data/schemas"; */
+const string LOCAL_SCHEMA_DIR = "../data/schemas";
 
 // This class manages the database.
 // It is responsible for creating and updating the database schema, as well as managing the DatabaseRequestProcessors
@@ -58,6 +58,13 @@ public class DatabaseManager
         for(int i = 0; i < RequestPriority.COUNT; ++i) {
             processors[i] = new DatabaseRequestProcessor(m_database_mutex, m_database);
         }
+
+        // Search for the local schema path, and use it if it exists
+        File dir = File.new_for_path(LOCAL_SCHEMA_DIR);
+        if(dir.query_exists()) {
+            warning("Loading schema information from debug directory %s", LOCAL_SCHEMA_DIR);
+            schema_dir = LOCAL_SCHEMA_DIR;
+        }
     }
 
     // Queue a request for the processors to execute
@@ -79,9 +86,10 @@ public class DatabaseManager
     private Database m_database;
     private Mutex    m_database_mutex = Mutex();
     private DatabaseRequestProcessor[] processors = {};
+    private string schema_dir = DEFAULT_SCHEMA_DIR;
 
     // Attempt to sequentially update the database schema
-    private bool update_schema_version(string schema_dir = DEFAULT_SCHEMA_DIR)
+    private bool update_schema_version()
     {
         StringBuilder builder = new StringBuilder(schema_dir);
         builder.append_printf("/Update-to-%d.sql", m_database.user_version + 1);
@@ -99,7 +107,7 @@ public class DatabaseManager
     }
 
     // Run the initial database creation schema
-    private void init_schema(string schema_dir = DEFAULT_SCHEMA_DIR)
+    private void init_schema()
     {
         StringBuilder builder = new StringBuilder(schema_dir);
         builder.append("/Create.sql");
