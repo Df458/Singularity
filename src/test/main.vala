@@ -17,11 +17,11 @@
 */
 using Singularity;
 
-public static void main (string[] args)
-{
+public static void main (string[] args) {
     Test.init(ref args);
 
     Tests.TestSuite data_suite = new Tests.TestSuite("data");
+    data_suite.add(new Tests.PersonTest());
 
     Test.run();
 }

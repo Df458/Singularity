@@ -15,66 +15,60 @@
 	You should have received a copy of the GNU General Public License
 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-using Valadate;
 
-namespace Singularity.Tests
-{
-    [Test (name="Person TestCases")]
-    public class PersonTest : Framework.TestCase
-    {
-        [Test (name="person_name")]
-        public void testPersonName()
-        {
-            Person person = Person("Alice");
-            Assert.equals("Alice", person.name, "wrong name");
+namespace Singularity.Tests {
+    public class PersonTest : UnitTest {
+        public string name { get { return "Person"; } }
+        public TestCase[] test_cases;
+        public void add_tests(string path) {
+            add_cases(path, {
+                TestCase("name", testPersonName),
+                TestCase("url", testPersonURL),
+                TestCase("email", testPersonEmail),
+                TestCase("is_valid_name", testPersonIsValidName),
+                TestCase("is_valid_email", testPersonIsValidEmail),
+                TestCase("is_invalid_url", testPersonIsInvalidURL),
+                TestCase("is_invalid_empty_name", testPersonIsInvalidEmptyName),
+                TestCase("is_invalid_empty_email", testPersonIsInvalidEmptyEmail),
+                TestCase("is_invalid_null", testPersonIsInvalidNull),
+            });
         }
-        [Test (name="person_url")]
-        public void testPersonURL()
-        {
-            Person person = Person("Bob", "http://example.com");
-            Assert.equals("http://example.com", person.url, "wrong url");
+
+        private static void testPersonName() {
+            Person person = new Person("Alice");
+            assert ("Alice" == person.name);
         }
-        [Test (name="person_email")]
-        public void testPersonEmail()
-        {
-            Person person = Person("Chris", "http://example.com", "chris@example.com");
-            Assert.equals("chris@example.com", person.email, "wrong email");
+        private static void testPersonURL() {
+            Person person = new Person("Bob", "http://example.com");
+            assert ("http://example.com" == person.url);
         }
-        [Test (name="person_is_valid_name")]
-        public void testPersonIsValidName()
-        {
-            Person person = Person("Alice");
-            Assert.is_true(person.is_valid, "person with name is invalid");
+        private static void testPersonEmail() {
+            Person person = new Person("Chris", "http://example.com", "chris@example.com");
+            assert ("chris@example.com" == person.email);
         }
-        [Test (name="person_is_valid_email")]
-        public void testPersonIsValidEmail()
-        {
-            Person person = Person(null, null, "bob@example.com");
-            Assert.is_true(person.is_valid, "person with an email is invalid");
+        private static void testPersonIsValidName() {
+            Person person = new Person("Alice");
+            assert (person.is_valid);
         }
-        [Test (name="person_is_invalid_url")]
-        public void testPersonIsInvalidURL()
-        {
-            Person person = Person(null, "http://example.com", null);
-            Assert.is_false(person.is_valid, "person with a url is valid");
+        private static void testPersonIsValidEmail() {
+            Person person = new Person(null, null, "bob@example.com");
+            assert (person.is_valid);
         }
-        [Test (name="person_is_invalid_empty_name")]
-        public void testPersonIsInvalidEmptyName()
-        {
-            Person person = Person("");
-            Assert.is_false(person.is_valid, "person with an empty name is valid");
+        private static void testPersonIsInvalidURL() {
+            Person person = new Person(null, "http://example.com", null);
+            assert (!person.is_valid);
         }
-        [Test (name="person_is_invalid_empty_email")]
-        public void testPersonIsInvalidEmptyEmail()
-        {
-            Person person = Person(null, null, "");
-            Assert.is_false(person.is_valid, "person with an empty email is valid");
+        private static void testPersonIsInvalidEmptyName() {
+            Person person = new Person("");
+            assert (!person.is_valid);
         }
-        [Test (name="person_is_invalid_null")]
-        public void testPersonIsInvalidNull()
-        {
-            Person person = Person(null);
-            Assert.is_false(person.is_valid, "person with all null fields is valid");
+        private static void testPersonIsInvalidEmptyEmail() {
+            Person person = new Person(null, null, "");
+            assert (!person.is_valid);
+        }
+        private static void testPersonIsInvalidNull() {
+            Person person = new Person(null);
+            assert (!person.is_valid);
         }
     }
 }

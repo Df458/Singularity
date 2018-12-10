@@ -1,6 +1,7 @@
 testsrc = [
     'main.vala',
 
+    'PersonTest.vala',
     'TestSuite.vala',
     'UnitTest.vala',
 ]
@@ -10,3 +11,4 @@ testtarget = executable('singularity-test', testsrc,
                         include_directories : testinc,
                         link_with : [libtarget, libctarget],
                         vala_args : ['--target-glib=2.38', '--gresources=../' + resource_path, '--pkg=jshandler', '--vapidir=../vapi'])
+test('Singularity Tests', testtarget)
