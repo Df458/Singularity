@@ -137,14 +137,15 @@ public static string clean_xml(string xml)
     uint8 prev = 0;
     StringBuilder tag_content = new StringBuilder();
     bool in_tag = false;
-    for(int i = 0; i < xml.data.length; ++i) {
-        uint8 ch = xml.data[i];
+    uint8[] data = xml.data;
+    for(int i = 0; i < data.length; ++i) {
+        uint8 ch = data[i];
 
         if(ch == '&') {
             builder.append_c((char)ch);
             bool done = false;
-            for(int j = i + 1; j < xml.data.length && !done; ++j) {
-                switch(xml.data[j]) {
+            for(int j = i + 1; j < data.length && !done; ++j) {
+                switch(data[j]) {
                     case '&':
                     case '<':
                     case '>':
