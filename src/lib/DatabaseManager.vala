@@ -19,19 +19,11 @@
 using SQLHeavy;
 using Singularity;
 
-// Directories to search for schema-related files
-const string DEFAULT_SCHEMA_DIR = "/usr/local/share/singularity/schemas";
-const string LOCAL_SCHEMA_DIR = "../data/schemas";
-
 // This class manages the database.
 // It is responsible for creating and updating the database schema, as well as managing the DatabaseRequestProcessors
-public class DatabaseManager
-{
+public class DatabaseManager {
     public bool is_open { get; private set; }
-    public int  pending_requests
-    {
-        get
-        {
+    public int  pending_requests { get {
             int count = 0;
             foreach(DatabaseRequestProcessor p in processors)
                 count += p.requests.length();
@@ -40,8 +32,7 @@ public class DatabaseManager
         }
     }
 
-    public DatabaseManager.from_path(string path)
-    {
+    public DatabaseManager.from_path(string path) {
         try {
             m_database = new Database(path, FileMode.READ | FileMode.WRITE | FileMode.CREATE);
             if(m_database.schema_version == 0) {
@@ -58,24 +49,15 @@ public class DatabaseManager
         for(int i = 0; i < RequestPriority.COUNT; ++i) {
             processors[i] = new DatabaseRequestProcessor(m_database_mutex, m_database);
         }
-
-        // Search for the local schema path, and use it if it exists
-        File dir = File.new_for_path(LOCAL_SCHEMA_DIR);
-        if(dir.query_exists()) {
-            warning("Loading schema information from debug directory %s", LOCAL_SCHEMA_DIR);
-            schema_dir = LOCAL_SCHEMA_DIR;
-        }
     }
 
     // Queue a request for the processors to execute
-    public void queue_request(DatabaseRequest req, RequestPriority prio = RequestPriority.DEFAULT)
-    {
+    public void queue_request(DatabaseRequest req, RequestPriority prio = RequestPriority.DEFAULT) {
         processors[prio].requests.push(req);
     }
 
     // Queues a request, then yields until finished
-    public async void execute_request(DatabaseRequest req, RequestPriority prio = RequestPriority.DEFAULT)
-    {
+    public async void execute_request(DatabaseRequest req, RequestPriority prio = RequestPriority.DEFAULT) {
         SourceFunc func = execute_request.callback;
         req.processing_complete.connect(() => {Idle.add((owned)func);});
         queue_request(req);
@@ -86,46 +68,55 @@ public class DatabaseManager
     private Database m_database;
     private Mutex    m_database_mutex = Mutex();
     private DatabaseRequestProcessor[] processors = {};
-    private string schema_dir = DEFAULT_SCHEMA_DIR;
+    private const string schema_uri = "resource:///org/df458/Singularity/schemas";
 
     // Attempt to sequentially update the database schema
-    private bool update_schema_version()
-    {
-        StringBuilder builder = new StringBuilder(schema_dir);
-        builder.append_printf("/Update-to-%d.sql", m_database.user_version + 1);
-        File script = File.new_for_path(builder.str);
-        if(!script.query_exists())
-            return false;
-
+    private bool update_schema_version() {
         try {
-            m_database.run_script(builder.str);
-        } catch(SQLHeavy.Error e) {
-            error("Cannot update database version to %d: %s", m_database.user_version + 1, e.message);
+            if(run_script("%s/Update-to-%d.sql".printf( schema_uri, m_database.user_version + 1))) {
+                m_database.user_version += 1;
+                return true;
+            }
+        } catch(GLib.Error e) {
+            error("Failed to update database to version %d: %s", m_database.user_version + 1, e.message);
         }
-        m_database.user_version += 1;
-        return true;
+
+        return false;
     }
 
     // Run the initial database creation schema
-    private void init_schema()
-    {
-        StringBuilder builder = new StringBuilder(schema_dir);
-        builder.append("/Create.sql");
-        File script = File.new_for_path(builder.str);
-        if(!script.query_exists())
-            error("Cannot create database: Schema initializer %s not found", builder.str);
-
+    private void init_schema() {
         try {
-            m_database.run_script(builder.str);
-        } catch(SQLHeavy.Error e) {
+            run_script(schema_uri + "/Create.sql");
+        } catch(GLib.Error e) {
             error("Cannot create database: %s", e.message);
         }
+    }
+
+    // Load and run a script resource
+    private bool run_script(string uri) throws GLib.Error {
+        File script = File.new_for_uri(uri);
+
+        // Ensure that the script exists
+        if(!script.query_exists()) {
+            return false;
+        }
+
+        // Load the contents of the data...
+        uint8[] data;
+        if(!script.load_contents(null, out data, null)) {
+            return false;
+        }
+
+        // ...and execute
+        m_database.run((string)data);
+
+        return true;
     }
 }
 
 // Wraps database requests using a provided handle and mutex
-public class DatabaseRequestProcessor
-{
+public class DatabaseRequestProcessor {
     public AsyncQueue<DatabaseRequest> requests { get; set; }
 
     public DatabaseRequestProcessor(Mutex m, Database db) {
@@ -139,8 +130,7 @@ public class DatabaseRequestProcessor
     private unowned Mutex data_mutex;
     private unowned Database database;
 
-    private void* process()
-    {
+    private void* process() {
         while(true) {
             DatabaseRequest req = requests.pop();
             RequestStatus status = RequestStatus.CONTINUE;
