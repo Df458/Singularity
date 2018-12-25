@@ -62,10 +62,11 @@ public class SingularityApp : Gtk.Application
         OPMLFeedDataSource opml = new OPMLFeedDataSource();
         opml.parse_data(doc);
         foreach(CollectionNode node in opml.data) {
-            if(node.data is Feed)
+            if(node.data is Feed) {
                 subscribe_to_feed(node.data as Feed, false);
-            else
+            } else {
                 add_collection(node.data as FeedCollection);
+            }
         }
         delete doc; // FIXME: Some stray docs may be floating around from older xml code. Kill them.
     }
@@ -150,6 +151,11 @@ public class SingularityApp : Gtk.Application
             Gtk.TreeIter? iter = null;
 
             m_feed_store.append_node(node, iter);
+
+            // Notify any newly-subscribed feeds
+            foreach(Feed f in c.get_feeds()) {
+                subscribe_done(f);
+            }
         });
     }
 

@@ -122,6 +122,16 @@ namespace Singularity
             set_id(new_id);
         }
 
+        // Returns all feeds contained in this collection
+        public override Gee.List<Feed> get_feeds() {
+            Gee.List<Feed> feeds = new Gee.ArrayList<Feed>();
+            foreach(CollectionNode node in nodes) {
+                feeds.add_all(node.data.get_feeds());
+            }
+
+            return feeds;
+        }
+
         // Returns the union of all items contained in child nodes
         public override Gee.List<Item> get_items()
         {

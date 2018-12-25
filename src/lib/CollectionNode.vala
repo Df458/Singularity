@@ -39,6 +39,7 @@ namespace Singularity
             }
         }
 
+        public abstract Gee.List<Feed> get_feeds();
         public abstract Gee.List<Item> get_items();
     }
 

@@ -133,16 +133,12 @@ public class MainWindow : Gtk.ApplicationWindow
 
         m_settings_view.done.connect(() =>
         {
-            warning("!");
             if(!app.init_success) {
-            warning("!");
-            view_stack.visible_child_name = "loading";
+                view_stack.visible_child_name = "loading";
             } else if(!app.has_subscriptions) {
-            warning("!");
-            view_stack.visible_child_name = "welcome";
+                view_stack.visible_child_name = "welcome";
             } else {
-            warning("!");
-            view_stack.set_visible_child(m_item_view);
+                view_stack.set_visible_child(m_item_view);
             }
         });
 

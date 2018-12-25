@@ -159,6 +159,13 @@ namespace Singularity
             set_id(new_id);
         }
 
+        // Return a collection containing this feed
+        public override Gee.List<Feed> get_feeds() {
+            Gee.List<Feed> feeds = new Gee.ArrayList<Feed>();
+            feeds.add(this);
+            return feeds;
+        }
+
         // Return contained Items for viewing
         public override Gee.List<Item> get_items()
         {
