@@ -22,11 +22,11 @@ namespace Singularity
 // DatabaseRequest for marking one or more items as read
 public class ItemViewRequest : DatabaseRequest, GLib.Object
 {
-    public string[] guid { get; construct; }
+    public string[] guid { get; private set; }
 
     public ItemViewRequest(string[] i)
     {
-        Object(guid: i);
+        guid = i;
     }
 
     public Query build_query(Database db)

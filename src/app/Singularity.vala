@@ -178,16 +178,24 @@ public class SingularityApp : Gtk.Application
         update_progress_changed(m_current_update_progress);
     }
 
+    // Marks all provided items as read
     public void view_items(Item[] items)
     {
-        string[] guids = new string[items.length];
-        for(int i = 0; i < items.length; ++i) {
-            m_feed_store.set_unread_count(-1, items[i].owner.id, true);
-            items[i].unread = false;
-            guids[i] = items[i].guid;
+        ArrayList<string> guids = new ArrayList<string>();
+        foreach(var i in items) {
+            // Only count unread dbs
+            if(i.unread) {
+                m_feed_store.set_unread_count(-1, i.owner.id, true);
+                i.unread = false;
+                guids.add(i.guid);
+            }
         }
-        ItemViewRequest req = new ItemViewRequest(guids);
-        m_database.queue_request(req);
+
+        // tell the database about the read dbs
+        if(guids.size > 0) {
+            ItemViewRequest req = new ItemViewRequest(guids.to_array());
+            m_database.queue_request(req);
+        }
     }
 
     public void toggle_unread(Item i)
