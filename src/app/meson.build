@@ -18,3 +18,11 @@ apptarget = executable('singularity', appsrc + resources,
                         link_with : [libtarget, libctarget],
                         vala_args : ['--target-glib=2.38', '--gresources=../' + resource_path, '--pkg=jshandler', '--vapidir=../vapi'],
                         install : true)
+
+if lint.found()
+    run_target(
+        'lint-app',
+        command: [
+            lint,
+        ] + appsrc)
+endif

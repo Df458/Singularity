@@ -45,3 +45,11 @@ libctarget = static_library('jshandler', libcsrc,
 libtarget = static_library('singularity', libsrc,
                             dependencies : deps,
                             install : false)
+
+if lint.found()
+    run_target(
+        'lint-lib',
+        command: [
+            lint,
+        ] + libsrc)
+endif

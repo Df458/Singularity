@@ -12,3 +12,11 @@ testtarget = executable('singularity-test', testsrc,
                         link_with : [libtarget, libctarget],
                         vala_args : ['--target-glib=2.38', '--gresources=../' + resource_path, '--pkg=jshandler', '--vapidir=../vapi'])
 test('Singularity Tests', testtarget)
+
+if lint.found()
+    run_target(
+        'lint-test',
+        command: [
+            lint,
+        ] + testsrc)
+endif

@@ -23,23 +23,17 @@ using Singularity;
 // Interface for widgets that display items
 public interface ItemView : Widget
 {
-    // Returns whether to only show "important" items (unread and starred)
-    public abstract bool get_important_only();
     // Sets the items to display
     public abstract void view_items(Gee.Traversable<Item> items, string title, string? desc);
 
     public signal void items_viewed(Item[] i);
     public signal void item_read_toggle(Item i);
     public signal void item_star_toggle(Item i);
-    public signal void unread_mode_changed(bool unread_only);
 }
 
 // ItemView that displays all items in a linear "stream"
 [GtkTemplate (ui = "/org/df458/Singularity/StreamItemView.ui")]
 public class StreamItemView : Box, ItemView {
-    // Returns whether to only show "important" items (unread and starred)
-    public bool get_important_only() { return m_important_view; }
-
     public StreamItemView() {
         UserContentManager content_manager = new UserContentManager();
 
@@ -101,7 +95,6 @@ public class StreamItemView : Box, ItemView {
         }
     }
 
-    private bool m_important_view = true;
     private StreamViewBuilder m_builder;
     private Gee.List<Item> m_item_list;
     private WebKit.WebView m_web_view;
@@ -135,13 +128,6 @@ public class StreamItemView : Box, ItemView {
         m_web_view.run_javascript.begin("readAll();", null);
 
         items_viewed(m_item_list.to_array());
-    }
-
-    // Called when the "Toggle important" toggle is toggled
-    [GtkCallback]
-    void on_toggle_important_view() {
-        m_important_view = !m_important_view;
-        unread_mode_changed(m_important_view);
     }
 
     private void message_received(JavascriptResult result) {
@@ -191,12 +177,7 @@ public class StreamItemView : Box, ItemView {
 // ItemView that displays items in a 2-column format: One column with an item list, and a second that displys the selected item.
 [GtkTemplate (ui = "/org/df458/Singularity/ColumnItemView.ui")]
 public class ColumnItemView : Paned, ItemView {
-    // Returns whether to only show "important" items (unread and starred)
-    public bool get_important_only() { return false; }
-
     public ColumnItemView() {
-        m_row_list = new Gee.ArrayList<ListBoxRow>();
-
         m_web_view = new WebView();
         WebKit.Settings settings = new WebKit.Settings();
         settings.set_allow_file_access_from_file_urls(true);
@@ -214,7 +195,13 @@ public class ColumnItemView : Paned, ItemView {
 
         m_builder = new ColumnViewBuilder();
 
+        item_box.bind_model(items, (i) => {
+            var entry = new ItemListEntry(i as Item);
+            m_row_list.add(entry);
+            return entry;
+        });
         item_box.set_header_func(listbox_header_separator);
+        item_box.set_placeholder(empty_label);
 
         webview_box.pack_start(m_web_view, true, true);
 
@@ -233,22 +220,22 @@ public class ColumnItemView : Paned, ItemView {
         title_label.label = title;
 
         m_item_list = new Gee.ArrayList<Item>();
+        items.remove_all();
         item_list.foreach((i) => { m_item_list.add(i); return true; });
-
-        foreach(ListBoxRow row in m_row_list) {
-            item_box.remove(row);
-        }
 
         m_row_list.clear();
         add_items();
 
-        m_builder.page = -1;
-        string html = m_builder.buildPageHTML(m_item_list, 0);
+        star_button.sensitive = false;
+
+        string html = m_builder.buildPageHTML(new Gee.ArrayList<Item>(), 0);
         m_web_view.load_html(html, "file://singularity");
     }
 
     [GtkChild]
     private ListBox item_box;
+    [GtkChild]
+    private Label empty_label;
     [GtkChild]
     private Box webview_box;
     [GtkChild]
@@ -259,8 +246,10 @@ public class ColumnItemView : Paned, ItemView {
     private ToggleButton star_button;
     private ColumnViewBuilder m_builder;
     private Gee.List<Item> m_item_list;
-    private Gee.List<ListBoxRow> m_row_list;
+    private Gee.List<ItemListEntry> m_row_list = new Gee.ArrayList<ItemListEntry>();
     private WebKit.WebView m_web_view;
+
+    GLib.ListStore items = new GLib.ListStore(typeof(Item));
 
     private int page_cursor = 0;
 
@@ -285,11 +274,8 @@ public class ColumnItemView : Paned, ItemView {
     void on_mark_all_read() {
         items_viewed(m_item_list.to_array());
 
-        foreach(ListBoxRow r in m_row_list) {
-            ItemListEntry entry = r.get_child() as ItemListEntry;
-            if(entry != null) {
-                entry.viewed();
-            }
+        foreach(ItemListEntry entry in m_row_list) {
+            entry.viewed();
         }
     }
 
@@ -307,10 +293,12 @@ public class ColumnItemView : Paned, ItemView {
             }
             entry.viewed();
 
+            star_button.sensitive = true;
             star_button.active = item.starred;
 
-            m_builder.page = m_item_list.index_of(item);
-            string html = m_builder.buildPageHTML(m_item_list, 0);
+            var list = new Gee.ArrayList<Item>();
+            list.add(item);
+            string html = m_builder.buildPageHTML(list, 0);
             m_web_view.load_html(html, "file://singularity");
         }
     }
@@ -336,11 +324,8 @@ public class ColumnItemView : Paned, ItemView {
 
     public void add_items() {
         int i = 0;
-        for(i = 0; i < AppSettings.items_per_list && i + page_cursor < m_item_list.size; ++i) {
-            ListBoxRow row = new ListBoxRow();
-            row.add(new ItemListEntry(m_item_list[page_cursor + i]));
-            item_box.add(row);
-            m_row_list.add(row);
+        for(; i < AppSettings.items_per_list && i + page_cursor < m_item_list.size; ++i) {
+            items.append(m_item_list[page_cursor + i]);
         }
 
         page_cursor += i;
@@ -351,9 +336,6 @@ public class ColumnItemView : Paned, ItemView {
 // ItemView that displays items in a grid. Clicking any grid square causes the full item to pop up over the view.
 [GtkTemplate (ui = "/org/df458/Singularity/GridItemView.ui")]
 public class GridItemView : Box, ItemView {
-    // Returns whether to only show "important" items (unread and starred)
-    public bool get_important_only() { return m_important_view; }
-
     public GridItemView() {
         UserContentManager content_manager = new UserContentManager();
 
@@ -415,7 +397,6 @@ public class GridItemView : Box, ItemView {
         }
     }
 
-    private bool m_important_view = true;
     private GridViewBuilder m_builder;
     private Gee.List<Item> m_item_list;
     private WebKit.WebView m_web_view;
@@ -449,13 +430,6 @@ public class GridItemView : Box, ItemView {
         m_web_view.run_javascript.begin("readAll();", null);
 
         items_viewed(m_item_list.to_array());
-    }
-
-    // Called when the "Toggle important" toggle is toggled
-    [GtkCallback]
-    void on_toggle_important_view() {
-        m_important_view = !m_important_view;
-        unread_mode_changed(m_important_view);
     }
 
     private void message_received(JavascriptResult result) {

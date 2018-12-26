@@ -30,11 +30,26 @@ enum ViewType
 [GtkTemplate (ui = "/org/df458/Singularity/MainWindow.ui")]
 public class MainWindow : Gtk.ApplicationWindow
 {
+    public bool important_view {
+        get { return _important_view; }
+        set {
+            if(_important_view != value) {
+                _important_view = value;
+                display_node(m_last_displayed_node);
+            }
+        }
+    }
+    private bool _important_view = true;
+
     public MainWindow(SingularityApp owner_app)
     {
         app = owner_app;
         window_position = WindowPosition.CENTER;
         set_default_size(1024, 768);
+
+        var group = new SimpleActionGroup();
+        group.add_action(new PropertyAction("important", this, "important_view"));
+        insert_action_group("view", group);
 
         m_last_displayed_node = null;
 
@@ -51,7 +66,6 @@ public class MainWindow : Gtk.ApplicationWindow
         {
             app.toggle_star(i);
         });
-        stream_view.unread_mode_changed.connect((mode) => { display_node(m_last_displayed_node); });
         view_stack.add_named(stream_view, "items_stream");
 
         ColumnItemView column_view = new ColumnItemView();
@@ -67,7 +81,6 @@ public class MainWindow : Gtk.ApplicationWindow
         {
             app.toggle_star(i);
         });
-        column_view.unread_mode_changed.connect((mode) => { display_node(m_last_displayed_node); });
         view_stack.add_named(column_view, "items_column");
 
         GridItemView grid_view = new GridItemView();
@@ -83,7 +96,6 @@ public class MainWindow : Gtk.ApplicationWindow
         {
             app.toggle_star(i);
         });
-        grid_view.unread_mode_changed.connect((mode) => { display_node(m_last_displayed_node); });
         view_stack.add_named(grid_view, "items_grid");
 
         m_item_view = stream_view;
@@ -165,7 +177,7 @@ public class MainWindow : Gtk.ApplicationWindow
 
         if(node != null) {
             Gee.Iterator<Item> iter = node.data.get_items().iterator();
-            if(m_item_view.get_important_only())
+            if(important_view)
                 iter = iter.filter((i) => { return i.unread || i.starred; });
             else {
                 iter = iter.order_by((i1, i2) => {

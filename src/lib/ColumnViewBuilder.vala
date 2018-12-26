@@ -22,8 +22,6 @@ namespace Singularity
 // Constructs HTML for the column view
 public class ColumnViewBuilder : ViewBuilder, GLib.Object
 {
-    public int page = -1;
-
     public ColumnViewBuilder()
     {
         try {
@@ -38,12 +36,12 @@ public class ColumnViewBuilder : ViewBuilder, GLib.Object
         StringBuilder builder = new StringBuilder("<html>");
         builder.append(head);
 
-        if(page > items.size || page < 0) {
+        if(items.size == 0) {
             builder.append("</html>");
             return builder.str;
         }
 
-        builder.append_printf("<body>%s</body></html>", buildItemHTML(items[page], 0));
+        builder.append_printf("<body>%s</body></html>", buildItemHTML(items[0], 0));
 
         return builder.str;
     }

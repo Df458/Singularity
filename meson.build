@@ -5,6 +5,8 @@ project('singularity', ['vala', 'c'],
 vala = meson.get_compiler('vala')
 gcc = meson.get_compiler('c')
 
+lint = find_program('io.elementary.vala-lint', required: false)
+
 gnome = import('gnome')
 glib = dependency('glib-2.0')
 gobject = dependency('gobject-2.0')
