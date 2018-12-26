@@ -235,8 +235,10 @@ public class ColumnItemView : Paned, ItemView {
         m_item_list = new Gee.ArrayList<Item>();
         item_list.foreach((i) => { m_item_list.add(i); return true; });
 
-        foreach(ListBoxRow row in m_row_list)
+        foreach(ListBoxRow row in m_row_list) {
             item_box.remove(row);
+        }
+
         m_row_list.clear();
         add_items();
 
@@ -281,7 +283,14 @@ public class ColumnItemView : Paned, ItemView {
     // Called when the "Mark all as read" button is clicked
     [GtkCallback]
     void on_mark_all_read() {
-        // TODO
+        items_viewed(m_item_list.to_array());
+
+        foreach(ListBoxRow r in m_row_list) {
+            ItemListEntry entry = r.get_child() as ItemListEntry;
+            if(entry != null) {
+                entry.viewed();
+            }
+        }
     }
 
     // Called when the user selects an item in the left column
@@ -291,18 +300,19 @@ public class ColumnItemView : Paned, ItemView {
             return;
 
         ItemListEntry entry = row.get_child() as ItemListEntry;
-        Item item = entry.item;
-        entry.viewed();
-        if(item.unread) {
-            items_viewed({item});
-            item.unread = false;
+        if(entry != null) {
+            Item item = entry.item;
+            if(item.unread) {
+                items_viewed({item});
+            }
+            entry.viewed();
+
+            star_button.active = item.starred;
+
+            m_builder.page = m_item_list.index_of(item);
+            string html = m_builder.buildPageHTML(m_item_list, 0);
+            m_web_view.load_html(html, "file://singularity");
         }
-
-        star_button.active = item.starred;
-
-        m_builder.page = m_item_list.index_of(item);
-        string html = m_builder.buildPageHTML(m_item_list, 0);
-        m_web_view.load_html(html, "file://singularity");
     }
 
     // Called when the user presses the Mark as Unread button
