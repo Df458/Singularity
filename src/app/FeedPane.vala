@@ -91,7 +91,7 @@ public class FeedPane : Gtk.Box
         SimpleActionGroup collection_menu_group = new SimpleActionGroup();
 
         SimpleAction act_properties = new SimpleAction("properties", null);
-        act_properties.activate.connect(() => { if(selected_feed != null) owner.show_properties(selected_feed); });
+        act_properties.activate.connect(show_properties);
         act_properties.set_enabled(true);
         feed_menu_group.add_action(act_properties);
 
@@ -169,6 +169,12 @@ public class FeedPane : Gtk.Box
         collection_menu.attach_to_widget(this, null);
         base_menu = new Gtk.Menu.from_model(base_model);
         base_menu.attach_to_widget(this, null);
+    }
+
+    private void show_properties () {
+        if (selected_feed != null) {
+            new Singularity.App.PropertiesWindow (owner, selected_feed).present ();
+        }
     }
 
     [GtkCallback]

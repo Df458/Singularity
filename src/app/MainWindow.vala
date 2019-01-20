@@ -239,13 +239,6 @@ public class MainWindow : Gtk.ApplicationWindow
         view_stack.set_visible_child_name("settings");
     }
 
-    public void show_properties(Feed f)
-    {
-        PropertiesWindow properties_window = new PropertiesWindow();
-        properties_window.set_feed(f);
-        properties_window.present();
-    }
-
     [GtkChild]
     private Box view_pane;
     [GtkChild]
