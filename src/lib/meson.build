@@ -1,4 +1,4 @@
-libsrc = [
+libsrc = files(
     'AppSettings.vala', 
     'AtomItemDataSource.vala', 
     'Attachment.vala', 
@@ -36,7 +36,7 @@ libsrc = [
     'UpdateQueue.vala',
     'ViewBuilder.vala',
     'XmlRequest.vala'
-]
+  )
 libcsrc = ['jshandler.c']
 
 libctarget = static_library('jshandler', libcsrc,

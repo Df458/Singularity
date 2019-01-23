@@ -9,6 +9,7 @@ lint = find_program('io.elementary.vala-lint', required: false)
 
 gnome = import('gnome')
 glib = dependency('glib-2.0')
+gtk = dependency('gtk+-3.0')
 gobject = dependency('gobject-2.0')
 gcrypt_v = vala.find_library('gcrypt', dirs: join_paths(meson.current_source_dir(), 'vapi'))
 gcrypt_c = gcc.find_library('gcrypt')
@@ -19,6 +20,8 @@ soup = dependency('libsoup-2.4')
 xml = dependency('gxml-0.16')
 sqlheavy = dependency('sqlheavy-0.1')
 sqlite = dependency('sqlite3')
+
+vapidir = join_paths(meson.source_root(), 'vapi')
 
 resource_path = 'data/singularity.gresource.xml'
 resources = gnome.compile_resources('resources', resource_path, source_dir : 'data')
