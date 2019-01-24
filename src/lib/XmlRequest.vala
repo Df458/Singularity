@@ -1,171 +1,162 @@
 /*
-	Singularity - A web newsfeed aggregator
-	Copyright (C) 2017  Hugues Ross <hugues.ross@gmail.com>
+    Singularity - A web newsfeed aggregator
+    Copyright (C) 2017  Hugues Ross <hugues.ross@gmail.com>
 
-	This program is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
-	(at your option) any later version.
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-	This program is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-	You should have received a copy of the GNU General Public License
-	along with this program.  If not, see <http://www.gnu.org/licenses/>.
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-namespace Singularity
-{
+namespace Singularity {
     // This class is responsible for retrieving Xml data from external sources
-    public class XmlRequest : Object
-    {
+    public class XmlRequest : Object {
 
-        public enum ContentType
-        {
+        public enum ContentType {
             INVALID = -1,
             RSS,
             ATOM,
             COUNT
         }
 
-        public string   uri           { get; construct; }
-        public bool     request_sent  { get; private set; }
-        public bool     error_exists  { get { return error_message != null; } }
-        public string?  error_message { get; private set; }
-        public GXml.GDocument doc      { get; private set; }
-        public string   doc_data      { get; private set; }
+        public string uri { get; construct; }
+        public bool request_sent { get; private set; }
+        public bool error_exists { get { return error_message != null; } }
+        public string? error_message { get; private set; }
+        public GXml.GDocument doc { get; private set; }
+        public string doc_data { get; private set; }
 
-        public XmlRequest(string to_fetch, Soup.Session s)
-        {
+        public XmlRequest (string to_fetch, Soup.Session s) {
             string turi = to_fetch;
-            if(!to_fetch.has_prefix("http://") && !to_fetch.has_prefix("https://") && !to_fetch.has_prefix("file://"))
+            if (!to_fetch.has_prefix ("http://")
+                && !to_fetch.has_prefix ("https://")
+                && !to_fetch.has_prefix ("file://"))
                 turi = "http://" + to_fetch;
 
-            Object(uri: turi);
+            Object (uri: turi);
             doc = null;
             error_message = null;
             request_sent = false;
             m_session = s;
-            m_message = new Soup.Message("GET", uri);
+            m_message = new Soup.Message ("GET", uri);
         }
 
-        public bool send()
-        {
-            MainLoop loop = new MainLoop();
+        public bool send () {
+            MainLoop loop = new MainLoop ();
             request_sent = true;
 
-            if(m_message == null) {
+            if (m_message == null) {
                 error_message = "Invalid URL";
                 return false;
             }
 
-            m_session.queue_message(m_message, (s, m) =>
+            m_session.queue_message (m_message, (s, m) =>
             {
-                loop.quit();
+                loop.quit ();
             });
 
-            loop.run();
+            loop.run ();
 
             string data = (string)m_message.response_body.data;
 
-            return create_doc(data);
+            return create_doc (data);
         }
 
-        public async bool send_async()
-        {
+        public async bool send_async () {
             SourceFunc callback = this.send_async.callback;
             request_sent = true;
             string? data = null;
 
-            if(m_session == null) {
+            if (m_session == null) {
                 error_message = "Broken Session";
-                warning("Failed to create session");
+                warning ("Failed to create session");
                 return false;
             }
 
-            if(m_message == null) {
+            if (m_message == null) {
                 error_message = "Invalid URL";
-                warning("Failed to retrieve URL");
+                warning ("Failed to retrieve URL");
                 return false;
             }
 
-            m_session.queue_message(m_message, (s, m) =>
+            m_session.queue_message (m_message, (s, m) =>
             {
                 data = (string)m.response_body.data;
-                if(m.status_code == Soup.Status.NOT_FOUND) {
+                if (m.status_code == Soup.Status.NOT_FOUND) {
                     error_message = "The server couldn't find the content requested";
                     data = null;
                 }
-                if(m.status_code == Soup.Status.FORBIDDEN || m.status_code == Soup.Status.UNAUTHORIZED) {
+                if (m.status_code == Soup.Status.FORBIDDEN || m.status_code == Soup.Status.UNAUTHORIZED) {
                     error_message = "The server denied the request";
                     data = null;
                 }
-                Idle.add((owned) callback);
+                Idle.add ((owned) callback);
             });
 
             yield;
 
-            if(data == null) {
-                if(error_message == null) {
+            if (data == null) {
+                if (error_message == null) {
                     error_message = "Message data was not received";
                 }
-                warning("%s: %s", uri, error_message);
+                warning ("%s: %s", uri, error_message);
                 return false;
             }
 
-            return create_doc(data);
+            return create_doc (data);
         }
 
-        public ContentType determine_content_type()
-        {
-            if(doc == null)
+        public ContentType determine_content_type () {
+            if (doc == null)
                 return ContentType.INVALID;
 
-            if(doc["rss"] != null || doc["RDF"] != null)
+            if (doc["rss"] != null || doc["RDF"] != null)
                 return ContentType.RSS;
-            else if(doc["feed"] != null)
+            else if (doc["feed"] != null)
                 return ContentType.ATOM;
 
             return ContentType.INVALID;
         }
 
-        public FeedProvider? get_provider_from_request()
-        {
-            switch(determine_content_type())
-            {
+        public FeedProvider? get_provider_from_request () {
+            switch (determine_content_type ()) {
                 case ContentType.RSS:
-                    return new RSSItemDataSource();
+                    return new RSSItemDataSource ();
                 case ContentType.ATOM:
-                    return new AtomItemDataSource();
+                    return new AtomItemDataSource ();
                 default:
-                    stderr.printf("Unknown content found: %s", doc_data);
+                    stderr.printf ("Unknown content found: %s", doc_data);
                     return null;
             }
         }
 
-        public string get_base_uri()
-        {
-            return m_message.uri.get_host();
+        public string get_base_uri () {
+            return m_message.uri.get_host ();
         }
 
-        private bool create_doc(string? data)
-        {
-            doc_data = clean_xml(data);
+        private bool create_doc (string? data) {
+            doc_data = clean_xml (data);
             try {
-                doc = new GXml.GDocument.from_string(doc_data);
+                doc = new GXml.GDocument.from_string (doc_data);
 
-                if(doc == null && data != null) {
-                    doc_data = doc_data.split("<!DOCTYPE html")[0];
-                    doc = new GXml.GDocument.from_string(doc_data);
+                if (doc == null && data != null) {
+                    doc_data = doc_data.split ("<!DOCTYPE html")[0];
+                    doc = new GXml.GDocument.from_string (doc_data);
                 }
-            } catch(GLib.Error e) {
-                warning("Failed to parse document: %s\nData:\n%s", e.message, doc_data);
+            } catch (GLib.Error e) {
+                warning ("Failed to parse document: %s\nData:\n%s", e.message, doc_data);
                 doc = null;
             }
 
-            if(doc == null) {
+            if (doc == null) {
                 error_message = "Failed to parse document";
                 return false;
             }
