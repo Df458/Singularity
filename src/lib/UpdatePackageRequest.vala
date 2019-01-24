@@ -46,7 +46,15 @@ namespace Singularity {
             switch (m_status) {
                 case Status.ICON_INSERT:
                     try {
-                        Query q = new Query (db, "INSERT OR REPLACE INTO icons (id, width, height, alpha, bits, rowstride, data) VALUES (%d, %d, %d, %d, %d, %d, :data)".printf (
+                        Query q = new Query (db, """INSERT OR REPLACE INTO icons (
+                                    id,
+                                    width,
+                                    height,
+                                    alpha,
+                                    bits,
+                                    rowstride,
+                                    data
+                                ) VALUES (%d, %d, %d, %d, %d, %d, :data)""".printf (
                             package.feed.id,
                             package.feed.icon.width,
                             package.feed.icon.height,
@@ -60,7 +68,19 @@ namespace Singularity {
                     }
 
                 case Status.INSERT:
-                    StringBuilder q_builder = new StringBuilder ("REPLACE INTO items (guid, parent_id, weak_guid, title, link, content, rights, publish_time, update_time, load_time, unread, starred) VALUES ");
+                    StringBuilder q_builder = new StringBuilder ("""REPLACE INTO items (guid,
+                            parent_id,
+                            weak_guid,
+                            title,
+                            link,
+                            content,
+                            rights,
+                            publish_time,
+                            update_time,
+                            load_time,
+                            unread,
+                            starred
+                        ) VALUES """);
                     add_item (q_builder, package.new_items[0], true);
                     for (int i = 1; i < package.new_items.size; i++)
                         add_item (q_builder, package.new_items[i], false);
@@ -73,7 +93,14 @@ namespace Singularity {
                     }
 
                 case Status.INSERT_ENCLOSURE:
-                    StringBuilder q_builder = new StringBuilder ("REPLACE INTO enclosures (feed_id, item_guid, guid, uri, name, length, mimetype) VALUES ");
+                    StringBuilder q_builder = new StringBuilder ("""REPLACE INTO enclosures (feed_id,
+                            item_guid,
+                            guid,
+                            uri,
+                            name,
+                            length,
+                            mimetype
+                        ) VALUES """);
                     bool first = true;
                     foreach (Item i in package.new_items) {
                         foreach (Attachment a in i.attachments) {
@@ -99,7 +126,13 @@ namespace Singularity {
                     }
 
                 case Status.INSERT_PEOPLE:
-                    StringBuilder q_builder = new StringBuilder ("REPLACE INTO people (feed_id, item_guid, guid, url, name, email) VALUES ");
+                    StringBuilder q_builder = new StringBuilder ("""REPLACE INTO people (feed_id,
+                            item_guid,
+                            guid,
+                            url,
+                            name,
+                            email
+                        ) VALUES """);
                     bool first = true;
                     foreach (Item i in package.new_items) {
                         if (i.author != null) {
@@ -126,7 +159,9 @@ namespace Singularity {
                 case Status.UNREAD_PRE:
                 case Status.UNREAD:
                     try {
-                        return new Query (db, "SELECT sum (items.unread) AS unread_count FROM items WHERE parent_id = %d".printf (package.feed.id));
+                        return new Query (db, """SELECT sum (items.unread) AS unread_count
+                                FROM items
+                                WHERE parent_id = %d""".printf (package.feed.id));
                     } catch (SQLHeavy.Error e) {
                         error ("Failed to clean table: %s", e.message);
                     }
@@ -134,10 +169,17 @@ namespace Singularity {
 
             if (m_use_owner_id) {
                 try {
-                    return new Query (db, "UPDATE feeds SET title = %s, link = %s, site_link = %s, description = %s, rights = %s, generator = %s, last_update = %lld WHERE id = %d".printf (
+                    return new Query (db,"""UPDATE feeds SET title = %s,
+                                link = %s,
+                                site_link = %s,
+                                description = %s,
+                                rights = %s,
+                                generator = %s,
+                                last_update = %lld
+                            WHERE id = %d""".printf (
                         sql_str (package.feed.title),
                         sql_str (package.feed.link),
-                        sql_str (package.feed.site_link), 
+                        sql_str (package.feed.site_link),
                         sql_str (package.feed.description),
                         sql_str (package.feed.rights),
                         sql_str (package.feed.generator),

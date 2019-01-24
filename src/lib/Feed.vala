@@ -90,7 +90,20 @@ namespace Singularity {
 
         public override Query? insert (Queryable q) {
             try {
-                Query query = new Query (q, "INSERT INTO feeds (id, parent_id, type, title, link, site_link, description, rights, generator, last_update) VALUES (:id, :parent_id, :type, :title, :link, :site_link, :description, :rights, :generator, :last_update)");
+                Query query = new Query (q, """INSERT INTO feeds
+                        (id, parent_id, type, title, link, site_link, description, rights, generator, last_update)
+                        VALUES (
+                            :id,
+                            :parent_id,
+                            :type,
+                            :title,
+                            :link,
+                            :site_link,
+                            :description,
+                            :rights,
+                            :generator,
+                            :last_update
+                        )""");
                 query[":id"] = id;
                 query[":parent_id"] = parent_id;
                 query[":type"] = (int)CollectionNode.Contents.FEED;
@@ -113,7 +126,15 @@ namespace Singularity {
         public override Query? update (Queryable q) {
             try {
                 // TODO: Build the query to only have what's needed
-                Query query = new Query (q, "UPDATE feeds SET title = :title, link = :link, site_link = :site_link, description = :description, rights = :rights, generator = :generator, last_update = :last_update WHERE id = :id");
+                Query query = new Query (q, """UPDATE feeds SET
+                        title = :title,
+                        link = :link,
+                        site_link = :site_link,
+                        description = :description,
+                        rights = :rights,
+                        generator = :generator,
+                        last_update = :last_update
+                    WHERE id = :id""");
                 query[":id"] = id;
                 query[":title"] = title;
                 query[":link"] = link;

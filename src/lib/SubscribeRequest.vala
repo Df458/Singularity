@@ -42,7 +42,17 @@ public class SubscribeRequest : DatabaseRequest, GLib.Object {
             return q;
         }
 
-        StringBuilder q_builder = new StringBuilder ("INSERT OR IGNORE INTO feeds (parent_id, type, title, link, site_link, description, rights, generator, last_update) VALUES");
+        StringBuilder q_builder = new StringBuilder ("""INSERT OR IGNORE INTO feeds (
+                parent_id,
+                type,
+                title,
+                link,
+                site_link,
+                description,
+                rights,
+                generator,
+                last_update
+            ) VALUES""");
         if (m_node_list.size > 0) {
             insert_node (q_builder, m_node_list[0], true);
             for (int i = 1; i < m_node_list.size; i++)

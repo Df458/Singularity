@@ -56,7 +56,8 @@ namespace Singularity {
 
         public override Query? insert (Queryable q) {
             try {
-                Query query = new Query (q, "INSERT INTO feeds (id, parent_id, type, title) VALUES (:id, :parent_id, :type, :title)");
+                Query query = new Query (q, """INSERT INTO feeds (id, parent_id, type, title)
+                    VALUES (:id, :parent_id, :type, :title)""");
                 query[":id"] = id;
                 query[":parent_id"] = parent_id;
                 query[":type"] = CollectionNode.Contents.COLLECTION;
@@ -70,7 +71,10 @@ namespace Singularity {
         }
         public override Query? update (Queryable q) {
             try {
-                Query query = new Query (q, "UPDATE collections SET title = :title, parent_id = :parent_id WHERE id = :id");
+                Query query = new Query (q, """UPDATE collections SET
+                        title = :title,
+                        parent_id = :parent_id
+                    WHERE id = :id""");
                 query[":id"] = id;
                 query[":parent_id"] = parent_id;
                 query[":title"] = title;

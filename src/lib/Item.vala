@@ -62,7 +62,32 @@ public class Item : DataEntryGuid {
 
     public override Query? insert (Queryable q) {
         try {
-            Query query = new Query (q, "INSERT INTO items (parent_id, guid, weak_guid, title, link, content, rights, publish_time, update_time, load_time, unread, starred) VALUES (:parent_id, :guid, :title, :link, :content, :rights, :publish_time, :update_time, :load_time, :unread, :starred)");
+            Query query = new Query (q, """INSERT INTO items (
+                    parent_id,
+                    guid,
+                    weak_guid,
+                    title,
+                    link,
+                    content,
+                    rights,
+                    publish_time,
+                    update_time,
+                    load_time,
+                    unread,
+                    starred
+                ) VALUES (
+                    :parent_id,
+                    :guid,
+                    :title,
+                    :link,
+                    :content,
+                    :rights,
+                    :publish_time,
+                    :update_time,
+                    :load_time,
+                    :unread,
+                    :starred
+                )""");
             query[":parent_id"] = owner.id;
             query[":guid"] = guid;
             query[":weak_guid"] = weak_guid;
@@ -86,7 +111,15 @@ public class Item : DataEntryGuid {
     }
     public override Query? update (Queryable q) {
         try {
-            Query query = new Query (q, "UPDATE items SET title = :title, link = :link, content = :content, rights = :rights, publish_time = :publish_time, update_time = :update_time, load_time = :load_time WHERE guid = :guid");
+            Query query = new Query (q, """UPDATE items SET
+                    title = :title,
+                    link = :link,
+                    content = :content,
+                    rights = :rights,
+                    publish_time = :publish_time,
+                    update_time = :update_time,
+                    load_time = :load_time WHERE guid = :guid
+                """);
             query[":guid"] = guid;
             query[":title"] = title;
             query[":link"] = link;

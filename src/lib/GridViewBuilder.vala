@@ -46,10 +46,11 @@ public class GridViewBuilder : ViewBuilder, GLib.Object {
             head_builder.append ("<section class=\"title\">");
             head_builder.append_printf ("%s</section>", item.title == "" ? "Untitled Post" : item.title);
 
-            builder.append_printf ("<article class=\"%s\" data-id=\"%d\" data-read=\"%s\" onclick=\"view_item (this)\" data-starred=\"%s\"",
+            builder.append_printf ("<article class=\"%s\" data-id=\"%d\" data-read=\"%s\" data-starred=\"%s\"",
                 item.unread ? "unread %s".printf (builder_class) : builder_class, id,
                 item.unread ? "false" : "true",
                 item.starred ? "true" : "false");
+            builder.append (" onclick=\"view_item (this)\"");
             string? icon = extract_image (item.content);
             if (icon != null)
                 builder.append_printf (" style=\"background-image: url (\'%s\');\"", icon);

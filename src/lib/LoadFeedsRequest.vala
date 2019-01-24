@@ -27,7 +27,11 @@ public class LoadFeedsRequest : DatabaseRequest, GLib.Object {
     public Query build_query (Database db) {
         try {
             if (current_id == -1)
-                return new Query (db, "SELECT feeds.*, icons.*, sum (items.unread) AS unread_count FROM feeds LEFT OUTER JOIN icons ON feeds.id = icons.id LEFT OUTER JOIN items ON items.parent_id = feeds.id GROUP BY feeds.id ORDER BY feeds.id");
+                return new Query (db, """SELECT feeds.*, icons.*, sum (items.unread) AS unread_count FROM feeds
+                    LEFT OUTER JOIN icons ON feeds.id = icons.id
+                    LEFT OUTER JOIN items ON items.parent_id = feeds.id
+                    GROUP BY feeds.id
+                    ORDER BY feeds.id""");
             else
                 return new Query (db, "SELECT * FROM %s WHERE %s = %d".printf (
                     tables[current_step],

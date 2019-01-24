@@ -91,14 +91,15 @@ public class ColumnViewBuilder : ViewBuilder, GLib.Object {
         // TODO: Tags
         footer_builder.append_printf ("</footer>");
 
-        builder.append_printf ("<article class=\"%s\" data-id=\"%d\" data-read=\"%s\" data-starred=\"%s\">%s%s%s</article>",
+        builder.append_printf ("<article class=\"%s\" data-id=\"%d\" data-read=\"%s\" data-starred=\"%s\">",
             builder_class,
             id,
             item.unread ? "false" : "true",
-            item.starred ? "true" : "false",
-            head_builder.str,
-            content_builder.str,
-            footer_builder.str);
+            item.starred ? "true" : "false");
+        builder.append (head_builder.str);
+        builder.append (content_builder.str);
+        builder.append (footer_builder.str);
+        builder.append_printf ("</article>");
         ++id;
 
         return builder.str;
