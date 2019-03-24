@@ -30,7 +30,9 @@ public interface ItemView : Widget {
     public signal void item_star_toggle (Item i);
 }
 
-// ItemView that displays all items in a linear "stream"
+/**
+ * ItemView that displays all items in a linear "stream"
+ */
 [GtkTemplate (ui = "/org/df458/Singularity/StreamItemView.ui")]
 public class StreamItemView : Box, ItemView {
     public StreamItemView () {
@@ -78,6 +80,9 @@ public class StreamItemView : Box, ItemView {
         m_builder = new StreamViewBuilder ();
 
         pack_start (m_web_view, true, true);
+
+        string html = m_builder.buildPageHTML (m_item_list, AppSettings.items_per_list);
+        m_web_view.load_html (html, "file://singularity");
     }
     // Sets the items to display
     public void view_items (Gee.Traversable<Item> item_list, string title, string? desc) {
@@ -98,7 +103,7 @@ public class StreamItemView : Box, ItemView {
     }
 
     private StreamViewBuilder m_builder;
-    private Gee.List<Item> m_item_list;
+    private Gee.List<Item> m_item_list = new Gee.ArrayList<Item> ();
     private WebKit.WebView m_web_view;
 
     [GtkChild]
@@ -177,7 +182,6 @@ public class StreamItemView : Box, ItemView {
     }
 }
 
-// 
 /**
  * ItemView that displays items in a 2-column format:
  * One column with an item list, and a second that displys the selected item.
@@ -212,12 +216,14 @@ public class ColumnItemView : Paned, ItemView {
 
         webview_box.pack_start (m_web_view, true, true);
 
-        m_item_list = new Gee.ArrayList<Item> ();
         column_scroll.edge_reached.connect ((p) => {
             if (p == PositionType.BOTTOM) {
                 add_items ();
             }
         });
+
+        string html = m_builder.buildPageHTML (m_item_list, AppSettings.items_per_list);
+        m_web_view.load_html (html, "file://singularity");
     }
     // Sets the items to display
     public void view_items (Gee.Traversable<Item> item_list, string title, string? desc) {
@@ -252,7 +258,7 @@ public class ColumnItemView : Paned, ItemView {
     [GtkChild]
     private ToggleButton star_button;
     private ColumnViewBuilder m_builder;
-    private Gee.List<Item> m_item_list;
+    private Gee.List<Item> m_item_list = new Gee.ArrayList<Item> ();
     private Gee.List<ItemListEntry> m_row_list = new Gee.ArrayList<ItemListEntry> ();
     private WebKit.WebView m_web_view;
 
@@ -341,7 +347,10 @@ public class ColumnItemView : Paned, ItemView {
     }
 }
 
-// ItemView that displays items in a grid. Clicking any grid square causes the full item to pop up over the view.
+/**
+ * ItemView that displays items in a grid.
+ * Clicking any grid square causes the full item to pop up over the view.
+ */
 [GtkTemplate (ui = "/org/df458/Singularity/GridItemView.ui")]
 public class GridItemView : Box, ItemView {
     public GridItemView () {
@@ -389,6 +398,9 @@ public class GridItemView : Box, ItemView {
         m_builder = new GridViewBuilder ();
 
         pack_start (m_web_view, true, true);
+
+        string html = m_builder.buildPageHTML (m_item_list, AppSettings.items_per_list);
+        m_web_view.load_html (html, "file://singularity");
     }
     // Sets the items to display
     public void view_items (Gee.Traversable<Item> item_list, string title, string? desc) {
@@ -409,7 +421,7 @@ public class GridItemView : Box, ItemView {
     }
 
     private GridViewBuilder m_builder;
-    private Gee.List<Item> m_item_list;
+    private Gee.List<Item> m_item_list = new Gee.ArrayList<Item> ();
     private WebKit.WebView m_web_view;
 
     [GtkChild]

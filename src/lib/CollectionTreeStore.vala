@@ -32,6 +32,7 @@ namespace Singularity {
             ICON,
             NODE,
             UNREAD,
+            VISIBLE,
             COUNT
         }
 
@@ -42,7 +43,9 @@ namespace Singularity {
                 typeof (int),
                 typeof (Gdk.Pixbuf),
                 typeof (CollectionNode),
-                typeof (int) });
+                typeof (int),
+                typeof (bool)
+                });
             set_sort_column_id (Column.TITLE, SortType.ASCENDING);
 
             CollectionNode root_node = new CollectionNode (root_collection);
@@ -53,9 +56,10 @@ namespace Singularity {
                 Column.ID, -1,
                 Column.TITLE, FEED_CATEGORY_STRING,
                 Column.WEIGHT, 800,
+                Column.NODE, root_node,
                 Column.UNREAD, 0,
-                Column.NODE,
-                root_node, -1);
+                Column.VISIBLE, true,
+                -1);
 
             try {
                 feed_icon_default = Gtk.IconTheme.get_default ().load_icon (
@@ -98,7 +102,7 @@ namespace Singularity {
 
             TreeIter iter;
             append (out iter, parent);
-            set (iter, Column.ID, node.id, Column.TITLE, node.data.title, Column.NODE, node);
+            set (iter, Column.ID, node.id, Column.TITLE, node.data.title, Column.NODE, node, Column.VISIBLE, true);
 
             if (node.data is Feed) {
                 if ((node.data as Feed).icon != null)
@@ -333,6 +337,7 @@ namespace Singularity {
             Gdk.Pixbuf icon;
             CollectionNode node;
             int unread;
+            bool visible;
             get (src,
                 Column.ID, out id,
                 Column.TITLE, out title,
@@ -340,6 +345,7 @@ namespace Singularity {
                 Column.ICON, out icon,
                 Column.WEIGHT, out weight,
                 Column.UNREAD, out unread,
+                Column.VISIBLE, out visible,
                 -1);
             set (iter,
                 Column.ID, id,
@@ -347,7 +353,8 @@ namespace Singularity {
                 Column.NODE, node,
                 Column.ICON, icon,
                 Column.WEIGHT, weight,
-                Column.UNREAD, unread);
+                Column.UNREAD, unread,
+                Column.VISIBLE, visible);
 
             TreeIter i;
             bool valid = iter_children (out i, src);

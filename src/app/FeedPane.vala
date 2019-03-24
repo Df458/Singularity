@@ -16,23 +16,51 @@
      along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 using Gtk;
+using DFLib;
 
 namespace Singularity {
 // The contents of the left pane, which holds the treeview for browsing feeds
 [GtkTemplate (ui="/org/df458/Singularity/FeedPane.ui")]
-public class FeedPane : Gtk.Box {
+public class FeedPane : Bin {
+    // Action groups
+    private const string G_VIEW = "view";
+
+    // Actions
+    private const string A_SEARCH_MODE = "search-mode";
+    private const string A_ADD_FEED = "add-feed";
+
     public Feed? selected_feed { get; private set; }
     public FeedCollection? selected_collection { get; private set; }
 
-    public FeedPane (MainWindow owner_window, CollectionTreeStore store) {
-        owner = owner_window;
+    public bool search_mode {
+        get { return _search_mode; }
+        set {
+            if (_search_mode != value) {
+                _search_mode = value;
 
-        feed_data = store;
-        feed_model = new TreeModelFilter (store, null);
+                search_bar.search_mode_enabled = value;
+            }
+        }
+    }
+    private bool _search_mode = false;
 
+    construct {
         init_content ();
         add_actions ();
         init_menus ();
+    }
+
+    public void init (MainWindow owner_window, CollectionTreeStore store) {
+        owner = owner_window;
+
+        feed_data = store;
+        feed_model = new CollectionTreeModelFilter (store);
+        feed_list.set_model (feed_model);
+
+        TreeIter iter;
+        if (feed_model.get_iter_first (out iter)) {
+            feed_list.set_cursor (feed_model.get_path (iter), null, false);
+        }
     }
 
     // Expand the base category (All Feeds)
@@ -40,9 +68,9 @@ public class FeedPane : Gtk.Box {
         feed_list.expand_row (new TreePath.first (), false);
     }
 
-    public signal void selection_changed (int selection_id);
+    public signal void add_requested (Widget target);
 
-    private TreeModelFilter feed_model;
+    private CollectionTreeModelFilter feed_model;
     [GtkChild]
     private TreeView feed_list;
     [GtkChild]
@@ -55,6 +83,8 @@ public class FeedPane : Gtk.Box {
     private TreeViewColumn title_column;
     [GtkChild]
     private TreeViewColumn count_column;
+    [GtkChild]
+    private SearchBar search_bar;
     private CollectionTreeStore feed_data;
     private unowned MainWindow owner;
 
@@ -63,8 +93,6 @@ public class FeedPane : Gtk.Box {
     private Gtk.Menu collection_menu;
 
     private void init_content () {
-        feed_list.set_model (feed_model);
-
         title_column.add_attribute (icon_renderer, "pixbuf", CollectionTreeStore.Column.ICON);
         title_column.add_attribute (title_renderer, "markup", CollectionTreeStore.Column.TITLE);
         title_column.add_attribute (title_renderer, "weight", CollectionTreeStore.Column.WEIGHT);
@@ -93,6 +121,10 @@ public class FeedPane : Gtk.Box {
     }
 
     private void add_actions () {
+        var group = new SimpleActionGroup ();
+        group.add_action (new PropertyAction (A_SEARCH_MODE, this, "search_mode"));
+        insert_action_group (G_VIEW, group);
+
         SimpleActionGroup feed_menu_group = new SimpleActionGroup ();
         SimpleActionGroup collection_menu_group = new SimpleActionGroup ();
 
@@ -276,6 +308,21 @@ public class FeedPane : Gtk.Box {
     [GtkCallback]
     private void title_edit_cancel () {
         title_renderer.editable = false;
+    }
+
+    [GtkCallback]
+    private void on_search_changed (SearchEntry entry) {
+        feed_model.search_text = entry.text;
+    }
+
+    [GtkCallback]
+    private void on_stop_search (SearchEntry entry) {
+        search_mode = false;
+    }
+
+    [GtkCallback]
+    private void on_add_feed (Button button) {
+        add_requested (button);
     }
 }
 }

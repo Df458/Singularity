@@ -4,6 +4,7 @@ libsrc = files(
     'Attachment.vala', 
     'CollectionNode.vala', 
     'CollectionRequest.vala',
+    'CollectionTreeModelFilter.vala', 
     'CollectionTreeStore.vala', 
     'ColumnViewBuilder.vala',
     'DatabaseManager.vala', 

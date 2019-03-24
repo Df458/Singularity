@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glade-catalog name="singularity" library="singularity-library" depends="gtk+" init-function="singularity_init">
+    <glade-widget-classes>
+        <glade-widget-class name="SingularityFeedPane" generic-name="feedpane" title="Feed Pane"/>
+    </glade-widget-classes>
+
+    <glade-widget-group name="Singularity" title="Singularity Widgets">
+        <glade-widget-class-ref name="SingularityFeedPane"/>
+    </glade-widget-group>
+</glade-catalog>

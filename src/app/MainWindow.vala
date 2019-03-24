@@ -56,7 +56,7 @@ public class MainWindow : Gtk.ApplicationWindow {
 
         var group = new SimpleActionGroup ();
         group.add_action (new PropertyAction ("important", this, "important_view"));
-        group.add_action (new PropertyAction ("search_mode", this, "search_mode"));
+        /* group.add_action (new PropertyAction ("search_mode", this, "search_mode")); */
         insert_action_group ("view", group);
 
         m_last_displayed_node = null;
@@ -109,10 +109,8 @@ public class MainWindow : Gtk.ApplicationWindow {
         m_item_view = stream_view;
         m_settings_view = new SettingsView ();
         view_stack.add_named (m_settings_view, "settings");
-        feed_pane = new FeedPane (this, app.get_feed_store ());
-        view_pane.pack_start (feed_pane, true, true);
+        feed_pane.init (this, app.get_feed_store ());
         m_feed_builder = new FeedBuilder ();
-        m_feed_builder.set_relative_to (add_button);
 
         app.update_progress_changed.connect ( (val) =>
         {
@@ -208,7 +206,14 @@ public class MainWindow : Gtk.ApplicationWindow {
     public signal void delete_collection_requested (FeedCollection? collection);
 
     [GtkCallback]
-    public void add_clicked () {
+    public void add_clicked (Gtk.Button button) {
+        m_feed_builder.relative_to = button;
+        m_feed_builder.show_all ();
+    }
+
+    [GtkCallback]
+    public void on_add_requested (Widget target) {
+        m_feed_builder.relative_to = target;
         m_feed_builder.show_all ();
     }
 
@@ -242,18 +247,15 @@ public class MainWindow : Gtk.ApplicationWindow {
     }
 
     [GtkChild]
-    private Box view_pane;
-    [GtkChild]
     private Revealer progress_revealer;
     [GtkChild]
     private ProgressBar progress_bar;
     [GtkChild]
     private Stack view_stack;
     [GtkChild]
-    private Button add_button;
+    private FeedPane feed_pane;
 
     private SingularityApp app;
-    private FeedPane feed_pane;
     private SettingsView m_settings_view;
 
     private ItemView m_item_view;
