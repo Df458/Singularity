@@ -28,6 +28,7 @@
                 <property name="halign">start</property>
                 <property name="label" translatable="yes">&lt;span font="24"&gt;Feed Title&lt;/span&gt;</property>
                 <property name="use_markup">True</property>
+                <property name="ellipsize">end</property>
               </object>
               <packing>
                 <property name="expand">False</property>
