@@ -290,12 +290,15 @@ public class FeedPane : Bin {
         feed_list.get_cursor (out path, null);
 
         if (path != null) {
-            FeedDataEntry entry = feed_data.get_data_from_path (path);
+            path = feed_model.convert_path_to_child_path (path);
+            if (path != null) {
+                FeedDataEntry entry = feed_data.get_data_from_path (path);
 
-            selected_feed = entry as Feed;
-            selected_collection = entry as FeedCollection;
+                selected_feed = entry as Feed;
+                selected_collection = entry as FeedCollection;
 
-            owner.display_node (feed_data.get_node_from_path (path));
+                owner.display_node (feed_data.get_node_from_path (path));
+            }
         }
     }
 
