@@ -122,10 +122,12 @@ public class MainWindow : Gtk.ApplicationWindow {
         {
             feed_pane.expand_base ();
             if (val == SingularityApp.LoadStatus.COMPLETED) {
-                if (app.has_subscriptions)
+                view_switcher.sensitive = true;
+                if (app.has_subscriptions) {
                     view_stack.set_visible_child (m_item_view);
-                else
+                } else {
                     view_stack.visible_child_name = "welcome";
+                }
             }
         });
 
@@ -254,6 +256,8 @@ public class MainWindow : Gtk.ApplicationWindow {
     private Stack view_stack;
     [GtkChild]
     private FeedPane feed_pane;
+    [GtkChild]
+    private Box view_switcher;
 
     private SingularityApp app;
     private SettingsView m_settings_view;
