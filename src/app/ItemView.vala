@@ -93,7 +93,7 @@ public class StreamItemView : Box, ItemView {
         if (desc != null) {
             desc_label.label = desc.substring (0, desc.index_of ("\n"));
         } else {
-            desc_label.label = "";
+            desc_label.label = "No description";
         }
     }
 
@@ -404,7 +404,7 @@ public class GridItemView : Box, ItemView {
         if (desc != null) {
             desc_label.label = desc.substring (0, desc.index_of ("\n"));
         } else {
-            desc_label.label = "";
+            desc_label.label = "No description";
         }
     }
 

@@ -38,6 +38,16 @@ public class MainWindow : Gtk.ApplicationWindow {
         }
     }
     private bool _important_view = true;
+    public bool search_mode {
+        get { return _search_mode; }
+        set {
+            if (_search_mode != value) {
+                _search_mode = value;
+                // TODO
+            }
+        }
+    }
+    private bool _search_mode = false;
 
     public MainWindow (SingularityApp owner_app) {
         app = owner_app;
@@ -46,6 +56,7 @@ public class MainWindow : Gtk.ApplicationWindow {
 
         var group = new SimpleActionGroup ();
         group.add_action (new PropertyAction ("important", this, "important_view"));
+        group.add_action (new PropertyAction ("search_mode", this, "search_mode"));
         insert_action_group ("view", group);
 
         m_last_displayed_node = null;
