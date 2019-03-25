@@ -316,11 +316,19 @@ public class FeedPane : Bin {
     [GtkCallback]
     private void on_search_changed (SearchEntry entry) {
         feed_model.search_text = entry.text;
+        if(feed_model.has_search_text) {
+            feed_list.expand_all ();
+        } else {
+            feed_list.collapse_all ();
+            expand_base ();
+        }
     }
 
     [GtkCallback]
     private void on_stop_search (SearchEntry entry) {
         search_mode = false;
+        feed_list.collapse_all ();
+        expand_base ();
     }
 
     [GtkCallback]
