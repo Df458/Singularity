@@ -20,11 +20,13 @@ using Gee;
 namespace Singularity {
 // Constructs HTML for the column view
 public class ColumnViewBuilder : ViewBuilder, GLib.Object {
-    public ColumnViewBuilder () {
+    public ColumnViewBuilder (Gtk.StyleContext ctx) {
         try {
-            head = "<head><style>\n%s\n%s\n</style></head>".printf (
+            head = "<head><style>\n%s\n%s\n%s\n</style></head>".printf (
                 resource_to_string ("default.css"),
-                resource_to_string ("column.css"));
+                resource_to_string ("column.css"),
+                WebStyleBuilder.get_css (ctx)
+                );
         } catch (Error e) {
             warning ("Failed to read style information: %s", e.message);
         }

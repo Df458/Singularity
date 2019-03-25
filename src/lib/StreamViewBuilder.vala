@@ -20,11 +20,13 @@ using Gee;
 namespace Singularity {
 // Constructs HTML for the stream view
 public class StreamViewBuilder : ViewBuilder, GLib.Object {
-    public StreamViewBuilder () {
+    public StreamViewBuilder (Gtk.StyleContext ctx) {
         try {
-            head = "<head><style>\n%s\n%s\n</style></head>".printf (
+            head = "<head><style>\n%s\n%s\n%s\n</style></head>".printf (
                 resource_to_string ("default.css"),
-                resource_to_string ("stream.css"));
+                resource_to_string ("stream.css"),
+                WebStyleBuilder.get_css (ctx)
+                );
         } catch (Error e) {
             warning ("Failed to read style information");
         }

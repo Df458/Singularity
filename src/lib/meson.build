@@ -36,6 +36,7 @@ libsrc = files(
     'UpdateParentRequest.vala',
     'UpdateQueue.vala',
     'ViewBuilder.vala',
+    'WebStyleBuilder.vala',
     'XmlRequest.vala'
   )
 libcsrc = ['jshandler.c']

@@ -1,11 +1,13 @@
 namespace Singularity {
 // Constructs HTML for the column view
 public class GridViewBuilder : ViewBuilder, GLib.Object {
-    public GridViewBuilder () {
+    public GridViewBuilder (Gtk.StyleContext ctx) {
         try {
-            head = "<head><style>\n%s\n%s\n</style></head>".printf (
+            head = "<head><style>\n%s\n%s\n%s\n</style></head>".printf (
                 resource_to_string ("default.css"),
-                resource_to_string ("grid.css"));
+                resource_to_string ("grid.css"),
+                WebStyleBuilder.get_css (ctx)
+                );
         } catch (Error e) {
             warning ("Failed to read style information");
         }

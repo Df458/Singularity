@@ -77,7 +77,7 @@ public class StreamItemView : Box, ItemView {
         content_manager.script_message_received.connect (message_received);
         content_manager.register_script_message_handler ("test");
 
-        m_builder = new StreamViewBuilder ();
+        m_builder = new StreamViewBuilder (get_style_context ());
 
         pack_start (m_web_view, true, true);
 
@@ -204,7 +204,7 @@ public class ColumnItemView : Paned, ItemView {
 
         m_web_view.decide_policy.connect (policy_decision);
 
-        m_builder = new ColumnViewBuilder ();
+        m_builder = new ColumnViewBuilder (get_style_context ());
 
         item_box.bind_model (items, (i) => {
             var entry = new ItemListEntry (i as Item);
@@ -395,7 +395,7 @@ public class GridItemView : Box, ItemView {
         content_manager.script_message_received.connect (message_received);
         content_manager.register_script_message_handler ("test");
 
-        m_builder = new GridViewBuilder ();
+        m_builder = new GridViewBuilder (get_style_context ());
 
         pack_start (m_web_view, true, true);
 

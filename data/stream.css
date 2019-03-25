@@ -1,6 +1,6 @@
 article {
-    padding: 12px;
-    margin: 18px;
+    padding: 6px;
+    margin: 12px;
     /*background: #aaaaaa;*/
     background: #444444;
     border-radius: 3px;
@@ -45,11 +45,6 @@ article+article {
     padding-top: 12px;
     padding-bottom: 12px;
     overflow: hidden;
-}
-
-.tags-list {
-    /*color: #777777;*/
-    color: #777777;
 }
 
 hr {
