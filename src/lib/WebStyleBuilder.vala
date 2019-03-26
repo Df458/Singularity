@@ -17,7 +17,7 @@ namespace Singularity {
 
             return template.printf (
                 family[0],
-                font_size.get_double().to_string (),
+                font_size.get_double ().to_string (),
                 foreground.to_string ()
             );
         }

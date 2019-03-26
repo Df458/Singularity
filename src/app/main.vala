@@ -23,6 +23,8 @@ public static int main (string[] args) {
         return 1;
     }
 
+    init ();
+
     SingularityApp app = new SingularityApp ();
 
     return app.run ();

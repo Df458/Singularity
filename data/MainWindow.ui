@@ -117,7 +117,7 @@
       </packing>
     </child>
   </object>
-  <template class="MainWindow" parent="GtkApplicationWindow">
+  <template class="SingularityMainWindow" parent="GtkApplicationWindow">
     <property name="can_focus">False</property>
     <property name="window_position">center</property>
     <property name="default_width">1600</property>
@@ -286,6 +286,48 @@
                     <property name="name">loading</property>
                     <property name="title" translatable="yes">page0</property>
                     <property name="position">1</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="SingularityStreamItemView" id="stream_view">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <signal name="item-read-toggle" handler="on_item_read_toggle" swapped="no"/>
+                    <signal name="item-star-toggle" handler="on_item_star_toggle" swapped="no"/>
+                    <signal name="items-viewed" handler="on_items_viewed" swapped="no"/>
+                  </object>
+                  <packing>
+                    <property name="name">items_stream</property>
+                    <property name="title" translatable="yes">page0</property>
+                    <property name="position">2</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="SingularityColumnItemView" id="column_view">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <signal name="item-read-toggle" handler="on_item_read_toggle" swapped="no"/>
+                    <signal name="item-star-toggle" handler="on_item_star_toggle" swapped="no"/>
+                    <signal name="items-viewed" handler="on_items_viewed" swapped="no"/>
+                  </object>
+                  <packing>
+                    <property name="name">items_column</property>
+                    <property name="title" translatable="yes">page1</property>
+                    <property name="position">3</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="SingularityGridItemView" id="grid_view">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <signal name="item-read-toggle" handler="on_item_read_toggle" swapped="no"/>
+                    <signal name="item-star-toggle" handler="on_item_star_toggle" swapped="no"/>
+                    <signal name="items-viewed" handler="on_items_viewed" swapped="no"/>
+                  </object>
+                  <packing>
+                    <property name="name">items_grid</property>
+                    <property name="title" translatable="yes">page2</property>
+                    <property name="position">4</property>
                   </packing>
                 </child>
               </object>
