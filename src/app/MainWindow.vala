@@ -64,9 +64,6 @@ namespace Singularity {
 
             m_item_view = view_stack.get_child_by_name ("items_stream") as ItemView;
 
-            m_settings_view = new SettingsView ();
-            view_stack.add_named (m_settings_view, "settings");
-
             feed_pane.init (this, app.get_feed_store ());
             m_feed_builder = new FeedBuilder ();
 
@@ -109,17 +106,6 @@ namespace Singularity {
                 m_feed_builder.hide ();
             });
 
-            m_settings_view.done.connect ( () =>
-            {
-                if (!app.init_success) {
-                    view_stack.visible_child_name = "loading";
-                } else if (!app.has_subscriptions) {
-                    view_stack.visible_child_name = "welcome";
-                } else {
-                    view_stack.set_visible_child (m_item_view);
-                }
-            });
-
             if (!app.init_success)
                 view_stack.visible_child_name = "loading";
 
@@ -160,6 +146,11 @@ namespace Singularity {
                         node.data.title,
                         (node.data is Feed) ? (node.data as Feed).description : "");
             }
+        }
+
+        public void preferences () {
+            settings_view.sync ();
+            view_stack.set_visible_child_name ("settings");
         }
 
         public signal void update_requested (Feed? feed);
@@ -219,9 +210,15 @@ namespace Singularity {
             app.toggle_star (item);
         }
 
-        public void preferences () {
-            m_settings_view.sync ();
-            view_stack.set_visible_child_name ("settings");
+        [GtkCallback]
+        private void on_done () {
+            if (!app.init_success) {
+                view_stack.visible_child_name = "loading";
+            } else if (!app.has_subscriptions) {
+                view_stack.visible_child_name = "welcome";
+            } else {
+                view_stack.set_visible_child (m_item_view);
+            }
         }
 
         [GtkChild]
@@ -234,9 +231,10 @@ namespace Singularity {
         private FeedPane feed_pane;
         [GtkChild]
         private Box view_switcher;
+        [GtkChild]
+        private SettingsView settings_view;
 
         private SingularityApp app;
-        private SettingsView m_settings_view;
 
         private ItemView m_item_view;
 
