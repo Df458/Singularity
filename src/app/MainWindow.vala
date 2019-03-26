@@ -106,8 +106,9 @@ namespace Singularity {
                 m_feed_builder.hide ();
             });
 
-            if (!app.init_success)
+            if (!app.init_success) {
                 view_stack.visible_child_name = "loading";
+            }
 
             this.show_all ();
 
@@ -241,15 +242,5 @@ namespace Singularity {
         private FeedBuilder m_feed_builder;
 
         private CollectionNode? m_last_displayed_node;
-
-        private enum FeedColumn {
-            WORKING = 0,
-            TITLE,
-            UNREAD_COUNT,
-            SHOW_UNREAD_COUNT,
-            FEED_ID,
-            STARRED_COUNT
-        }
-
     }
 }
