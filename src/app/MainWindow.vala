@@ -50,6 +50,20 @@ namespace Singularity {
         }
         private bool _search_mode = false;
 
+        /**
+         * The direction that items are sorted in
+         */
+        public SortType sort_type {
+            get { return _sort_type == 1 ? SortType.ASCENDING : SortType.DESCENDING; }
+            set {
+                int mod = value == SortType.ASCENDING ? 1 : -1;
+                if (_sort_type != mod) {
+                    _sort_type = mod;
+                }
+            }
+        }
+        private int _sort_type = 1;
+
         public MainWindow (SingularityApp owner_app) {
             app = owner_app;
             window_position = WindowPosition.CENTER;
@@ -57,6 +71,7 @@ namespace Singularity {
 
             var group = new SimpleActionGroup ();
             group.add_action (new PropertyAction ("important", this, "important_view"));
+            group.add_action (new PropertyAction ("sort_type", this, "sort_type"));
             /* group.add_action (new PropertyAction ("search_mode", this, "search_mode")); */
             insert_action_group ("view", group);
 
@@ -129,18 +144,19 @@ namespace Singularity {
 
             if (node != null) {
                 Gee.Iterator<Item> iter = node.data.get_items ().iterator ();
-                if (important_view)
+                if (important_view) {
                     iter = iter.filter ( (i) => { return i.unread || i.starred; });
-                else {
+                } else {
                     iter = iter.order_by ( (i1, i2) => {
                         if (i1.unread) {
-                            if (!i2.unread)
-                                return -1;
+                            if (!i2.unread) {
+                                return -1 * _sort_type;
+                            }
                         } else if (i2.unread) {
-                            return 1;
+                            return 1 * _sort_type;
                         }
 
-                        return strcmp (i1.owner.title, i2.owner.title);
+                        return strcmp (i1.owner.title, i2.owner.title) * _sort_type;
                     });
                 }
                 m_item_view.view_items (

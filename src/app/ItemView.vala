@@ -88,7 +88,7 @@ namespace Singularity {
             string html = m_builder.buildPageHTML (m_item_list, AppSettings.items_per_list);
             m_web_view.load_html (html, "file://singularity");
 
-            list_menu_button.menu_model = ViewMenuBuilder.get();
+            list_menu_button.menu_model = ViewMenuBuilder.get ();
         }
         // Sets the items to display
         public void view_items (Gee.Traversable<Item> item_list, string title, string? desc) {
