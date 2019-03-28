@@ -7,6 +7,7 @@ appsrc = files(
     'Init.vala',
     'ItemListEntry.vala',
     'ItemView.vala',
+    'menus/ViewMenuBuilder.vala',
     'MainWindow.vala',
     'PropertiesWindow.vala',
     'SettingsView.vala',

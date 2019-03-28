@@ -16,8 +16,9 @@
      along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 using Gtk;
-using WebKit;
 using JSHandler;
+using Singularity.Menus;
+using WebKit;
 
 namespace Singularity {
     // Interface for widgets that display items
@@ -86,6 +87,8 @@ namespace Singularity {
 
             string html = m_builder.buildPageHTML (m_item_list, AppSettings.items_per_list);
             m_web_view.load_html (html, "file://singularity");
+
+            list_menu_button.menu_model = ViewMenuBuilder.get();
         }
         // Sets the items to display
         public void view_items (Gee.Traversable<Item> item_list, string title, string? desc) {
@@ -115,6 +118,8 @@ namespace Singularity {
         private Label desc_label;
         [GtkChild]
         private Box content;
+        [GtkChild]
+        private MenuButton list_menu_button;
 
         private int page_cursor = 0;
 
@@ -230,6 +235,8 @@ namespace Singularity {
 
             string html = m_builder.buildPageHTML (m_item_list, AppSettings.items_per_list);
             m_web_view.load_html (html, "file://singularity");
+
+            list_menu_button.menu_model = ViewMenuBuilder.get ();
         }
         // Sets the items to display
         public void view_items (Gee.Traversable<Item> item_list, string title, string? desc) {
@@ -263,6 +270,9 @@ namespace Singularity {
         private Label title_label;
         [GtkChild]
         private ToggleButton star_button;
+        [GtkChild]
+        private MenuButton list_menu_button;
+
         private ColumnViewBuilder m_builder;
         private Gee.List<Item> m_item_list = new Gee.ArrayList<Item> ();
         private Gee.List<ItemListEntry> m_row_list = new Gee.ArrayList<ItemListEntry> ();
@@ -410,6 +420,8 @@ namespace Singularity {
 
             string html = m_builder.buildPageHTML (m_item_list, AppSettings.items_per_list);
             m_web_view.load_html (html, "file://singularity");
+
+            list_menu_button.menu_model = ViewMenuBuilder.get ();
         }
         // Sets the items to display
         public void view_items (Gee.Traversable<Item> item_list, string title, string? desc) {
@@ -439,6 +451,8 @@ namespace Singularity {
         private Label desc_label;
         [GtkChild]
         private Box content;
+        [GtkChild]
+        private MenuButton list_menu_button;
 
         private int page_cursor = 0;
 

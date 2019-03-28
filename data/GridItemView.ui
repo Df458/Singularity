@@ -87,12 +87,11 @@
                 <property name="valign">start</property>
                 <property name="spacing">6</property>
                 <child>
-                  <object class="GtkToggleButton" id="togglebutton2">
+                  <object class="GtkMenuButton" id="list_menu_button">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
-                    <property name="tooltip_text" translatable="yes">Show only important (unread, starred) items</property>
-                    <property name="action_name">view.important</property>
+                    <property name="tooltip_text" translatable="yes">View</property>
                     <child>
                       <object class="GtkImage">
                         <property name="visible">True</property>

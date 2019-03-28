@@ -136,8 +136,9 @@ namespace Singularity {
                         if (i1.unread) {
                             if (!i2.unread)
                                 return -1;
-                        } else if (i2.unread)
+                        } else if (i2.unread) {
                             return 1;
+                        }
 
                         return strcmp (i1.owner.title, i2.owner.title);
                     });
