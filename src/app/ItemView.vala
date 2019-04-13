@@ -23,8 +23,12 @@ using WebKit;
 namespace Singularity {
     // Interface for widgets that display items
     public interface ItemView : Widget {
-        // Sets the items to display
-        public abstract void view_items (Gee.Traversable<Item> items, string title, string? desc);
+        /**
+         * Display a list of items
+         *
+         * @param items The items to display
+         */
+        public abstract void view_items (Gee.Traversable<Item> items);
 
         public signal void items_viewed (Item[] i);
         public signal void item_read_toggle (Item i);
@@ -90,8 +94,13 @@ namespace Singularity {
 
             list_menu_button.menu_model = ViewMenuBuilder.get ();
         }
-        // Sets the items to display
-        public void view_items (Gee.Traversable<Item> item_list, string title, string? desc) {
+
+        /**
+         * Display a list of items
+         *
+         * @param items The items to display
+         */
+        public void view_items (Gee.Traversable<Item> item_list) {
             page_cursor = 0;
 
             m_item_list = new Gee.ArrayList<Item> ();
@@ -99,23 +108,12 @@ namespace Singularity {
 
             string html = m_builder.buildPageHTML (m_item_list, AppSettings.items_per_list);
             m_web_view.load_html (html, "file://singularity");
-
-            title_label.label = "<span font=\"24\">%s</span>".printf (title);
-            if (desc != null) {
-                desc_label.label = desc.substring (0, desc.index_of ("\n"));
-            } else {
-                desc_label.label = "No description";
-            }
         }
 
         private StreamViewBuilder m_builder;
         private Gee.List<Item> m_item_list = new Gee.ArrayList<Item> ();
         private WebKit.WebView m_web_view;
 
-        [GtkChild]
-        private Label title_label;
-        [GtkChild]
-        private Label desc_label;
         [GtkChild]
         private Box content;
         [GtkChild]
@@ -238,12 +236,15 @@ namespace Singularity {
 
             list_menu_button.menu_model = ViewMenuBuilder.get ();
         }
-        // Sets the items to display
-        public void view_items (Gee.Traversable<Item> item_list, string title, string? desc) {
+
+        /**
+         * Display a list of items
+         *
+         * @param items The items to display
+         */
+        public void view_items (Gee.Traversable<Item> item_list) {
             page_cursor = 0;
             column_scroll.vadjustment.set_value (0);
-
-            title_label.label = title;
 
             m_item_list = new Gee.ArrayList<Item> ();
             items.remove_all ();
@@ -266,8 +267,6 @@ namespace Singularity {
         private Box webview_box;
         [GtkChild]
         private ScrolledWindow column_scroll;
-        [GtkChild]
-        private Label title_label;
         [GtkChild]
         private ToggleButton star_button;
         [GtkChild]
@@ -423,8 +422,13 @@ namespace Singularity {
 
             list_menu_button.menu_model = ViewMenuBuilder.get ();
         }
-        // Sets the items to display
-        public void view_items (Gee.Traversable<Item> item_list, string title, string? desc) {
+
+        /**
+         * Display a list of items
+         *
+         * @param items The items to display
+         */
+        public void view_items (Gee.Traversable<Item> item_list) {
             page_cursor = 0;
 
             m_item_list = new Gee.ArrayList<Item> ();
@@ -432,23 +436,12 @@ namespace Singularity {
 
             string html = m_builder.buildPageHTML (m_item_list, AppSettings.items_per_list);
             m_web_view.load_html (html, "file://singularity");
-
-            title_label.label = "<span font=\"24\">%s</span>".printf (title);
-            if (desc != null) {
-                desc_label.label = desc.substring (0, desc.index_of ("\n"));
-            } else {
-                desc_label.label = "No description";
-            }
         }
 
         private GridViewBuilder m_builder;
         private Gee.List<Item> m_item_list = new Gee.ArrayList<Item> ();
         private WebKit.WebView m_web_view;
 
-        [GtkChild]
-        private Label title_label;
-        [GtkChild]
-        private Label desc_label;
         [GtkChild]
         private Box content;
         [GtkChild]

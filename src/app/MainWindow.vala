@@ -141,7 +141,9 @@ namespace Singularity {
 
         public void display_node (CollectionNode? node) {
             m_last_displayed_node = node;
+            update_title_from_selection ();
 
+            // Prepare the item list
             if (node != null) {
                 Gee.Iterator<Item> iter = node.data.get_items ().iterator ();
                 if (important_view) {
@@ -159,16 +161,17 @@ namespace Singularity {
                         return strcmp (i1.owner.title, i2.owner.title) * _sort_type;
                     });
                 }
-                m_item_view.view_items (
-                        iter,
-                        node.data.title,
-                        (node.data is Feed) ? (node.data as Feed).description : "");
+
+                m_item_view.view_items (iter);
             }
         }
 
         public void preferences () {
             settings_view.sync ();
             view_stack.set_visible_child_name ("settings");
+
+            title = "Preferences";
+            header.subtitle = "";
         }
 
         public signal void update_requested (Feed? feed);
@@ -176,6 +179,22 @@ namespace Singularity {
         public signal void new_collection_requested (FeedCollection? parent);
         public signal void rename_node_requested (CollectionNode? node, string title);
         public signal void delete_collection_requested (FeedCollection? collection);
+
+        /**
+         * Uppdate the HeaderBar's title and description from the last selected node
+         *
+         * If the node is null, this just falls back to the application name
+         */
+        private void update_title_from_selection () {
+            if (m_last_displayed_node != null) {
+                var feed = m_last_displayed_node.data as Feed;
+                title = m_last_displayed_node.data.title;
+                header.subtitle = (feed != null) ? feed.description : "";
+            } else {
+                title = "Singularity";
+                header.subtitle = "";
+            }
+        }
 
         [GtkCallback]
         public void add_clicked (Gtk.Button button) {
@@ -236,6 +255,9 @@ namespace Singularity {
                 view_stack.visible_child_name = "welcome";
             } else {
                 view_stack.set_visible_child (m_item_view);
+
+                // Reset the title
+                update_title_from_selection ();
             }
         }
 
@@ -251,6 +273,8 @@ namespace Singularity {
         private Box view_switcher;
         [GtkChild]
         private SettingsView settings_view;
+        [GtkChild]
+        private HeaderBar header;
 
         private SingularityApp app;
 
