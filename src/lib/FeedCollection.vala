@@ -96,18 +96,15 @@ namespace Singularity {
             }
         }
 
-        protected override bool build_from_record (SQLHeavy.Record r) {
-            try {
-                set_id (r.fetch_int (0));
+        /** Populate data from a database record
+         * @param r The record to read
+         */
+        protected override void build_from_record (Record r) throws SQLHeavy.Error {
+            set_id (r.fetch_int (0));
 
-                parent_id = r.fetch_int (r.field_index ("parent_id"));
-                title = r.get_string ("title");
-                // TODO: Decide how to store icons
-                return true;
-            } catch (SQLHeavy.Error e) {
-                warning ("Cannot load collection data: " + e.message);
-                return false;
-            }
+            parent_id = r.fetch_int (r.field_index ("parent_id"));
+            title = r.get_string ("title");
+            // TODO: Decide how to store icons
         }
 
         public void prepare_for_db (int new_id) {

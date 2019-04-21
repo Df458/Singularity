@@ -195,34 +195,32 @@ namespace Singularity {
             items.add (i);
         }
 
-        protected override bool build_from_record (SQLHeavy.Record r) {
-            try {
-                // FIXME: This is currently necessary due to a left outer join. See if this can be removed somehow.
-                set_id (r.fetch_int (0));
+        /** Populate data from a database record
+         * @param r The record to read
+         */
+        protected override void build_from_record (Record r) throws SQLHeavy.Error {
+            // FIXME: This is currently necessary due to a left outer join. See if this can be removed somehow.
+            set_id (r.fetch_int (0));
 
-                parent_id = r.fetch_int (r.field_index ("parent_id"));
-                title = r.fetch_string (r.field_index ("title"));
-                link = r.fetch_string (r.field_index ("link"));
-                site_link = r.fetch_string (r.field_index ("site_link"));
-                description = r.fetch_string (r.field_index ("description"));
-                rights = r.fetch_string (r.field_index ("rights"));
-                generator = r.fetch_string (r.field_index ("generator"));
-                last_update = new DateTime.from_unix_utc (r.fetch_int (r.field_index ("last_update")));
-                // TODO: Decide how to store icons
-                // TODO: Decide how to store tags
-                uint8[] data = r.fetch_blob (r.field_index ("data"));
-                if (data != null) {
-                    int width = r.fetch_int (r.field_index ("width"));
-                    int height = r.fetch_int (r.field_index ("height"));
-                    int bits = r.fetch_int (r.field_index ("bits"));
-                    int stride = r.fetch_int (r.field_index ("rowstride"));
-                    bool has_alpha = r.fetch_int (r.field_index ("alpha")) == 1;
-                    icon = new Gdk.Pixbuf.from_data (data, Gdk.Colorspace.RGB, has_alpha, bits, width, height, stride);
-                }
-                return true;
-            } catch (SQLHeavy.Error e) {
-                warning ("Cannot load collection data: " + e.message);
-                return false;
+            parent_id = r.fetch_int (r.field_index ("parent_id"));
+            title = r.fetch_string (r.field_index ("title"));
+            link = r.fetch_string (r.field_index ("link"));
+            site_link = r.fetch_string (r.field_index ("site_link"));
+            description = r.fetch_string (r.field_index ("description"));
+            rights = r.fetch_string (r.field_index ("rights"));
+            generator = r.fetch_string (r.field_index ("generator"));
+            last_update = new DateTime.from_unix_utc (r.fetch_int (r.field_index ("last_update")));
+            // TODO: Decide how to store tags
+
+            // Load icon
+            uint8[] data = r.fetch_blob (r.field_index ("data"));
+            if (data != null) {
+                int width = r.fetch_int (r.field_index ("width"));
+                int height = r.fetch_int (r.field_index ("height"));
+                int bits = r.fetch_int (r.field_index ("bits"));
+                int stride = r.fetch_int (r.field_index ("rowstride"));
+                bool has_alpha = r.fetch_int (r.field_index ("alpha")) == 1;
+                icon = new Gdk.Pixbuf.from_data (data, Gdk.Colorspace.RGB, has_alpha, bits, width, height, stride);
             }
         }
 

@@ -46,20 +46,15 @@ namespace Singularity {
             set_guid (md5_guid (owner.guid+url));
         }
 
-        // Tries to populate data from a database record
-        // Returns true if successful
-        protected override bool build_from_record (SQLHeavy.Record r) {
-            try {
-                set_guid (r.get_string ("guid"));
-                name = r.get_string ("name");
-                url = r.get_string ("uri");
-                size = r.get_int ("length");
-                mimetype = r.get_string ("mimetype");
-                return true;
-            } catch (SQLHeavy.Error e) {
-                warning ("Cannot load attachment data: " + e.message);
-                return false;
-            }
+        /** Populate data from a database record
+         * @param r The record to read
+         */
+        protected override void build_from_record (Record r) throws SQLHeavy.Error {
+            set_guid (r.get_string ("guid"));
+            name = r.get_string ("name");
+            url = r.get_string ("uri");
+            size = r.get_int ("length");
+            mimetype = r.get_string ("mimetype");
         }
     }
 }
