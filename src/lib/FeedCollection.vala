@@ -54,49 +54,49 @@ namespace Singularity {
             c.data.parent = null;
         }
 
-        public override Query? insert (Queryable q) {
-            try {
-                Query query = new Query (q, """INSERT INTO feeds (id, parent_id, type, title)
-                    VALUES (:id, :parent_id, :type, :title)""");
-                query[":id"] = id;
-                query[":parent_id"] = parent_id;
-                query[":type"] = CollectionNode.Contents.COLLECTION;
-                query[":title"] = title;
-                // TODO: Decide how to store icons
-                return query;
-            } catch (SQLHeavy.Error e) {
-                warning ("Cannot insert collection data: " + e.message);
-                return null;
-            }
+        /** Creates a query for inserting this entry
+         *
+         * @param q The Queryable to run this query against
+         */
+        public override Query? insert (Queryable q) throws SQLHeavy.Error {
+            Query query = new Query (q, """INSERT INTO feeds (id, parent_id, type, title)
+                VALUES (:id, :parent_id, :type, :title)""");
+            query[":id"] = id;
+            query[":parent_id"] = parent_id;
+            query[":type"] = CollectionNode.Contents.COLLECTION;
+            query[":title"] = title;
+            // TODO: Decide how to store icons
+            return query;
         }
-        public override Query? update (Queryable q) {
-            try {
-                Query query = new Query (q, """UPDATE collections SET
-                        title = :title,
-                        parent_id = :parent_id
-                    WHERE id = :id""");
-                query[":id"] = id;
-                query[":parent_id"] = parent_id;
-                query[":title"] = title;
-                // TODO: Decide how to store icons
-                return query;
-            } catch (SQLHeavy.Error e) {
-                warning ("Cannot update collection data: " + e.message);
-                return null;
-            }
+
+        /** Creates a query for updating this entry
+         *
+         * @param q The Queryable to run this query against
+         */
+        public override Query? update (Queryable q) throws SQLHeavy.Error {
+            Query query = new Query (q, """UPDATE collections SET
+                    title = :title,
+                    parent_id = :parent_id
+                WHERE id = :id""");
+            query[":id"] = id;
+            query[":parent_id"] = parent_id;
+            query[":title"] = title;
+            // TODO: Decide how to store icons
+            return query;
         }
-        public override Query? remove (Queryable q) {
-            try {
-                Query query = new Query (q, "DELETE FROM collections WHERE `id` = :id");
-                query[":id"] = id;
-                return query;
-            } catch (SQLHeavy.Error e) {
-                warning ("Cannot remove collection data: " + e.message);
-                return null;
-            }
+
+        /** Creates a query for removing this entry
+         *
+         * @param q The Queryable to run this query against
+         */
+        public override Query? remove (Queryable q) throws SQLHeavy.Error {
+            Query query = new Query (q, "DELETE FROM collections WHERE `id` = :id");
+            query[":id"] = id;
+            return query;
         }
 
         /** Populate data from a database record
+         *
          * @param r The record to read
          */
         protected override void build_from_record (Record r) throws SQLHeavy.Error {

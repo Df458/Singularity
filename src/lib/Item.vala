@@ -60,93 +60,92 @@ namespace Singularity {
             base.from_record (r);
         }
 
-        public override Query? insert (Queryable q) {
-            try {
-                Query query = new Query (q, """INSERT INTO items (
-                            parent_id,
-                            guid,
-                            weak_guid,
-                            title,
-                            link,
-                            content,
-                            rights,
-                            publish_time,
-                            update_time,
-                            load_time,
-                            unread,
-                            starred
-                            ) VALUES (
-                                :parent_id,
-                                :guid,
-                                :title,
-                                :link,
-                                :content,
-                                :rights,
-                                :publish_time,
-                                :update_time,
-                                :load_time,
-                                :unread,
-                                :starred
-                                )""");
-                query[":parent_id"] = owner.id;
-                query[":guid"] = guid;
-                query[":weak_guid"] = weak_guid;
-                query[":title"] = title;
-                query[":link"] = link;
-                query[":content"] = content;
-                query[":rights"] = rights;
-                query[":publish_time"] = time_published.to_unix ();
-                query[":update_time"] = time_updated.to_unix ();
-                query[":load_time"] = time_loaded.to_unix ();
-                query[":unread"] = unread ? 1 : 0;
-                query[":starred"] = starred ? 1 : 0;
-                // TODO: Decide how to store authors
-                // TODO: Decide how to store contributors
-                // TODO: Decide how to store tags
-                return query;
-            } catch (SQLHeavy.Error e) {
-                warning ("Cannot insert item data: " + e.message);
-                return null;
-            }
+        /** Creates a query for inserting this entry
+         *
+         * @param q The Queryable to run this query against
+         */
+        public override Query? insert (Queryable q) throws SQLHeavy.Error {
+            Query query = new Query (q, """INSERT INTO items (
+                        parent_id,
+                        guid,
+                        weak_guid,
+                        title,
+                        link,
+                        content,
+                        rights,
+                        publish_time,
+                        update_time,
+                        load_time,
+                        unread,
+                        starred
+                        ) VALUES (
+                            :parent_id,
+                            :guid,
+                            :title,
+                            :link,
+                            :content,
+                            :rights,
+                            :publish_time,
+                            :update_time,
+                            :load_time,
+                            :unread,
+                            :starred
+                            )""");
+            query[":parent_id"] = owner.id;
+            query[":guid"] = guid;
+            query[":weak_guid"] = weak_guid;
+            query[":title"] = title;
+            query[":link"] = link;
+            query[":content"] = content;
+            query[":rights"] = rights;
+            query[":publish_time"] = time_published.to_unix ();
+            query[":update_time"] = time_updated.to_unix ();
+            query[":load_time"] = time_loaded.to_unix ();
+            query[":unread"] = unread ? 1 : 0;
+            query[":starred"] = starred ? 1 : 0;
+            // TODO: Decide how to store authors
+            // TODO: Decide how to store contributors
+            // TODO: Decide how to store tags
+            return query;
         }
-        public override Query? update (Queryable q) {
-            try {
-                Query query = new Query (q, """UPDATE items SET
-                        title = :title,
-                        link = :link,
-                        content = :content,
-                        rights = :rights,
-                        publish_time = :publish_time,
-                        update_time = :update_time,
-                        load_time = :load_time WHERE guid = :guid
-                        """);
-                query[":guid"] = guid;
-                query[":title"] = title;
-                query[":link"] = link;
-                query[":content"] = content;
-                query[":rights"] = rights;
-                query[":publish_time"] = time_published.to_unix ();
-                query[":update_time"] = time_updated.to_unix ();
-                query[":load_time"] = time_loaded.to_unix ();
-                // TODO: Decide how to store authors
-                // TODO: Decide how to store contributors
-                // TODO: Decide how to store tags
-                // TODO: Decide how to store attachments
-                return query;
-            } catch (SQLHeavy.Error e) {
-                warning ("Cannot update item data: " + e.message);
-                return null;
-            }
+
+        /** Creates a query for updating this entry
+         *
+         * @param q The Queryable to run this query against
+         */
+        public override Query? update (Queryable q) throws SQLHeavy.Error {
+            Query query = new Query (q, """UPDATE items SET
+                    title = :title,
+                    link = :link,
+                    content = :content,
+                    rights = :rights,
+                    publish_time = :publish_time,
+                    update_time = :update_time,
+                    load_time = :load_time WHERE guid = :guid
+                    """);
+            query[":guid"] = guid;
+            query[":title"] = title;
+            query[":link"] = link;
+            query[":content"] = content;
+            query[":rights"] = rights;
+            query[":publish_time"] = time_published.to_unix ();
+            query[":update_time"] = time_updated.to_unix ();
+            query[":load_time"] = time_loaded.to_unix ();
+            // TODO: Decide how to store authors
+            // TODO: Decide how to store contributors
+            // TODO: Decide how to store tags
+            // TODO: Decide how to store attachments
+            return query;
         }
-        public override Query? remove (Queryable q) {
-            try {
-                Query query = new Query (q, "DELETE FROM items WHERE `guid` = :guid");
-                query[":guid"] = guid;
-                return query;
-            } catch (SQLHeavy.Error e) {
-                warning ("Cannot remove item data: " + e.message);
-                return null;
-            }
+
+        /** Creates a query for removing this entry
+         *
+         * @param q The Queryable to run this query against
+         */
+        public override Query? remove (Queryable q) throws SQLHeavy.Error {
+            Query query = new Query (q, "DELETE FROM items WHERE `guid` = :guid");
+            query[":guid"] = guid;
+            return query;
         }
 
         public void prepare_for_db () {
@@ -164,6 +163,7 @@ namespace Singularity {
         }
 
         /** Populate data from a database record
+         *
          * @param r The record to read
          */
         protected override void build_from_record (Record r) throws SQLHeavy.Error {

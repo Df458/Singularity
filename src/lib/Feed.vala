@@ -88,79 +88,76 @@ namespace Singularity {
             return true;
         }
 
-        public override Query? insert (Queryable q) {
-            try {
-                Query query = new Query (q, """INSERT INTO feeds
-                        (id, parent_id, type, title, link, site_link, description, rights, generator, last_update)
-                        VALUES (
-                            :id,
-                            :parent_id,
-                            :type,
-                            :title,
-                            :link,
-                            :site_link,
-                            :description,
-                            :rights,
-                            :generator,
-                            :last_update
+        /** Creates a query for inserting this entry
+         *
+         * @param q The Queryable to run this query against
+         */
+        public override Query? insert (Queryable q) throws SQLHeavy.Error {
+            Query query = new Query (q, """INSERT INTO feeds
+                    (id, parent_id, type, title, link, site_link, description, rights, generator, last_update)
+                    VALUES (
+                        :id,
+                        :parent_id,
+                        :type,
+                        :title,
+                        :link,
+                        :site_link,
+                        :description,
+                        :rights,
+                        :generator,
+                        :last_update
                         )""");
-                query[":id"] = id;
-                query[":parent_id"] = parent_id;
-                query[":type"] = (int)CollectionNode.Contents.FEED;
-                query[":title"] = title;
-                query[":link"] = link;
-                query[":site_link"] = site_link;
-                query[":description"] = description;
-                query[":rights"] = rights;
-                query[":generator"] = generator;
-                query[":last_update"] = last_update.to_unix ();
-                // TODO: Decide how to store icons
-                // TODO: Decide how to store tags
-                return query;
-            } catch (SQLHeavy.Error e) {
-                warning ("Cannot insert feed data: " + e.message);
-                return null;
-            }
+            query[":id"] = id;
+            query[":parent_id"] = parent_id;
+            query[":type"] = (int)CollectionNode.Contents.FEED;
+            query[":title"] = title;
+            query[":link"] = link;
+            query[":site_link"] = site_link;
+            query[":description"] = description;
+            query[":rights"] = rights;
+            query[":generator"] = generator;
+            query[":last_update"] = last_update.to_unix ();
+            // TODO: Decide how to store icons
+            // TODO: Decide how to store tags
+            return query;
         }
 
-        public override Query? update (Queryable q) {
-            try {
-                // TODO: Build the query to only have what's needed
-                Query query = new Query (q, """UPDATE feeds SET
-                        title = :title,
-                        link = :link,
-                        site_link = :site_link,
-                        description = :description,
-                        rights = :rights,
-                        generator = :generator,
-                        last_update = :last_update
+        /** Creates a query for updating this entry
+         *
+         * @param q The Queryable to run this query against
+         */
+        public override Query? update (Queryable q) throws SQLHeavy.Error {
+            // TODO: Build the query to only have what's needed
+            Query query = new Query (q, """UPDATE feeds SET
+                    title = :title,
+                    link = :link,
+                    site_link = :site_link,
+                    description = :description,
+                    rights = :rights,
+                    generator = :generator,
+                    last_update = :last_update
                     WHERE id = :id""");
-                query[":id"] = id;
-                query[":title"] = title;
-                query[":link"] = link;
-                query[":site_link"] = site_link;
-                query[":description"] = description;
-                query[":rights"] = rights;
-                query[":generator"] = generator;
-                query[":last_update"] = last_update.to_unix ();
-                // TODO: Decide how to store icons
-                // TODO: Decide how to store tags
-                return query;
-            } catch (SQLHeavy.Error e) {
-                warning ("Cannot update feed data: " + e.message);
-                return null;
-            }
+            query[":id"] = id;
+            query[":title"] = title;
+            query[":link"] = link;
+            query[":site_link"] = site_link;
+            query[":description"] = description;
+            query[":rights"] = rights;
+            query[":generator"] = generator;
+            query[":last_update"] = last_update.to_unix ();
+            // TODO: Decide how to store icons
+            // TODO: Decide how to store tags
+            return query;
         }
 
-        public override Query? remove (Queryable q) {
-            try {
-                Query query = new Query (q, "DELETE FROM feeds WHERE `id` = :id");
-                query[":id"] = id;
-                return query;
-            } catch (SQLHeavy.Error e) {
-                warning ("Cannot remove feed data: " + e.message);
-                return null;
-            }
+        /** Creates a query for removing this entry
+         *
+         * @param q The Queryable to run this query against
+         */
+        public override Query? remove (Queryable q) throws SQLHeavy.Error {
+            Query query = new Query (q, "DELETE FROM feeds WHERE `id` = :id");
+            query[":id"] = id;
+            return query;
         }
 
         public string to_string () {
@@ -196,6 +193,7 @@ namespace Singularity {
         }
 
         /** Populate data from a database record
+         *
          * @param r The record to read
          */
         protected override void build_from_record (Record r) throws SQLHeavy.Error {

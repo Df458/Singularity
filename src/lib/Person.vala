@@ -53,17 +53,6 @@ namespace Singularity {
             base.from_record (r);
         }
 
-        // Stubs for implementing DataEntryGuid
-        public override Query? insert (Queryable q) {
-            return null;
-        }
-        public override Query? update (Queryable q) {
-            return null;
-        }
-        public override Query? remove (Queryable q) {
-            return null;
-        }
-
         // Prepares and hashes this object's guid
         public void prepare_for_db (Item owner) {
             set_guid (md5_guid (to_string ()));
