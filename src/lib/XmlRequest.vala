@@ -65,8 +65,12 @@ namespace Singularity {
 
             loop.run ();
 
-            string data = (string)m_message.response_body.data;
+            if (m_message.status_code >= 400) {
+                error_message = get_status_error (m_message.status_code);
+                return false;
+            }
 
+            string data = (string)m_message.response_body.data;
             return create_doc (data);
         }
 
@@ -90,24 +94,13 @@ namespace Singularity {
             m_session.queue_message (m_message, (s, m) =>
             {
                 data = (string)m.response_body.data;
-                if (m.status_code == Soup.Status.NOT_FOUND) {
-                    error_message = "The server couldn't find the content requested";
-                    data = null;
-                }
-                if (m.status_code == Soup.Status.FORBIDDEN || m.status_code == Soup.Status.UNAUTHORIZED) {
-                    error_message = "The server denied the request";
-                    data = null;
-                }
                 Idle.add ((owned) callback);
             });
 
             yield;
 
-            if (data == null) {
-                if (error_message == null) {
-                    error_message = "Message data was not received";
-                }
-                warning ("%s: %s", uri, error_message);
+            if (m_message.status_code >= 400) {
+                error_message = get_status_error (m_message.status_code);
                 return false;
             }
 
@@ -138,11 +131,18 @@ namespace Singularity {
             }
         }
 
-        public string get_base_uri () {
-            return m_message.uri.get_host ();
-        }
-
+        /**
+         * Create the XML document from a string containing data
+         *
+         * @param data The data to parse
+         * @return true on success; otherwise, false
+         */
         private bool create_doc (string? data) {
+            if (data == null) {
+                error_message = "Message data was not received";
+                return false;
+            }
+
             doc_data = clean_xml (data);
             try {
                 doc = new GXml.GDocument.from_string (doc_data);
@@ -152,16 +152,47 @@ namespace Singularity {
                     doc = new GXml.GDocument.from_string (doc_data);
                 }
             } catch (GLib.Error e) {
-                warning ("Failed to parse document: %s\nData:\n%s", e.message, doc_data);
+                error_message = "Failed to parse document:\n\"%s\"".printf (doc_data);
                 doc = null;
             }
 
             if (doc == null) {
-                error_message = "Failed to parse document";
+                if (error_message != null) {
+                    error_message = "Failed to parse document: Unknown Error";
+                }
                 return false;
             }
 
             return true;
+        }
+
+        /**
+         * Get a textual error from the given HTTP status code
+         *
+         * @param status_code The status code
+         * @return A string containing an error message
+         */
+        private string get_status_error (uint status_code) {
+            string description = "";
+            switch (status_code) {
+                case Soup.Status.NOT_FOUND:
+                    description = "Not found";
+                    break;
+                case Soup.Status.FORBIDDEN:
+                    description = "Forbidden";
+                    break;
+                case Soup.Status.UNAUTHORIZED:
+                    description = "Unauthorized";
+                    break;
+                default:
+                    return "Server returned error code %u".printf(status_code);
+            }
+
+            return "Server returned error code %u: %s".printf(status_code, description);
+        }
+
+        public string get_base_uri () {
+            return m_message.uri.get_host ();
         }
 
         private Soup.Session? m_session = null;
