@@ -2,6 +2,8 @@
     <gresource prefix="/org/df458/Singularity">
         <file>icon.svg</file>
         <file preprocess="xml-stripblanks">ColumnItemView.ui</file>
+        <file preprocess="xml-stripblanks">ErrorLabel.ui</file>
+        <file preprocess="xml-stripblanks">ErrorsList.ui</file>
         <file preprocess="xml-stripblanks">ExportDialog.ui</file>
         <file preprocess="xml-stripblanks">FeedBuilder.ui</file>
         <file preprocess="xml-stripblanks">FeedPane.ui</file>

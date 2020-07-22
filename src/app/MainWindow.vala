@@ -139,6 +139,20 @@ namespace Singularity {
             */
         }
 
+        /**
+         * Add a new feed update error
+         *
+         * @param f The feed that failed to update
+         * @param message The error message
+         */
+        public void add_error (Feed f, string message) {
+            errors_list.add_error (f, message);
+
+            uint count = errors_list.error_count;
+            errors_button.label = "%u error%s".printf (count, count > 1 ? "s" : "");
+            errors_button.sensitive = true;
+        }
+
         public void display_node (CollectionNode? node) {
             m_last_displayed_node = node;
             update_title_from_selection ();
@@ -261,6 +275,11 @@ namespace Singularity {
             }
         }
 
+        [GtkCallback]
+        private void on_show_errors () {
+            errors_pop.show_all ();
+        }
+
         [GtkChild]
         private Revealer progress_revealer;
         [GtkChild]
@@ -275,6 +294,12 @@ namespace Singularity {
         private SettingsView settings_view;
         [GtkChild]
         private HeaderBar header;
+        [GtkChild]
+        private Button errors_button;
+        [GtkChild]
+        private ErrorsList errors_list;
+        [GtkChild]
+        private Popover errors_pop;
 
         private SingularityApp app;
 

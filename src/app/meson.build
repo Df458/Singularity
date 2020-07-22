@@ -1,6 +1,8 @@
 appsrc = files(
     'main.vala',
 
+    'ErrorLabel.vala',
+    'ErrorsList.vala',
     'FeedBuilder.vala',
     'FeedPane.vala',
     'ImportDialog.vala',

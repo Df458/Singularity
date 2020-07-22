@@ -241,6 +241,12 @@ public class SingularityApp : Gtk.Application {
                 m_feed_store.set_failed (pak.feed.id);
                 m_current_update_progress.updates_finished ();
                 update_progress_changed (m_current_update_progress);
+
+                var window = get_active_window () as MainWindow;
+                if (window != null) {
+                    var functor = new ErrorFunctor (window, pak.feed, pak.message);
+                    Gdk.threads_add_idle (functor.callback);
+                }
             }
         });
 
@@ -435,6 +441,34 @@ public class SingularityApp : Gtk.Application {
     }
 
     private void cleanup () {
+    }
+
+    /**
+     * Functor that dispatches errors to the UI on the main thread
+     */
+    class ErrorFunctor {
+        public ErrorFunctor (MainWindow window, Feed f, string message) {
+            _window = window;
+            _feed = f;
+            _message = message;
+            _functors.add (this);
+        }
+
+        public bool callback () {
+            _window.add_error (_feed, _message);
+            _functors.remove (this);
+            return Source.REMOVE;
+        }
+
+        private MainWindow _window;
+        private Feed _feed;
+        private string _message;
+
+        /**
+         * Holds a ref to each running functor to ensure that the data isn't
+         * unref'd before it gets called
+         */
+        private static ArrayList<ErrorFunctor> _functors = new ArrayList<ErrorFunctor> ();
     }
 }
 

@@ -1,16 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <glade-catalog name="singularity" library="singularity-library" depends="gtk+" init-function="singularity_init">
     <glade-widget-classes>
-        <glade-widget-class name="SingularityFeedPane" generic-name="feedpane" title="Feed Pane"/>
         <glade-widget-class name="SingularityColumnItemView" generic-name="columnitemview" title="Column View"/>
+        <glade-widget-class name="SingularityErrorsList" generic-name="errorslist" title="Errors List"/>
+        <glade-widget-class name="SingularityFeedPane" generic-name="feedpane" title="Feed Pane"/>
         <glade-widget-class name="SingularityGridItemView" generic-name="griditemview" title="Grid View"/>
         <glade-widget-class name="SingularitySettingsView" generic-name="settingsview" title="Settings View"/>
         <glade-widget-class name="SingularityStreamItemView" generic-name="streamitemview" title="Stream View"/>
     </glade-widget-classes>
 
     <glade-widget-group name="Singularity" title="Singularity Widgets">
-        <glade-widget-class-ref name="SingularityFeedPane"/>
         <glade-widget-class-ref name="SingularityColumnItemView"/>
+        <glade-widget-class-ref name="SingularityErrorsList"/>
+        <glade-widget-class-ref name="SingularityFeedPane"/>
         <glade-widget-class-ref name="SingularityGridItemView"/>
         <glade-widget-class-ref name="SingularitySettingsView"/>
         <glade-widget-class-ref name="SingularityStreamItemView"/>

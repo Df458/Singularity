@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Generated with glade 3.22.0 -->
+<interface>
+  <requires lib="gtk+" version="3.22"/>
+  <template class="SingularityErrorsList" parent="GtkBin">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <child>
+      <object class="GtkListBox" id="errors_box">
+        <property name="visible">True</property>
+        <property name="can_focus">False</property>
+        <property name="selection_mode">none</property>
+        <style>
+          <class name="frame"/>
+        </style>
+      </object>
+    </child>
+  </template>
+</interface>
