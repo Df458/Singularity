@@ -85,7 +85,11 @@ namespace Singularity {
             content_manager.script_message_received.connect (message_received);
             content_manager.register_script_message_handler ("test");
 
-            m_builder = new StreamViewBuilder (get_style_context ());
+            string star = IconLocator.get_icon ("starred-symbolic", 24);
+            string unstar = IconLocator.get_icon ("non-starred-symbolic", 24);
+            string unread = IconLocator.get_icon ("mail-unread-symbolic", 24);
+            string read = IconLocator.get_icon ("mail-read-symbolic", 24);
+            m_builder = new StreamViewBuilder (get_style_context (), unstar, star, unread, read);
 
             content.pack_start (m_web_view, true, true);
 
@@ -413,7 +417,11 @@ namespace Singularity {
             content_manager.script_message_received.connect (message_received);
             content_manager.register_script_message_handler ("test");
 
-            m_builder = new GridViewBuilder (get_style_context ());
+            string star = IconLocator.get_icon ("starred-symbolic", 24);
+            string unstar = IconLocator.get_icon ("non-starred-symbolic", 24);
+            string unread = IconLocator.get_icon ("mail-unread-symbolic", 24);
+            string read = IconLocator.get_icon ("mail-read-symbolic", 24);
+            m_builder = new GridViewBuilder (get_style_context (), star, unstar, read, unread);
 
             content.pack_start (m_web_view, true, true);
 

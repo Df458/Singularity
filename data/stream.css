@@ -23,10 +23,6 @@ article+article {
     justify-content: space-between;
     align-content: space-between;
     flex-flow: row;
-    -webkit-display: flex;
-    -webkit-justify-content: space-between;
-    -webkit-align-content: space-between;
-    -webkit-flex-flow: row;
 }
 
 .post-info {

@@ -1,9 +1,10 @@
 namespace Singularity {
 // Constructs HTML for the column view
 public class GridViewBuilder : ViewBuilder, GLib.Object {
-    public GridViewBuilder (Gtk.StyleContext ctx) {
+    public GridViewBuilder (Gtk.StyleContext ctx, string empty_star_icon, string star_icon, string unread_icon, string read_icon) {
         try {
-            head = "<head><style>\n%s\n%s\n%s\n</style></head>".printf (
+            head = "<head><style>\n%s\n%s\n%s\n%s\n</style></head>".printf (
+                css_prepend.printf(empty_star_icon, star_icon, unread_icon, read_icon),
                 resource_to_string ("default.css"),
                 resource_to_string ("grid.css"),
                 WebStyleBuilder.get_css (ctx)
@@ -63,8 +64,8 @@ public class GridViewBuilder : ViewBuilder, GLib.Object {
                 item.link,
                 item.title == "" ? "Untitled Post" : item.title);
             head_builder.append ("<div class=\"button-box\">");
-            head_builder.append_printf ("<img class=\"read-button\", src=\"%s\"/>", read_svg);
-            head_builder.append_printf ("<img class=\"star\", src=\"%s\"/>", star_svg);
+            head_builder.append_printf ("<img class=\"read-button\"/>");
+            head_builder.append_printf ("<img class=\"star\"/>");
             head_builder.append ("</div>");
             head_builder.append ("</section>");
             if (item.author != null || item.time_published.compare (new DateTime.from_unix_utc (0)) != 0)
@@ -96,10 +97,9 @@ public class GridViewBuilder : ViewBuilder, GLib.Object {
     }
 
     private string head = "";
+    private const string css_prepend = @"html { --star-empty: url(%s); --star-filled: url(%s); --unread: url(%s); --read: url(%s); }";
     private bool is_tile = true;
 
     private const string builder_class = "grid";
-    private const string star_svg = "file:///usr/local/share/singularity/star.svg";
-    private const string read_svg = "file:///usr/local/share/singularity/read.svg";
 }
 }

@@ -21,23 +21,28 @@ footer section {
 
 .star, .read-button {
     align-self: flex-start;
-    -webkit-align-self: flex-start;
-    margin-right: -25px;
     float: left;
-    -webkit-clip-path: inset(0 50% 0 0);
-    clip-path: inset(0 50% 0 0);
 
-    opacity: 0;
-    transition: opacity 0.15s;
+    filter: invert(1.0);
+    visibility: hidden;
+    width: 24px;
+    height: 24px;
+}
+.star {
+    background-image: var(--star-empty);
+}
+.read-button {
+    background-image: var(--read);
 }
 article:hover .star, article:hover .read-button {
-    opacity: 1;
-    transition: opacity 0.15s;
+    visibility: visible;
 }
 .star.active, .read-button.active{
-    -webkit-clip-path: inset(0 0 0 50%);
-    clip-path: inset(0 0 0 50%);
-    margin-right: 0;
-    margin-left: -25px;
-    opacity: 1;
+    visibility: visible;
+}
+.star.active {
+    background-image: var(--star-filled);
+}
+.read-button.active {
+    background-image: var(--unread);
 }
