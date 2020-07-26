@@ -12,7 +12,7 @@ namespace Singularity.Menus {
 
             var sort_menu = new Menu ();
             sort_menu.append ("Sort Ascending", "view.sort_type::ascending");
-            sort_menu.append ("Sort Dscending", "view.sort_type::descending");
+            sort_menu.append ("Sort Descending", "view.sort_type::descending");
             // TODO sort types
 
             menu.append_submenu ("Sort", sort_menu);

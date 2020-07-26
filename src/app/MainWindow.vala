@@ -59,10 +59,11 @@ namespace Singularity {
                 int mod = value == SortType.ASCENDING ? 1 : -1;
                 if (_sort_type != mod) {
                     _sort_type = mod;
+                    display_node (m_last_displayed_node);
                 }
             }
         }
-        private int _sort_type = 1;
+        private int _sort_type = -1;
 
         public MainWindow (SingularityApp owner_app) {
             app = owner_app;
@@ -172,7 +173,13 @@ namespace Singularity {
                             return 1 * _sort_type;
                         }
 
-                        return strcmp (i1.owner.title, i2.owner.title) * _sort_type;
+                        int cmp = strcmp (i1.owner.title, i2.owner.title) * _sort_type;
+
+                        if (cmp == 0) {
+                        return i1.time_published.compare(i2.time_published) * _sort_type;
+                        }
+
+                        return cmp;
                     });
                 }
 
