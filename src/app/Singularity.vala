@@ -496,7 +496,7 @@ public struct UpdateProgress {
             percentage = 0;
         }
 
-        calcPercentage ();
+        calc_percentage ();
     }
 
     public void updates_finished (int count = 1) {
@@ -506,10 +506,10 @@ public struct UpdateProgress {
             status = SingularityApp.LoadStatus.COMPLETED;
         }
 
-        calcPercentage ();
+        calc_percentage ();
     }
 
-    private void calcPercentage () {
+    private void calc_percentage () {
         float p;
         if (update_count == 0)
             p = 0;

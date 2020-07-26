@@ -14,9 +14,9 @@ namespace Singularity {
          * @return A filepath to the icon, or "" if no icon was found
          */
         public static string get_icon (string icon_name, int icon_size) {
-            IconInfo? info = IconTheme.get_default().choose_icon({icon_name}, icon_size, IconLookupFlags.FORCE_SVG);
+            IconInfo? info = IconTheme.get_default ().choose_icon ({icon_name}, icon_size, IconLookupFlags.FORCE_SVG);
             if (info != null) {
-                return info.get_filename() ?? "";
+                return info.get_filename () ?? "";
             }
 
             return "";

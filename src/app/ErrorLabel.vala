@@ -36,7 +36,7 @@ namespace Singularity {
         [GtkCallback]
         public void on_copy () {
             var clipboard = Clipboard.get_default (get_display ());
-            clipboard.set_text ("%s: %s".printf(title_label.label, error_label.label), -1);
+            clipboard.set_text ("%s: %s".printf (title_label.label, error_label.label), -1);
         }
 
         [GtkChild]

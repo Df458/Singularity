@@ -176,7 +176,7 @@ namespace Singularity {
                         int cmp = strcmp (i1.owner.title, i2.owner.title) * _sort_type;
 
                         if (cmp == 0) {
-                        return i1.time_published.compare(i2.time_published) * _sort_type;
+                        return i1.time_published.compare (i2.time_published) * _sort_type;
                         }
 
                         return cmp;
