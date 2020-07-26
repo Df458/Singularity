@@ -404,7 +404,7 @@
             </child>
             <child>
               <object class="GtkButton" id="errors_button">
-                <property name="visible">True</property>
+                <property name="visible">False</property>
                 <property name="can_focus">True</property>
                 <property name="label">no errors</property>
                 <property name="image">image3</property>
@@ -418,7 +418,7 @@
                 <property name="expand">False</property>
                 <property name="fill">True</property>
                 <property name="pack_type">end</property>
-                <property name="position">2</property>
+                <property name="position">0</property>
               </packing>
             </child>
             <child>

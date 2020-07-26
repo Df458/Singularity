@@ -127,6 +127,7 @@ namespace Singularity {
             }
 
             this.show_all ();
+            errors_button.visible = false;
 
             /*
             //Button settings_button = new Button.from_icon_name ("gtk-preferences", IconSize.MENU);
@@ -151,6 +152,7 @@ namespace Singularity {
 
             uint count = errors_list.error_count;
             errors_button.label = "%u error%s".printf (count, count > 1 ? "s" : "");
+            errors_button.visible = true;
             errors_button.sensitive = true;
         }
 
