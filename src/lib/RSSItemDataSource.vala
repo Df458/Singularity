@@ -34,6 +34,7 @@ namespace Singularity {
                 node = doc["RDF"];
             else {
                 readRSSFeed (node);
+                is_valid = true;
                 return true;
             }
 
@@ -41,7 +42,7 @@ namespace Singularity {
                 return false;
 
             readRDFFeed (node);
-
+            is_valid = true;
             return true;
         }
 

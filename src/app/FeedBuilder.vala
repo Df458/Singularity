@@ -65,15 +65,15 @@ public class FeedBuilder : Popover {
             Soup.CookieJarDB cookies = new Soup.CookieJarDB (AppSettings.cookie_db_path, true);
             session.add_feature (cookies);
         }
-        XmlRequest request = new XmlRequest (url_entry.text, session);
+        var request = new XmlRequest (url_entry.text, session);
         request.send_async.begin ( (obj, ret) =>
         {
             bool success = request.send_async.end (ret);
             url_entry.secondary_icon_name = success ? "emblem-ok-symbolic" : "dialog-error-symbolic";
 
             if (success) {
-                FeedProvider? provider = request.get_provider_from_request ();
-                if (provider != null && provider.parse_data (request.doc)) {
+                FeedProvider? provider = request.get_provider ();
+                if (provider != null && provider.is_valid) {
                     to_build = provider.stored_feed;
                     title_label.label = "<b>%s</b>".printf (to_build.title);
                     if (to_build.site_link != null)

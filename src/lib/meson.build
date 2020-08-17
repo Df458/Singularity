@@ -17,6 +17,7 @@ libsrc = files(
     'GridViewBuilder.vala', 
     'IconRequest.vala',
     'IO.vala',
+    'IFeedRequest.vala',
     'Item.vala', 
     'ItemToggleRequest.vala',
     'ItemViewRequest.vala',
@@ -36,6 +37,7 @@ libsrc = files(
     'UpdateParentRequest.vala',
     'UpdateQueue.vala',
     'ViewBuilder.vala',
+    'WebFeedRequest.vala',
     'WebStyleBuilder.vala',
     'XmlRequest.vala'
   )

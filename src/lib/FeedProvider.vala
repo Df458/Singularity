@@ -17,9 +17,15 @@
 */
 
 namespace Singularity {
-    // Specific extension of DataSource for feed parsers, in addition to a list
-    // of items this class also holds the feed they belong to.
+    /**
+     * Specific extension of DataSource for feed parsers, in addition to a list
+     * of items this class also holds the feed they belong to.
+     */
     public abstract class FeedProvider : DataSource<Item, unowned GXml.GDocument> {
-        public Feed? stored_feed = null;
+        /** Whether or not this provider exists in a valid state */
+        public bool is_valid { get; protected set; default = false; }
+
+        /** The feed held by this provider */
+        public Feed? stored_feed { get; protected set; default = null; }
     }
 }

@@ -31,18 +31,16 @@ namespace Singularity {
          * This returns a package containing either the resulting update data, or an error message
          */
         public UpdatePackage do_update () {
-            XmlRequest req = new XmlRequest (to_update.link, m_session);
-            if (req.send () == false) {
+            var req = new XmlRequest (to_update.link, m_session);
+            if (!req.send ()) {
                 return new UpdatePackage.failure (to_update, req.error_message);
             }
 
-            GXml.GDocument doc = req.doc;
-
-            FeedProvider source = req.get_provider_from_request ();
+            FeedProvider source = req.get_provider ();
 
             if (source == null)
                 return new UpdatePackage.failure (to_update, "Couldn't determine document content type");
-            if (!source.parse_data (doc))
+            if (!source.is_valid)
                 return new UpdatePackage.failure (to_update, "Failed to parse feed data");
             if (!to_update.update_contents (source))
                 return new UpdatePackage.failure (to_update, "Data was parsed, but the feed couldn't be updated");

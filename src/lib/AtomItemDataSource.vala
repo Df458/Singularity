@@ -36,6 +36,7 @@ namespace Singularity {
 
             readAtomFeed (node);
 
+            is_valid = true;
             return true;
         }
 
