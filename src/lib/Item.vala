@@ -35,12 +35,14 @@ namespace Singularity {
             LOAD_TIME,
             UNREAD,
             STARRED,
+            ICON,
             COUNT
         }
 
         public Feed? owner = null;
         public string title = "";
         public string? link = null;
+        public string? icon = null;
         public string? content = null;
         public string weak_guid = "";
         public Person? author = null;
@@ -177,6 +179,7 @@ namespace Singularity {
             time_loaded = new DateTime.from_unix_utc (r.fetch_int (r.field_index ("load_time")));
             unread = r.fetch_int (r.field_index ("unread")) == 1;
             starred = r.fetch_int (r.field_index ("starred")) == 1;
+            icon = r.fetch_string (r.field_index ("icon"));
             // TODO: Decide how to retrieve owner
             // TODO: Decide how to store authors
             // TODO: Decide how to store contributors

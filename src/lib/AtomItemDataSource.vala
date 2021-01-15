@@ -64,6 +64,13 @@ namespace Singularity {
                             stored_feed.description = n.value;
                         break;
 
+                        case "subtitle":
+                            if (stored_feed.description != "")
+                            {
+                                stored_feed.description = n.value;
+                            }
+                        break;
+
                         case "entry":
                             Item item = readAtomItem (n);
                             if (item != null)
@@ -173,6 +180,14 @@ namespace Singularity {
                                     a.mimetype = dat.attrs["type"].value;
 
                                 new_item.attachments.add (a);
+                            } else
+                                warning ("Failed to load attachment: No URL");
+                        break;
+
+                        case "thumbnail":
+                        case "media:thumbnail":
+                            if (dat.attrs["url"] != null) {
+                                new_item.icon = dat.attrs["url"].value;
                             } else
                                 warning ("Failed to load attachment: No URL");
                         break;

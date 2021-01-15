@@ -79,7 +79,8 @@ namespace Singularity {
                             update_time,
                             load_time,
                             unread,
-                            starred
+                            starred,
+                            icon
                         ) VALUES """);
                     add_item (q_builder, package.new_items[0], true);
                     for (int i = 1; i < package.new_items.size; i++)
@@ -87,7 +88,7 @@ namespace Singularity {
                     try {
                         return new Query (db, q_builder.str);
                     } catch (SQLHeavy.Error e) {
-                        error ("Failed to save item updates for %s: %s. Cammand was:\n%s",
+                        error ("Failed to save item updates for %s: %s. Command was:\n%s",
                             package.feed.to_string (),
                             e.message, q_builder.str);
                     }
@@ -254,7 +255,7 @@ namespace Singularity {
             if (!first)
                 q_builder.append (",\n");
             i.prepare_for_db ();
-            q_builder.append_printf (" (%s, %d, %s, %s, %s, %s, %s, %lld, %lld, %lld, %d, %d)",
+            q_builder.append_printf (" (%s, %d, %s, %s, %s, %s, %s, %lld, %lld, %lld, %d, %d, %s)",
                 sql_str (i.guid),
                 package.feed.id,
                 sql_str (i.weak_guid),
@@ -266,7 +267,8 @@ namespace Singularity {
                 i.time_updated.to_unix (),
                 i.time_loaded.to_unix (),
                 i.unread,
-                i.starred);
+                i.starred,
+                sql_str(i.icon));
         }
 
         private Status m_status = Status.FEED;

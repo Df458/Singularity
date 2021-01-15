@@ -54,9 +54,9 @@ public class GridViewBuilder : ViewBuilder, GLib.Object {
                 item.unread ? "false" : "true",
                 item.starred ? "true" : "false");
             builder.append (" onclick=\"view_item (this)\"");
-            string? icon = extract_image (item.content);
+            string? icon = item.icon ?? extract_image (item.content);
             if (icon != null)
-                builder.append_printf (" style=\"background-image: url (\'%s\');\"", icon);
+                builder.append_printf (" style=\"background-image: url('%s\');\"", icon);
             builder.append_printf (">%s</article>", head_builder.str);
         } else {
             head_builder.append ("<section class=\"title\">");

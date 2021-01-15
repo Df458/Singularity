@@ -83,6 +83,10 @@ public class StreamViewBuilder : ViewBuilder, GLib.Object {
         head_builder.append ("<hr>");
         head_builder.append ("</header>");
 
+        if (item.icon != null)
+        {
+            content_builder.append_printf ("<img src=\"%s\" style=\"max-width: 25%; margin: 0 1em; float: left;\"/>", item.icon);
+        }
         content_builder.append (item.content != null ? item.content : "No content");
         content_builder.append ("</section>");
 

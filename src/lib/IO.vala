@@ -86,8 +86,8 @@ public static string strip_htm (string str) {
 // Hashes a string for use as a unique id
 public static string md5_guid (string str)
     ensures (str != "") {
-    uchar[64] digest = new uchar[64];
-    uchar[32] buffer;
+    uchar[] digest = new uchar[64];
+    uchar[] buffer = new uchar[32];
     GCrypt.Hash.hash_buffer (GCrypt.Hash.Algorithm.MD5, digest, str.data);
 
     GCrypt.MPI mpi;

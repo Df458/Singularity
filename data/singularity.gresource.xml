@@ -21,5 +21,6 @@
         <file>StreamViewLink.js</file>
         <file>GridViewLink.js</file>
         <file>schemas/Create.sql</file>
+        <file>schemas/Update-to-1.sql</file>
     </gresource>
 </gresources>
