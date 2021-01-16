@@ -25,6 +25,7 @@ namespace Singularity {
         public static bool start_update;
         public static bool display_unread_only;
         public static uint auto_update_freq;
+        public static uint last_view;
         public static int items_per_list;
         public static bool download_attachments;
         public static bool ask_download_location;
@@ -39,6 +40,7 @@ namespace Singularity {
             m_source.set_boolean ("start-update", start_update);
             m_source.set_boolean ("unread-only", display_unread_only);
             m_source.set_uint ("auto-update-freq", auto_update_freq);
+            m_source.set_uint ("last-view", last_view);
             m_source.set_boolean ("download-attachments", download_attachments);
             m_source.set_boolean ("ask-download-location", ask_download_location);
             m_source.set_string ("default-download-location", default_download_location.get_path ());
@@ -57,6 +59,7 @@ namespace Singularity {
                 start_update = m_source.get_boolean ("start-update");
                 display_unread_only = m_source.get_boolean ("unread-only");
                 auto_update_freq = m_source.get_uint ("auto-update-freq");
+                last_view = m_source.get_uint ("last-view");
                 items_per_list = m_source.get_int ("items-per-list");
                 download_attachments = m_source.get_boolean ("download-attachments");
                 ask_download_location = m_source.get_boolean ("ask-download-location");
@@ -72,6 +75,7 @@ namespace Singularity {
             auto_update = true;
             start_update = true;
             auto_update_freq = 10;
+            last_view = 0;
             download_attachments = true;
             ask_download_location = true;
             default_download_location = File.new_for_path (Environment.get_home_dir () + "/Downloads");

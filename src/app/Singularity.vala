@@ -441,6 +441,7 @@ public class SingularityApp : Gtk.Application {
     }
 
     private void cleanup () {
+        AppSettings.save();
     }
 
     /**

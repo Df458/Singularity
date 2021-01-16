@@ -20,10 +20,10 @@ using Gdk;
 using Singularity;
 
 namespace Singularity {
-    enum ViewType {
-        GRID,
+    public enum ViewType {
+        STREAM = 0,
         COLUMN,
-        STREAM
+        GRID,
     }
 
     // The primary application window
@@ -50,6 +50,19 @@ namespace Singularity {
         }
         private bool _search_mode = false;
 
+        /** The type of feed view that is currently active */
+        public ViewType view_type {
+            get { return _view_type; }
+            set {
+                if (_view_type != value) {
+                    _view_type = value;
+                    AppSettings.last_view = (int)_view_type;
+                    refresh_view ();
+                }
+            }
+        }
+        private ViewType _view_type;
+
         /**
          * The direction that items are sorted in
          */
@@ -70,6 +83,9 @@ namespace Singularity {
             window_position = WindowPosition.CENTER;
             set_default_size (1024, 768);
 
+            _view_type = (ViewType)AppSettings.last_view;
+            refresh_view ();
+
             var group = new SimpleActionGroup ();
             group.add_action (new PropertyAction ("important", this, "important_view"));
             group.add_action (new PropertyAction ("sort_type", this, "sort_type"));
@@ -77,8 +93,6 @@ namespace Singularity {
             insert_action_group ("view", group);
 
             m_last_displayed_node = null;
-
-            m_item_view = view_stack.get_child_by_name ("items_stream") as ItemView;
 
             feed_pane.init (this, app.get_feed_store ());
             m_feed_builder = new FeedBuilder ();
@@ -204,7 +218,44 @@ namespace Singularity {
         public signal void delete_collection_requested (FeedCollection? collection);
 
         /**
-         * Uppdate the HeaderBar's title and description from the last selected node
+         * Update the UI in response to a feed view change
+         */
+        private void refresh_view () {
+            switch(_view_type) {
+                case ViewType.STREAM:
+                    m_item_view = view_stack.get_child_by_name ("items_stream") as ItemView;
+                    break;
+                case ViewType.COLUMN:
+                    m_item_view = view_stack.get_child_by_name ("items_column") as ItemView;
+                    break;
+                case ViewType.GRID:
+                    m_item_view = view_stack.get_child_by_name ("items_grid") as ItemView;
+                    break;
+            }
+
+            // Update the selection in the view switcher
+            var enumc = (EnumClass) typeof (ViewType).class_ref ();
+            string nick = enumc.get_value(view_type).value_nick;
+            foreach (Widget child in view_switcher.get_children ())
+            {
+                var button = child as RadioButton;
+                if (button != null && nick == button.action_target.get_string()) {
+                    button.active = true;
+                    break;
+                }
+            }
+
+            if (visible)
+            {
+                if (view_stack.visible_child_name != "welcome")
+                    view_stack.set_visible_child (m_item_view);
+
+                display_node (m_last_displayed_node);
+            }
+        }
+
+        /**
+         * Update the HeaderBar's title and description from the last selected node
          *
          * If the node is null, this just falls back to the application name
          */
@@ -229,30 +280,6 @@ namespace Singularity {
         public void on_add_requested (Widget target) {
             m_feed_builder.relative_to = target;
             m_feed_builder.show_all ();
-        }
-
-        [GtkCallback]
-        public void stream_view_selected () {
-            if (view_stack.visible_child_name != "welcome")
-                view_stack.set_visible_child_name ("items_stream");
-            m_item_view = view_stack.get_child_by_name ("items_stream") as ItemView;
-            display_node (m_last_displayed_node);
-        }
-
-        [GtkCallback]
-        public void column_view_selected () {
-            if (view_stack.visible_child_name != "welcome")
-                view_stack.set_visible_child_name ("items_column");
-            m_item_view = view_stack.get_child_by_name ("items_column") as ItemView;
-            display_node (m_last_displayed_node);
-        }
-
-        [GtkCallback]
-        public void grid_view_selected () {
-            if (view_stack.visible_child_name != "welcome")
-                view_stack.set_visible_child_name ("items_grid");
-            m_item_view = view_stack.get_child_by_name ("items_grid") as ItemView;
-            display_node (m_last_displayed_node);
         }
 
         [GtkCallback]
@@ -287,6 +314,20 @@ namespace Singularity {
         [GtkCallback]
         private void on_show_errors () {
             errors_pop.show_all ();
+        }
+
+        [GtkCallback]
+        void on_view_changed (Button button) {
+            if (!((RadioButton)button).active)
+                return;
+
+            var name = button.action_target.get_string();
+            var enumc = (EnumClass) typeof (ViewType).class_ref ();
+
+            var val = enumc.get_value_by_nick (name);
+            if (val != null) {
+                view_type = (ViewType)val.value;
+            }
         }
 
         [GtkChild]
